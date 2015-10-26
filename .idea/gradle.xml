@@ -10,7 +10,11 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/openbaton-libs/catalogue" />
+            <option value="$PROJECT_DIR$/openbaton-libs/exception" />
+            <option value="$PROJECT_DIR$/openbaton-libs/monitoring" />
             <option value="$PROJECT_DIR$/openbaton-libs/plugin" />
+            <option value="$PROJECT_DIR$/openbaton-libs/vim-drivers" />
+            <option value="$PROJECT_DIR$/openbaton-libs/vim-int" />
           </set>
         </option>
         <option name="useAutoImport" value="true" />

@@ -3,8 +3,12 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/openbaton-libs/catalogue/catalogue.iml" filepath="$PROJECT_DIR$/openbaton-libs/catalogue/catalogue.iml" />
+      <module fileurl="file://$PROJECT_DIR$/openbaton-libs/exception/exception.iml" filepath="$PROJECT_DIR$/openbaton-libs/exception/exception.iml" />
       <module fileurl="file://$PROJECT_DIR$/fault-management-system.iml" filepath="$PROJECT_DIR$/fault-management-system.iml" />
+      <module fileurl="file://$PROJECT_DIR$/openbaton-libs/monitoring/monitoring.iml" filepath="$PROJECT_DIR$/openbaton-libs/monitoring/monitoring.iml" />
       <module fileurl="file://$PROJECT_DIR$/openbaton-libs/plugin/plugin.iml" filepath="$PROJECT_DIR$/openbaton-libs/plugin/plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/openbaton-libs/vim-drivers/vim-drivers.iml" filepath="$PROJECT_DIR$/openbaton-libs/vim-drivers/vim-drivers.iml" />
+      <module fileurl="file://$PROJECT_DIR$/openbaton-libs/vim-int/vim-int.iml" filepath="$PROJECT_DIR$/openbaton-libs/vim-int/vim-int.iml" />
     </modules>
   </component>
 </project>
