@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/openbaton-libs/catalogue/catalogue.iml" filepath="$PROJECT_DIR$/openbaton-libs/catalogue/catalogue.iml" />
       <module fileurl="file://$PROJECT_DIR$/fault-management-system.iml" filepath="$PROJECT_DIR$/fault-management-system.iml" />
+      <module fileurl="file://$PROJECT_DIR$/openbaton-libs/plugin/plugin.iml" filepath="$PROJECT_DIR$/openbaton-libs/plugin/plugin.iml" />
     </modules>
   </component>
 </project>

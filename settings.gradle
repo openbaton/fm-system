@@ -1,2 +1,9 @@
 rootProject.name = 'fault-management-system'
 
+include 'catalogue'
+include 'plugin'
+
+project(':catalogue').projectDir = file('openbaton-libs/catalogue')
+project(':plugin').projectDir = file('openbaton-libs/plugin')
+
+
