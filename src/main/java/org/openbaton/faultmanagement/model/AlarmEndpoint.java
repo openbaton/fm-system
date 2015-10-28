@@ -5,7 +5,6 @@ package org.openbaton.faultmanagement.model;
  */
 
 import org.openbaton.catalogue.mano.common.faultmanagement.PerceivedSeverity;
-import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.util.IdGenerator;
 

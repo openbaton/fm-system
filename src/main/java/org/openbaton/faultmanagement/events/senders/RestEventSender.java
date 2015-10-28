@@ -62,6 +62,6 @@ public class RestEventSender implements EventSender {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new AsyncResult<>(null);
+        return null;
     }
 }

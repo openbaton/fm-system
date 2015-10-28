@@ -12,6 +12,9 @@ sourceCompatibility = 1.5
 
 repositories {
     mavenCentral()
+    maven {
+        url "http://get.openbaton.org:8081/nexus/content/groups/public"
+    }
 }
 
 project.ext{
@@ -51,9 +54,15 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-logging:' + springBootVersion
     compile 'org.springframework:spring-jms:' + springVersion
 
+    //Rest Annotation in RestRegister
+    compile "org.springframework.boot:spring-boot-starter-web:" + springBootVersion
+
     //Gson
     compile 'com.google.code.gson:gson:2.4'
 
     //JMS
     compile 'javax.jms:javax.jms-api:2.0.1'
+
+    //Openbaton sdk
+    compile 'org.openbaton:sdk:0.13'
 }

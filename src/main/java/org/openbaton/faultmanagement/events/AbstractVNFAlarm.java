@@ -7,8 +7,6 @@ import org.springframework.context.ApplicationEvent;
  */
 public abstract class AbstractVNFAlarm extends ApplicationEvent {
     private Alarm alarm;
-
-
     /**
      * Create a new ApplicationEvent.
      *
