@@ -15,14 +15,13 @@
  */
 
 package org.openbaton.faultmanagement.events.senders;
-import org.openbaton.faultmanagement.events.AbstractVNFAlarm;
+import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
 import org.openbaton.faultmanagement.events.senders.interfaces.EventSender;
 import org.openbaton.faultmanagement.model.AlarmEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;

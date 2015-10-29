@@ -1,4 +1,4 @@
-package org.openbaton.faultmanagement.events;
+package org.openbaton.faultmanagement.events.notifications;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.Alarm;
 

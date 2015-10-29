@@ -1,6 +1,6 @@
 package org.openbaton.faultmanagement.events.senders.interfaces;
 
-import org.openbaton.faultmanagement.events.AbstractVNFAlarm;
+import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
 import org.openbaton.faultmanagement.model.AlarmEndpoint;
 
 import java.io.IOException;

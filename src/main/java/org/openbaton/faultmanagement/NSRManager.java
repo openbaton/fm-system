@@ -14,7 +14,9 @@ import org.openbaton.sdk.api.exception.SDKException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
@@ -24,51 +26,58 @@ import java.util.Set;
 /**
  * Created by mob on 26.10.15.
  */
-public class AbstractFaultMangement {
+@Service
+public class NSRManager {
     private HttpServer server;
     private Set<NetworkServiceRecord> nsrSet;
     private MyHandler myHandler;
     private static final String name = "FaultManagement";
-    private static final Logger log = LoggerFactory.getLogger(AbstractFaultMangement.class);
+    private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
+    private String unsubscriptionIdINSTANTIATE_FINISH;
+    private String unsubscriptionIdRELEASE_RESOURCES_FINISH;
     private NFVORequestor nfvoRequestor;
-    public static void main(String[] args) {
-        SpringApplication.run(AbstractFaultMangement.class);
-    }
 
-    public void init() throws IOException {
+
+    @PostConstruct
+    public void init() throws IOException, SDKException {
         Properties properties=new Properties();
         properties.load(new FileInputStream("fm.properties"));
         nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), properties.getProperty("nfvo-ip"),properties.getProperty("nfvo-port"),"1");
         launchServer();
         nsrSet=new HashSet<>();
+        EventEndpoint eventEndpoint= createEventEndpoint();
+        EventEndpoint response = null;
+        try {
+            response = nfvoRequestor.getEventAgent().create(eventEndpoint);
+            if (response == null)
+                throw new NullPointerException("Response is null");
+            unsubscriptionIdINSTANTIATE_FINISH=response.getId();
+            eventEndpoint.setEvent(Action.RELEASE_RESOURCES_FINISH);
+
+            response = nfvoRequestor.getEventAgent().create(eventEndpoint);
+            if (response == null)
+                throw new NullPointerException("Response is null");
+            unsubscriptionIdRELEASE_RESOURCES_FINISH=response.getId();
+        } catch (SDKException e) {
+            log.error("Subscription failed for the NSRs");
+            throw e;
+        }
+    }
+
+    public Set<NetworkServiceRecord> getNsrSet() {
+        return nsrSet;
+    }
+
+    private EventEndpoint createEventEndpoint(){
         EventEndpoint eventEndpoint= new EventEndpoint();
         eventEndpoint.setName(name);
         eventEndpoint.setEvent(Action.INSTANTIATE_FINISH);
         eventEndpoint.setType(EndpointType.REST);
         String url = "http://localhost:" + server.getAddress().getPort() + "/" + name;
         eventEndpoint.setEndpoint(url);
-
-
-        EventEndpoint response = null;
-        String unsubscriptionId1;
-        String unsubscriptionId2;
-        try {
-            response = nfvoRequestor.getEventAgent().create(eventEndpoint);
-            if (response == null)
-                throw new NullPointerException("Response is null");
-            unsubscriptionId1=response.getId();
-            eventEndpoint.setEvent(Action.RELEASE_RESOURCES_FINISH);
-
-            response = nfvoRequestor.getEventAgent().create(eventEndpoint);
-            if (response == null)
-                throw new NullPointerException("Response is null");
-            unsubscriptionId2=response.getId();
-        } catch (SDKException e) {
-            log.error("Subscription failed for the NSRs");
-            e.printStackTrace();
-        }
-
+        return eventEndpoint;
     }
+
     private void launchServer() throws IOException {
         server = HttpServer.create(new InetSocketAddress(0), 1);
         myHandler=new MyHandler();
@@ -96,7 +105,7 @@ public class AbstractFaultMangement {
             log.debug("Action received: " + actionReceived);
             Action action=Action.valueOf(actionReceived);
             String payload= jsonElement.getAsJsonObject().get("payload").getAsString();
-            log.debug("Payload received: "+payload);
+            log.debug("Payload received: " + payload);
             NetworkServiceRecord nsr=null;
             try {
                 nsr = Parser.getMapper().fromJson(payload, NetworkServiceRecord.class);
@@ -106,10 +115,12 @@ public class AbstractFaultMangement {
             }
             if(action.ordinal()==Action.INSTANTIATE_FINISH.ordinal())
                 nsrSet.add(nsr);
-            else if(action.ordinal()==Action.RELEASE_RESOURCES_FINISH.ordinal())
+            else if(action.ordinal()==Action.RELEASE_RESOURCES_FINISH.ordinal()){
                 nsrSet.remove(nsr);
+            }
             else {
                 log.debug("Action unknow: "+action);
+                return false;
             }
             return true;
         }
@@ -137,6 +148,12 @@ public class AbstractFaultMangement {
             }
             return responseStrBuilder.toString();
         }
+
+
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(NSRManager.class);
     }
 
 }

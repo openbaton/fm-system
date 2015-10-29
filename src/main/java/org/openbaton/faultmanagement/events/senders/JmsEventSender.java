@@ -16,12 +16,10 @@
 
 package org.openbaton.faultmanagement.events.senders;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.openbaton.catalogue.mano.common.faultmanagement.Alarm;
-import org.openbaton.faultmanagement.events.AbstractVNFAlarm;
-import org.openbaton.faultmanagement.events.VNFAlarmNotification;
-import org.openbaton.faultmanagement.events.VNFAlarmStateChangedNotification;
+import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
+import org.openbaton.faultmanagement.events.notifications.VNFAlarmNotification;
+import org.openbaton.faultmanagement.events.notifications.VNFAlarmStateChangedNotification;
 import org.openbaton.faultmanagement.events.senders.interfaces.EventSender;
 import org.openbaton.faultmanagement.model.AlarmEndpoint;
 import org.openbaton.faultmanagement.parser.Parser;
@@ -32,7 +30,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import javax.jms.JMSException;

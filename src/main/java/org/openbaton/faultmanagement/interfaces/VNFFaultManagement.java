@@ -3,7 +3,7 @@ package org.openbaton.faultmanagement.interfaces;
 import org.openbaton.catalogue.mano.common.faultmanagement.Alarm;
 import org.openbaton.catalogue.mano.common.faultmanagement.PerceivedSeverity;
 import org.openbaton.exceptions.NotFoundException;
-import org.openbaton.faultmanagement.events.AbstractVNFAlarm;
+import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
 import org.openbaton.faultmanagement.model.AlarmEndpoint;
 
 import java.util.List;

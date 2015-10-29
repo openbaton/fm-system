@@ -20,6 +20,7 @@ package org.openbaton.faultmanagement.events;
 import org.openbaton.catalogue.mano.common.faultmanagement.Alarm;
 import org.openbaton.catalogue.mano.common.faultmanagement.PerceivedSeverity;
 import org.openbaton.faultmanagement.events.interfaces.AlarmDispatcher;
+import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
 import org.openbaton.faultmanagement.events.senders.interfaces.EventSender;
 import org.openbaton.faultmanagement.model.AlarmEndpoint;
 import org.openbaton.faultmanagement.repositories.AlarmRepository;
@@ -47,7 +48,6 @@ import java.util.List;
  */
 @Service
 @Scope
-@EnableJms
 public class EventDispatcher implements ApplicationListener<AbstractVNFAlarm>, AlarmDispatcher{
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
