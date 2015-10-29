@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="996e78ec-fb48-4711-8076-b77752ffea8d" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/openbaton-libs/catalogue/src/main/java/org/openbaton/catalogue/mano/common/faultmanagement/NSFaultManagementPolicy.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/openbaton-libs/catalogue/src/main/java/org/openbaton/catalogue/mano/common/faultmanagement/VNFFaultManagementPolicy.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/openbaton-libs/catalogue/src/main/java/org/openbaton/catalogue/mano/common/faultmanagement/MonitoringParam.java" afterPath="$PROJECT_DIR$/openbaton-libs/catalogue/src/main/java/org/openbaton/catalogue/mano/common/faultmanagement/Metric.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/openbaton-libs/catalogue/src/main/java/org/openbaton/catalogue/mano/common/faultmanagement/Criteria.java" afterPath="$PROJECT_DIR$/openbaton-libs/catalogue/src/main/java/org/openbaton/catalogue/mano/common/faultmanagement/Criteria.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/openbaton-libs/catalogue/src/main/java/org/openbaton/catalogue/mano/common/faultmanagement/FaultManagementPolicy.java" afterPath="$PROJECT_DIR$/openbaton-libs/catalogue/src/main/java/org/openbaton/catalogue/mano/common/faultmanagement/FaultManagementPolicy.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/org/openbaton/faultmanagement/PolicyManager.java" afterPath="$PROJECT_DIR$/src/main/java/org/openbaton/faultmanagement/PolicyManager.java" />
-    </list>
+    <list default="true" id="996e78ec-fb48-4711-8076-b77752ffea8d" name="Default" comment="" />
     <ignored path="fault-management-system.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path="$PROJECT_DIR$/openbaton-libs/vim-int/.gradle/" />
@@ -2300,12 +2293,12 @@
       <created>1446137203393</created>
       <option name="number" value="Default" />
       <updated>1446137203393</updated>
-      <workItem from="1446137206493" duration="7829000" />
+      <workItem from="1446137206493" duration="7864000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="7829000" />
+    <option name="totallyTimeSpent" value="7864000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1919" y="0" width="1922" height="1201" extended-state="6" />
