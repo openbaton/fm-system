@@ -9,7 +9,8 @@ import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
 import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
-import org.openbaton.faultmanagement.parser.Parser;
+import org.openbaton.faultmanagement.parser.Mapper;
+import org.openbaton.faultmanagement.parser.Zabbix_v2_4_MetricParser;
 import org.openbaton.sdk.NFVORequestor;
 import org.openbaton.sdk.api.exception.SDKException;
 import org.slf4j.Logger;
@@ -103,7 +104,7 @@ public class NSRManager {
         }
 
         private boolean checkRequest(String message) {
-            JsonElement jsonElement = Parser.getMapper().fromJson(message, JsonElement.class);
+            JsonElement jsonElement = Mapper.getMapper().fromJson(message, JsonElement.class);
 
             String actionReceived= jsonElement.getAsJsonObject().get("action").getAsString();
             log.debug("Action received: " + actionReceived);
@@ -112,7 +113,7 @@ public class NSRManager {
             log.debug("Payload received: " + payload);
             NetworkServiceRecord nsr=null;
             try {
-                nsr = Parser.getMapper().fromJson(payload, NetworkServiceRecord.class);
+                nsr = Mapper.getMapper().fromJson(payload, NetworkServiceRecord.class);
             }catch (Exception e){
                 log.warn("Impossible to retrive the NSR received",e);
                 return false;

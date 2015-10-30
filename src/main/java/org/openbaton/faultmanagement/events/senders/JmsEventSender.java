@@ -22,7 +22,8 @@ import org.openbaton.faultmanagement.events.notifications.VNFAlarmNotification;
 import org.openbaton.faultmanagement.events.notifications.VNFAlarmStateChangedNotification;
 import org.openbaton.faultmanagement.events.senders.interfaces.EventSender;
 import org.openbaton.faultmanagement.model.AlarmEndpoint;
-import org.openbaton.faultmanagement.parser.Parser;
+import org.openbaton.faultmanagement.parser.Mapper;
+import org.openbaton.faultmanagement.parser.Zabbix_v2_4_MetricParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,7 @@ public class JmsEventSender implements EventSender {
         MessageCreator mc=null;
         if(abstractAlarm instanceof VNFAlarmNotification) {
             VNFAlarmNotification vnfAlarmNotification = (VNFAlarmNotification) abstractAlarm;
-            final String json = Parser.getMapper().toJson(vnfAlarmNotification.getAlarm(), Alarm.class);
+            final String json = Mapper.getMapper().toJson(vnfAlarmNotification.getAlarm(), Alarm.class);
             log.debug("Sending VNF alarm Notification: "+ json);
             mc = createMessageCreator(json);
         }
