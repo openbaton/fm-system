@@ -17,18 +17,15 @@ public class Zabbix_v2_4_MetricParser {
         return "";
     }
 
-    private static String getNetDns(Map<String,String> params) throws ZabbixMetricParserException {
+    private static String getNetDns(Map<String, String> params) throws ZabbixMetricParserException {
         if(params==null) throw new ZabbixMetricParserException("net.dns metric has null parameters");
-
-
         String result = "net.dns[";
         for(int i=1 ; i<6 ;i++){
             result+= params.get("p"+i)==null ? ",": params.get("p"+i);
         }
         return result+"]";
     }
-
-    public static String getAgentPing() {
+    private static String getAgentPing() {
         return "agent.ping";
     }
 }

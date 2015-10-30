@@ -22,29 +22,39 @@ public class FaultMonitor implements Runnable{
         this.vnfFaultManagementPolicy=vnfFaultManagementPolicy;
         this.hostnamesVduMap=hostnamesVduMap;
         this.metrics=metrics;
+        //vdulist
     }
 
     @Override
     public void run() {
 
-        //call zabbix plugin and get Items for those hostnames
+        //call zabbix plugin and get Items for those hostnames belong to the current vnf
 
         List<Item> randomItems= createRandomItems(hostnamesVduMap.keySet(), metrics);
         int numCriteriaViolated=0;
-        for(Criteria criteria: vnfFaultManagementPolicy.getCriteriaSet())
-        {
-            for(String hostname : hostnamesVduMap.keySet()){
-                if(criteria.getVdu_selector().equals(hostnamesVduMap.get(hostname))){
-                    for(Item item: getItemsFromHostname(randomItems,hostname))
-                        if(item.getMetric().equals(criteria.getParameter_ref())){
-                            if(item.getLastValue().equals(criteria.getThreshold()))
-                                numCriteriaViolated++;
-                        }
+        for(Criteria criteria: vnfFaultManagementPolicy.getCriteriaSet()) {
+            //call zabbix for vdu id
+            for(Item item: randomItems){
+                if(item.getMetric().equals(criteria.getParameter_ref())){
+                    if(item.getLastValue().equals(criteria.getThreshold()) && criteria.getStatistic().equals("at_least_one")){
+                        numCriteriaViolated++;
+                        log.debug("The vnfc: "+item.getHostname()+" has violated the criteria: "+criteria);
+                    }
                 }
             }
         }
         if(numCriteriaViolated == vnfFaultManagementPolicy.getCriteriaSet().size())
             log.debug("All criteria in the policy are violated send alarm!");
+    }
+
+    private List<String> getHostnameForVdu(String vdu_selector) {
+        List<String> result=new ArrayList<>();
+        for(String hostname : hostnamesVduMap.keySet()){
+            if(vdu_selector.equals(hostnamesVduMap.get(hostname))){
+                result.add(hostname);
+            }
+        }
+        return result;
     }
 
     private void createAndSendAlarm() {
