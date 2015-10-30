@@ -8,11 +8,13 @@ import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
+import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.parser.Parser;
 import org.openbaton.sdk.NFVORequestor;
 import org.openbaton.sdk.api.exception.SDKException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +39,8 @@ public class NSRManager {
     private String unsubscriptionIdRELEASE_RESOURCES_FINISH;
     private NFVORequestor nfvoRequestor;
 
+    @Autowired
+    PolicyManagerInterface policyManager;
 
     @PostConstruct
     public void init() throws IOException, SDKException {
@@ -113,10 +117,17 @@ public class NSRManager {
                 log.warn("Impossible to retrive the NSR received",e);
                 return false;
             }
-            if(action.ordinal()==Action.INSTANTIATE_FINISH.ordinal())
+            if(action.ordinal()==Action.INSTANTIATE_FINISH.ordinal()) {
                 nsrSet.add(nsr);
+                try {
+                    policyManager.manageNSR(nsr);
+                } catch (FaultManagementPolicyException e) {
+                    log.error("Policy manager Exception", e);
+                }
+            }
             else if(action.ordinal()==Action.RELEASE_RESOURCES_FINISH.ordinal()){
                 nsrSet.remove(nsr);
+                policyManager.unManageNSR(nsr.getId());
             }
             else {
                 log.debug("Action unknow: "+action);
