@@ -37,7 +37,7 @@ public class PolicyManager implements PolicyManagerInterface{
         for(NetworkServiceRecordShort networkServiceRecordShort : networkServiceRecordShortList){
             for(VirtualNetworkFunctionRecordShort vnfs : networkServiceRecordShort.getVirtualNetworkFunctionRecordShorts()){
                 for(VNFFaultManagementPolicy vnfp: vnfs.getVnfFaultManagementPolicies()){
-                    
+
                 }
             }
         }

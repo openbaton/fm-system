@@ -14,6 +14,7 @@ public class VirtualNetworkFunctionRecordShort {
     private String nsrFatherId;
     private List<VNFFaultManagementPolicy> vnfFaultManagementPolicies;
 
+
     public VirtualNetworkFunctionRecordShort(String id, String name,String nsrFatherId){
         this.id=id;
         this.name=name;
