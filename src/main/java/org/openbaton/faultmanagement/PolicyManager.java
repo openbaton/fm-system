@@ -1,7 +1,4 @@
 package org.openbaton.faultmanagement;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.*;

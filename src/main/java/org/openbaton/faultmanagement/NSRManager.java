@@ -10,9 +10,8 @@ import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
 import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.parser.Mapper;
-import org.openbaton.faultmanagement.parser.Zabbix_v2_4_MetricParser;
-import org.openbaton.sdk.NFVORequestor;
-import org.openbaton.sdk.api.exception.SDKException;
+//import org.openbaton.sdk.NFVORequestor;
+//import org.openbaton.sdk.api.exception.SDKException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +37,9 @@ public class NSRManager {
     private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
     private String unsubscriptionIdINSTANTIATE_FINISH;
     private String unsubscriptionIdRELEASE_RESOURCES_FINISH;
-    private NFVORequestor nfvoRequestor;
+    /*private NFVORequestor nfvoRequestor;
 
-    @Autowired
-    PolicyManagerInterface policyManager;
+
 
     @PostConstruct
     public void init() throws IOException, SDKException {
@@ -67,8 +65,9 @@ public class NSRManager {
             log.error("Subscription failed for the NSRs");
             throw e;
         }
-    }
-
+    }*/
+    @Autowired
+    PolicyManagerInterface policyManager;
     public Set<NetworkServiceRecord> getNsrSet() {
         return nsrSet;
     }

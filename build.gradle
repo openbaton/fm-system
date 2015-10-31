@@ -6,10 +6,6 @@ apply plugin: 'java'
 
 apply from: 'openbaton-libs/gradle/gradle/application.java.gradle'
 
-
-sourceCompatibility = 1.5
-
-
 repositories {
     mavenCentral()
     maven {
@@ -64,5 +60,5 @@ dependencies {
     compile 'javax.jms:javax.jms-api:2.0.1'
 
     //Openbaton sdk
-    compile 'org.openbaton:sdk:0.14'
+    //compile 'org.openbaton:sdk:0.14'
 }
