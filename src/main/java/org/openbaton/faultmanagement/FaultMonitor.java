@@ -32,7 +32,7 @@ public class FaultMonitor implements Runnable{
 
         List<Item> randomItems= createRandomItems(hostnamesVduMap.keySet(), metrics);
         int numCriteriaViolated=0;
-        for(Criteria criteria: vnfFaultManagementPolicy.getCriteriaSet()) {
+        for(Criteria criteria: vnfFaultManagementPolicy.getCriteria()) {
             //call zabbix for vdu id
             for(Item item: randomItems){
                 if(item.getMetric().equals(criteria.getParameter_ref())){
@@ -43,7 +43,7 @@ public class FaultMonitor implements Runnable{
                 }
             }
         }
-        if(numCriteriaViolated == vnfFaultManagementPolicy.getCriteriaSet().size())
+        if(numCriteriaViolated == vnfFaultManagementPolicy.getCriteria().size())
             log.debug("All criteria in the policy are violated send alarm!");
     }
 

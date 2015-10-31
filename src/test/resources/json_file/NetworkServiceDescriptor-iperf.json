@@ -90,87 +90,13 @@
                 "cpu_utilization"
             ],
             "auto_scale_policy":[
-                {
-                    "name":"scaleup",
-                    "mode":"reactive, proactive",
-                    "type":"single/plain, voted, weighted",
-                    "threshold":50,
-                    "period":10,
-                    "cooldown":10,
-                    "alarm":[
-                        {
-                            "metric":"dummy",
-                            "statistic":"avg/min/max",
-                            "comparison_operator":">",
-                            "threshold":70,
-                            "weight":1
-                        },
-                        {
-                            "metric":"dummy",
-                            "statistic":"avg/min/max",
-                            "comparison_operator":">",
-                            "threshold":70,
-                            "weight":2
-                        }
-                    ],
-                    "action":[
-                        {
-                            "type": "Heal",
-                            "adjustment": "1"
-                        },
-                        {
-                            "type":"Migrate",
-                            "adjustment":"1"
-                        }
-                    ],
-                    "custom_action":[
-                        {
-                            "type":"timeout",
-                            "configuration":{
-                                "time":120
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name":"scaleup",
-                    "type":"",
-                    "mode":"predictive",
-                    "threshold":0,
-                    "period":0,
-                    "alarms":[
-                        {
-                            "time":"12:00/daily",
-                            "metric":"",
-                            "statistic":"",
-                            "comparison_operator":"",
-                            "threshold":0,
-                            "weight":0
-                        }
-                    ],
-                    "actions":[
-                        {
-                            "type":"ChangeInCapacity",
-                            "adjustment":1,
-                            "cooldown":120
-                        }
-                    ],
-                    "custom_actions":[
-                        {
-                            "type":"timeout",
-                            "configuration":{
-                                "time":60
-                            }
-                        }
-                    ]
-                }
             ],
             "fault_management_policy":[
                 {
                     "name":"vnf-not-available",
                     "criteria":[
                         {
-                            "name":"alarm1",
+                            "name":"criteria1",
                             "vdu_selector":"vdu1",
                             "parameter_ref":"NET_TCP_LISTEN",
                             "statistic":"at_least_one",
@@ -178,8 +104,8 @@
                             "threshold":"0"
                         },
                         {
-                            "name":"alarm2",
-                            "vdu_selector":"vdu2",
+                            "name":"criteria2",
+                            "vdu_selector":"vdu1",
                             "parameter_ref":"AGENT_PING",
                             "statistic":"at_least_one",
                             "comparison_operator":"=",
@@ -188,7 +114,8 @@
                     ],
                     "period":"30",
                     "cooldown":10,
-                    "severity":"fatal"
+                    "severity":"CRITICAL",
+                    "action":"REINSTANTIATE_SERVICE"
                 }
             ],
             "deployment_flavour":[  
@@ -241,8 +168,25 @@
                             ]
                         }
                     ],
-                    "monitoring_parameter":[  
-                        "cpu_utilization"
+                    "monitoring_parameter":[
+                        {
+                            "name":"AGENT_PING"
+                        },
+                        {
+                            "name":"NET_TCP_LISTEN",
+                            "params":
+                            [
+                                "8041"
+                            ]
+                        },
+                        {
+                            "name":"SYSTEM_CPU_LOAD",
+                            "params":
+                            [
+                                "all",
+                                "avg5"
+                            ]
+                        }
                     ]
                 }
             ],
@@ -271,7 +215,7 @@
             "vdu_dependency":[  
 
             ],
-            "monitoring_parameter":[  
+            "monitoring_parameter":[
                 "cpu_utilization"
             ],
             "deployment_flavour":[  
