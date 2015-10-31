@@ -30,21 +30,28 @@ public class PolicyManager implements PolicyManagerInterface{
     }
 
     public void manageNSR(NetworkServiceRecord nsr) throws FaultManagementPolicyException {
-        checkNsr(nsr);
+        if(!nsrNeedsMonitoring(nsr)){
+            log.debug("The NSR"+ nsr.getName()+" needn't fault management monitoring");
+            return;
+        }
+        NetworkServiceRecordShort nsrs= getNSRShort(nsr);
+        for(VirtualNetworkFunctionRecordShort vnfs : nsrs.getVirtualNetworkFunctionRecordShorts()){
+            for(VNFFaultManagementPolicy vnfp: vnfs.getVnfFaultManagementPolicies()){
 
-        for(NetworkServiceRecordShort networkServiceRecordShort : networkServiceRecordShortList){
-            for(VirtualNetworkFunctionRecordShort vnfs : networkServiceRecordShort.getVirtualNetworkFunctionRecordShorts()){
-                for(VNFFaultManagementPolicy vnfp: vnfs.getVnfFaultManagementPolicies()){
-                    //List<String> vduList
-                }
             }
         }
+
     }
 
-    private void checkNsr(NetworkServiceRecord nsr) throws FaultManagementPolicyException {
+    private boolean nsrNeedsMonitoring(NetworkServiceRecord nsr) {
         if(nsr == null)
             throw new NullPointerException("The nsr is null");
         //TODO Check if the nsr must be monitored
+        return true;
+    }
+
+    private NetworkServiceRecordShort getNSRShort(NetworkServiceRecord nsr) throws FaultManagementPolicyException {
+
         NetworkServiceRecordShort nsrs = new NetworkServiceRecordShort(nsr.getId(),nsr.getName());
         Set<FaultManagementPolicy> fmpolicies=nsr.getFaultManagementPolicy();
         if(fmpolicies.isEmpty())
@@ -75,11 +82,13 @@ public class PolicyManager implements PolicyManagerInterface{
             }
             for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
                 VirtualDeploymentUnitShort vdus= new VirtualDeploymentUnitShort(vdu.getId(),vdu.getName());
+                vdus.setMonitoringParameters(vdu.getMonitoring_parameter());
                 vnfrs.addVirtualDeploymentUnitShort(vdus);
             }
             nsrs.addVNFS(vnfrs);
         }
         this.networkServiceRecordShortList.add(nsrs);
+        return nsrs;
     }
     public void unManageNSR(String id) {
         for (NetworkServiceRecordShort nsrs : networkServiceRecordShortList) {

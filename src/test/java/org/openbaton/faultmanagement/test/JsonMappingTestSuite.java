@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
 import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
+import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
 
 import java.io.*;
@@ -100,6 +101,13 @@ public class JsonMappingTestSuite {
                 System.out.println("Actual"+vnffmp);
                 System.out.println("Expect"+expectedVnfFaultManagementPolicy);
                 assertEquals("VNFFaultManagementPolicy name should be the same",expectedVnfFaultManagementPolicy.getName(),vnffmp.getName());
+
+                for (VirtualDeploymentUnit vdu : vnfd.getVdu()){
+                    Iterator<MonitoringParameter> it= vdu.getMonitoring_parameter().iterator();
+                    while(it.hasNext()){
+                        System.out.println(mp.toString());
+                    }
+                }
             }
 
         }

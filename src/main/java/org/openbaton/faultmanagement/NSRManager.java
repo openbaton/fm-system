@@ -10,8 +10,10 @@ import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
 import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.parser.Mapper;
-//import org.openbaton.sdk.NFVORequestor;
-//import org.openbaton.sdk.api.exception.SDKException;
+
+/*import org.openbaton.sdk.NFVORequestor;
+import org.openbaton.sdk.api.exception.SDKException;*/
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,15 +39,15 @@ public class NSRManager {
     private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
     private String unsubscriptionIdINSTANTIATE_FINISH;
     private String unsubscriptionIdRELEASE_RESOURCES_FINISH;
-    /*private NFVORequestor nfvoRequestor;
+    //private NFVORequestor nfvoRequestor;
 
 
 
     @PostConstruct
-    public void init() throws IOException, SDKException {
+    public void init() throws IOException/*, SDKException*/ {
         Properties properties=new Properties();
         properties.load(new FileInputStream("fm.properties"));
-        nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), properties.getProperty("nfvo-ip"),properties.getProperty("nfvo-port"),"1");
+        /*nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), properties.getProperty("nfvo-ip"),properties.getProperty("nfvo-port"),"1");
         launchServer();
         nsrSet=new HashSet<>();
         EventEndpoint eventEndpoint= createEventEndpoint();
@@ -64,8 +66,8 @@ public class NSRManager {
         } catch (SDKException e) {
             log.error("Subscription failed for the NSRs");
             throw e;
-        }
-    }*/
+        }*/
+    }
     @Autowired
     PolicyManagerInterface policyManager;
     public Set<NetworkServiceRecord> getNsrSet() {

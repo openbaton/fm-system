@@ -1,8 +1,11 @@
 package org.openbaton.faultmanagement;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.Criteria;
+import org.openbaton.catalogue.mano.common.faultmanagement.Metric;
+import org.openbaton.catalogue.mano.common.faultmanagement.MonitoringParameter;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 import org.openbaton.catalogue.nfvo.Item;
+import org.openbaton.faultmanagement.parser.Zabbix_v2_4_MetricParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,16 +16,13 @@ import java.util.*;
  */
 public class FaultMonitor implements Runnable{
     private VNFFaultManagementPolicy vnfFaultManagementPolicy;
-    private Map<String,String> hostnamesVduMap;
-    private List<String> metrics;
+    private List<VirtualDeploymentUnitShort> vdusList;
     private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
     Random randomGenerator = new Random();
 
-    public FaultMonitor(VNFFaultManagementPolicy vnfFaultManagementPolicy, Map<String,String> hostnamesVduMap, List<String>metrics){
+    public FaultMonitor(VNFFaultManagementPolicy vnfFaultManagementPolicy, List<VirtualDeploymentUnitShort>vdus){
         this.vnfFaultManagementPolicy=vnfFaultManagementPolicy;
-        this.hostnamesVduMap=hostnamesVduMap;
-        this.metrics=metrics;
-        //vdulist
+        this.vdusList=vdus;
     }
 
     @Override
@@ -30,10 +30,17 @@ public class FaultMonitor implements Runnable{
 
         //call zabbix plugin and get Items for those hostnames belong to the current vnf
 
-        List<Item> randomItems= createRandomItems(hostnamesVduMap.keySet(), metrics);
         int numCriteriaViolated=0;
         for(Criteria criteria: vnfFaultManagementPolicy.getCriteria()) {
             //call zabbix for vdu id
+            String vduSelected= criteria.getVdu_selector();
+
+            /*VirtualDeploymentUnitShort currentVDUS=getVdus(vduSelected,vdusList);
+            MonitoringParameter mp = currentVDUS.getMonitoringParameter(criteria.getParameter_ref());
+            String currentMetric = Zabbix_v2_4_MetricParser.getZabbixMetric(mp.getMetric(),mp.getParams());
+            //call zabbix for vdu id
+
+            List<Item> randomItems= createRandomItems(hostnamesVduMap.keySet(), metrics);
             for(Item item: randomItems){
                 if(item.getMetric().equals(criteria.getParameter_ref())){
                     if(item.getLastValue().equals(criteria.getThreshold()) && criteria.getStatistic().equals("at_least_one")){
@@ -41,13 +48,21 @@ public class FaultMonitor implements Runnable{
                         log.debug("The vnfc: "+item.getHostname()+" has violated the criteria: "+criteria);
                     }
                 }
-            }
+            }*/
         }
         if(numCriteriaViolated == vnfFaultManagementPolicy.getCriteria().size())
             log.debug("All criteria in the policy are violated send alarm!");
     }
 
-    private List<String> getHostnameForVdu(String vdu_selector) {
+    private VirtualDeploymentUnitShort getVdus(String vduSelectedName, List<VirtualDeploymentUnitShort> vdusList) {
+        for(VirtualDeploymentUnitShort vdus: vdusList){
+            if(vdus.getName().equals(vduSelectedName))
+                return vdus;
+        }
+        return null;
+    }
+
+    /*private List<String> getHostnameForVdu(String vdu_selector) {
         List<String> result=new ArrayList<>();
         for(String hostname : hostnamesVduMap.keySet()){
             if(vdu_selector.equals(hostnamesVduMap.get(hostname))){
@@ -55,7 +70,7 @@ public class FaultMonitor implements Runnable{
             }
         }
         return result;
-    }
+    }*/
 
     private void createAndSendAlarm() {
 

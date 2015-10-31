@@ -46,22 +46,22 @@
                     ],
                     "monitoring_parameter":[
                         {
-                            "name":"AGENT_PING"
+                            "metric":"AGENT_PING"
                         },
                         {
-                            "name":"NET_TCP_LISTEN",
+                            "metric":"NET_TCP_LISTEN",
                             "params":
-                            [
-                                "8041"
-                            ]
+                            {
+                                "p1":"8041"
+                            }
                         },
                         {
-                            "name":"SYSTEM_CPU_LOAD",
+                            "metric":"SYSTEM_CPU_LOAD",
                             "params":
-                            [
-                                "all",
-                                "avg5"
-                            ]
+                            {
+                                "p1":"all",
+                                "p2":"avg5"
+                            }
                         }
                     ]
                 }
@@ -170,22 +170,22 @@
                     ],
                     "monitoring_parameter":[
                         {
-                            "name":"AGENT_PING"
+                            "metric":"AGENT_PING"
                         },
                         {
-                            "name":"NET_TCP_LISTEN",
+                            "metric":"NET_TCP_LISTEN",
                             "params":
-                            [
-                                "8041"
-                            ]
+                            {
+                                "p1":"8041"
+                            }
                         },
                         {
-                            "name":"SYSTEM_CPU_LOAD",
+                            "metric":"SYSTEM_CPU_LOAD",
                             "params":
-                            [
-                                "all",
-                                "avg5"
-                            ]
+                            {
+                                "p1":"all",
+                                "p2":"avg5"
+                            }
                         }
                     ]
                 }
