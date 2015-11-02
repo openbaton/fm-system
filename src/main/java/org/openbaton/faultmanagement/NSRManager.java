@@ -9,6 +9,7 @@ import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
 import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
+import org.openbaton.faultmanagement.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.parser.Mapper;
 
 /*import org.openbaton.sdk.NFVORequestor;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
@@ -69,7 +69,7 @@ public class NSRManager {
         }*/
     }
     @Autowired
-    PolicyManagerInterface policyManager;
+    PolicyManager policyManager;
     public Set<NetworkServiceRecord> getNsrSet() {
         return nsrSet;
     }

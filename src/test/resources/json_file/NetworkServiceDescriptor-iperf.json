@@ -108,7 +108,7 @@
                             "threshold":"0"
                         }
                     ],
-                    "period":"3",
+                    "period":"5",
                     "cooldown":10,
                     "severity":"CRITICAL",
                     "action":"REINSTANTIATE_SERVICE"

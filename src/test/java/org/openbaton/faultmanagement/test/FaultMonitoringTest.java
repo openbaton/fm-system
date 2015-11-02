@@ -8,7 +8,6 @@ import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
 import org.openbaton.faultmanagement.VNFFaultMonitor;
 import org.openbaton.faultmanagement.VirtualDeploymentUnitShort;
-import org.openbaton.faultmanagement.interfaces.VNFFaultManagement;
 import org.openbaton.faultmanagement.parser.Mapper;
 
 import java.util.Arrays;

@@ -1,11 +1,16 @@
 package org.openbaton.faultmanagement;
-import org.openbaton.catalogue.mano.common.faultmanagement.*;
+
+import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
+import org.openbaton.catalogue.mano.common.faultmanagement.NSFaultManagementPolicy;
+import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
-import org.openbaton.catalogue.mano.record.*;
+import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
+import org.openbaton.faultmanagement.interfaces.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -19,14 +24,14 @@ import java.util.concurrent.TimeUnit;
  * Created by mob on 29.10.15.
  */
 @Service
-public class PolicyManager implements PolicyManagerInterface{
+@Scope
+public class PolicyManagerImpl implements PolicyManager {
 
     private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
     private List<NetworkServiceRecordShort> networkServiceRecordShortList;
     private final ScheduledExecutorService vnfScheduler = Executors.newScheduledThreadPool(1);
     private Map<String,ScheduledFuture<?>> futures;
     private final ScheduledExecutorService nsScheduler = Executors.newScheduledThreadPool(1);
-    private VNFFaultMonitor faultMonitor;
 
     @PostConstruct
     public void init(){
@@ -34,6 +39,7 @@ public class PolicyManager implements PolicyManagerInterface{
         networkServiceRecordShortList=new ArrayList<>();
     }
 
+    @Override
     public void manageNSR(NetworkServiceRecord nsr) throws FaultManagementPolicyException {
         if(!nsrNeedsMonitoring(nsr)){
             log.debug("The NSR"+ nsr.getName()+" needn't fault management monitoring");
@@ -59,7 +65,8 @@ public class PolicyManager implements PolicyManagerInterface{
     private NetworkServiceRecordShort getNSRShort(NetworkServiceRecord nsr) throws FaultManagementPolicyException {
 
         NetworkServiceRecordShort nsrs = new NetworkServiceRecordShort(nsr.getId(),nsr.getName());
-        Set<FaultManagementPolicy> fmpolicies=nsr.getFaultManagementPolicy();
+        log.debug("here!");
+        Set<? extends FaultManagementPolicy> fmpolicies=nsr.getFaultManagementPolicy();
         if(fmpolicies.isEmpty())
             log.warn("No NS fault management policies found for the NS: "+nsr.getName()+" with id: "+nsr.getId());
         else{
@@ -73,7 +80,7 @@ public class PolicyManager implements PolicyManagerInterface{
         }
         for(VirtualNetworkFunctionRecord vnfr: nsr.getVnfr()){
             fmpolicies.clear();
-            fmpolicies= vnfr.getFaultManagementPolicy();
+            fmpolicies = vnfr.getFaultManagementPolicy();
             VirtualNetworkFunctionRecordShort vnfrs=new VirtualNetworkFunctionRecordShort(vnfr.getId(),vnfr.getName(),vnfr.getParent_ns_id());
             if(fmpolicies.isEmpty())
                 log.warn("No VNF fault management policies found for the VNF: "+vnfr.getName()+" with id: "+vnfr.getId());
@@ -96,6 +103,7 @@ public class PolicyManager implements PolicyManagerInterface{
         this.networkServiceRecordShortList.add(nsrs);
         return nsrs;
     }
+    @Override
     public void unManageNSR(String id) {
         for (NetworkServiceRecordShort nsrs : networkServiceRecordShortList) {
             if (nsrs.getId().equals(id)) {

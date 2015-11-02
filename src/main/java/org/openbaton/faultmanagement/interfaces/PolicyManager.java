@@ -1,4 +1,4 @@
-package org.openbaton.faultmanagement;
+package org.openbaton.faultmanagement.interfaces;
 
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
@@ -6,7 +6,7 @@ import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
 /**
  * Created by mob on 30.10.15.
  */
-public interface PolicyManagerInterface {
+public interface PolicyManager {
     void manageNSR(NetworkServiceRecord networkServiceRecord) throws FaultManagementPolicyException;
     void unManageNSR(String nsrId);
 }
