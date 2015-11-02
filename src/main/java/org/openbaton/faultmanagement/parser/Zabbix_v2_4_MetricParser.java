@@ -13,8 +13,15 @@ public class Zabbix_v2_4_MetricParser {
         switch (metric) {
             case AGENT_PING: return getAgentPing();
             case NET_DNS: return getNetDns(params);
+            case NET_TCP_LISTEN: return getNetTcpListen(params);
         }
         return "";
+    }
+
+    private static String getNetTcpListen(Map<String, String> params) throws ZabbixMetricParserException {
+        if(params==null) throw new ZabbixMetricParserException("net.tcp.listen metric has null parameters");
+        if(params.get("p1")==null) throw new ZabbixMetricParserException("net.tcp.listen metric requires the parameter p1=[port]");
+        return "net.tcp.listen["+params.get("p1")+"]";
     }
 
     private static String getNetDns(Map<String, String> params) throws ZabbixMetricParserException {

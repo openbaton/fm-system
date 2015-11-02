@@ -25,35 +25,9 @@ public class JsonMappingTestSuite {
     private NetworkServiceDescriptor nsd;
     @Before
     public void init(){
-        json=new JsonMappingTestSuite().getFile("json_file/NetworkServiceDescriptor-iperf.json");
+        json=Utils.getFile("json_file/NetworkServiceDescriptor-iperf.json");
         assertNotNull(json);
     }
-
-    private String getFile(String fileName) {
-
-        StringBuilder result = new StringBuilder("");
-
-        //Get file from resources folder
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource(fileName).getFile());
-
-        try (Scanner scanner = new Scanner(file)) {
-
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                result.append(line).append("\n");
-            }
-
-            scanner.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return result.toString();
-
-    }
-
 
     @Test
     public void testJsonMapping(){
@@ -79,16 +53,12 @@ public class JsonMappingTestSuite {
         c1.setName("criteria1");
         c1.setComparison_operator("=");
         c1.setParameter_ref(Metric.NET_TCP_LISTEN);
-        c1.setStatistic("at_least_one");
-        c1.setVdu_selector("vdu1");
         c1.setThreshold("0");
 
         Criteria c2 = new Criteria();
         c2.setName("criteria2");
         c2.setComparison_operator("=");
         c2.setParameter_ref(Metric.AGENT_PING);
-        c2.setStatistic("at_least_one");
-        c2.setVdu_selector("vdu1");
         c2.setThreshold("0");
 
         criterias.add(c1);
@@ -104,8 +74,8 @@ public class JsonMappingTestSuite {
 
                 for (VirtualDeploymentUnit vdu : vnfd.getVdu()){
                     Iterator<MonitoringParameter> it= vdu.getMonitoring_parameter().iterator();
-                    while(it.hasNext()){
-                        System.out.println(mp.toString());
+                   while(it.hasNext()){
+                        System.out.println(it.next().toString());
                     }
                 }
             }

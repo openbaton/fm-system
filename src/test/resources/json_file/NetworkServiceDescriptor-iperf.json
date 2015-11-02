@@ -97,17 +97,13 @@
                     "criteria":[
                         {
                             "name":"criteria1",
-                            "vdu_selector":"vdu1",
                             "parameter_ref":"NET_TCP_LISTEN",
-                            "statistic":"at_least_one",
                             "comparison_operator":"=",
                             "threshold":"0"
                         },
                         {
                             "name":"criteria2",
-                            "vdu_selector":"vdu1",
                             "parameter_ref":"AGENT_PING",
-                            "statistic":"at_least_one",
                             "comparison_operator":"=",
                             "threshold":"0"
                         }
