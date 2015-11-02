@@ -12,6 +12,8 @@ import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by mob on 29.10.15.
@@ -21,11 +23,14 @@ public class PolicyManager implements PolicyManagerInterface{
 
     private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
     private List<NetworkServiceRecordShort> networkServiceRecordShortList;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private FaultMonitor faultMonitor;
+    private final ScheduledExecutorService vnfScheduler = Executors.newScheduledThreadPool(1);
+    private Map<String,ScheduledFuture<?>> futures;
+    private final ScheduledExecutorService nsScheduler = Executors.newScheduledThreadPool(1);
+    private VNFFaultMonitor faultMonitor;
 
     @PostConstruct
     public void init(){
+        futures=new HashMap<>();
         networkServiceRecordShortList=new ArrayList<>();
     }
 
@@ -37,7 +42,8 @@ public class PolicyManager implements PolicyManagerInterface{
         NetworkServiceRecordShort nsrs= getNSRShort(nsr);
         for(VirtualNetworkFunctionRecordShort vnfs : nsrs.getVirtualNetworkFunctionRecordShorts()){
             for(VNFFaultManagementPolicy vnfp: vnfs.getVnfFaultManagementPolicies()){
-
+                VNFFaultMonitor fm = new VNFFaultMonitor(vnfp,vnfs.getVirtualDeploymentUnitShorts().get(0));
+                futures.put(vnfp.getName(),vnfScheduler.scheduleAtFixedRate(fm, 1, vnfp.getPeriod(), TimeUnit.SECONDS));
             }
         }
 
@@ -93,6 +99,12 @@ public class PolicyManager implements PolicyManagerInterface{
     public void unManageNSR(String id) {
         for (NetworkServiceRecordShort nsrs : networkServiceRecordShortList) {
             if (nsrs.getId().equals(id)) {
+                for(VirtualNetworkFunctionRecordShort vnfrs: nsrs.getVirtualNetworkFunctionRecordShorts()){
+                    for(VNFFaultManagementPolicy vnfp: vnfrs.getVnfFaultManagementPolicies()){
+                        if(futures.get(vnfp.getName())!=null)
+                            futures.get(vnfp.getName()).cancel(true);
+                    }
+                }
                 networkServiceRecordShortList.remove(nsrs);
                 break;
             }

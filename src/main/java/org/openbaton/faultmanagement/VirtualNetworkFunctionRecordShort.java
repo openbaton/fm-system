@@ -20,7 +20,7 @@ public class VirtualNetworkFunctionRecordShort {
         this.name=name;
         this.nsrFatherId=nsrFatherId;
         vnfFaultManagementPolicies = new ArrayList<>();
-        virtualDeploymentUnitShorts=new ArrayList<>();
+        virtualDeploymentUnitShorts = new ArrayList<>();
     }
 
     public String getNsrFatherId() {
@@ -66,4 +66,6 @@ public class VirtualNetworkFunctionRecordShort {
             throw new NullPointerException("vdu short is null");
         virtualDeploymentUnitShorts.add(vdus);
     }
+
+
 }

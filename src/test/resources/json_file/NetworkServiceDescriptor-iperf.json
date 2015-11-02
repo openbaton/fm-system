@@ -52,7 +52,7 @@
                             "metric":"NET_TCP_LISTEN",
                             "params":
                             {
-                                "p1":"8041"
+                                "p1":"6161"
                             }
                         },
                         {
@@ -108,7 +108,7 @@
                             "threshold":"0"
                         }
                     ],
-                    "period":"30",
+                    "period":"3",
                     "cooldown":10,
                     "severity":"CRITICAL",
                     "action":"REINSTANTIATE_SERVICE"

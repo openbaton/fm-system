@@ -1,18 +1,20 @@
 package org.openbaton.faultmanagement.test;
 
 import org.junit.Before;
+import org.junit.Test;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
-import org.openbaton.faultmanagement.FaultMonitor;
+import org.openbaton.faultmanagement.VNFFaultMonitor;
 import org.openbaton.faultmanagement.VirtualDeploymentUnitShort;
+import org.openbaton.faultmanagement.interfaces.VNFFaultManagement;
 import org.openbaton.faultmanagement.parser.Mapper;
 
 import java.util.Arrays;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.*;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -20,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
  * Created by mob on 02.11.15.
  */
 public class FaultMonitoringTest {
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
     private NetworkServiceDescriptor nsd;
 
     @Before
@@ -30,6 +32,7 @@ public class FaultMonitoringTest {
         nsd = Mapper.getMapper().fromJson(json, NetworkServiceDescriptor.class);
     }
 
+    @Test
     public void testFaultMonitor() {
         for (VirtualNetworkFunctionDescriptor vnfd : nsd.getVnfd()) {
             if (vnfd.getName().equals("iperf-server")) {
@@ -38,16 +41,42 @@ public class FaultMonitoringTest {
                 VirtualDeploymentUnitShort vdus1=getVDUS(vnfd.getVdu().iterator().next());
 
                 //The fault monitor will check every vnffmp.getPeriod() seconds if the VNFCs of that VDU have crossed the thresholds.
-                FaultMonitor fm=new FaultMonitor(vnffmp,vdus1);
+                VNFFaultMonitor fm=new VNFFaultMonitor(vnffmp,vdus1);
                 fm.setFakeZabbixMetrics(Arrays.asList("net.tcp.listen[6161]", "agent.ping"));
-                scheduler.schedule(fm,vnffmp.getPeriod(), TimeUnit.SECONDS);
+                Set<String> set = new HashSet<>(Arrays.asList("host1", "host2","host3"));
+                fm.setFakeHostname(set);
+                System.out.println("Schedule a fault monitor each "+vnffmp.getPeriod()+" seconds");
+                scheduler.scheduleAtFixedRate(fm, 1, vnffmp.getPeriod(), TimeUnit.SECONDS);
             }
         }
+        try {
+            Thread.sleep(1000*40);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        shutdownAndAwaitTermination(scheduler);
     }
 
     private VirtualDeploymentUnitShort getVDUS(VirtualDeploymentUnit next) {
         VirtualDeploymentUnitShort vdus=new VirtualDeploymentUnitShort("FakeID","vdu1");
         vdus.setMonitoringParameters(next.getMonitoring_parameter());
         return vdus;
+    }
+    void shutdownAndAwaitTermination(ExecutorService pool) {
+        pool.shutdown(); // Disable new tasks from being submitted
+        try {
+            // Wait a while for existing tasks to terminate
+            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                pool.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for tasks to respond to being cancelled
+                if (!pool.awaitTermination(60, TimeUnit.SECONDS))
+                    System.err.println("Pool did not terminate");
+            }
+        } catch (InterruptedException ie) {
+            // (Re-)Cancel if current thread also interrupted
+            pool.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+        }
     }
 }

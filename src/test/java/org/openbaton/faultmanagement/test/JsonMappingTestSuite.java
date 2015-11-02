@@ -9,7 +9,6 @@ import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
 
-import java.io.*;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -51,14 +50,14 @@ public class JsonMappingTestSuite {
         Set<Criteria> criterias = new HashSet<>();
         Criteria c1 = new Criteria();
         c1.setName("criteria1");
-        c1.setComparison_operator("=");
-        c1.setParameter_ref(Metric.NET_TCP_LISTEN);
+        c1.setComparisonOperator("=");
+        c1.setParameterRef(Metric.NET_TCP_LISTEN);
         c1.setThreshold("0");
 
         Criteria c2 = new Criteria();
         c2.setName("criteria2");
-        c2.setComparison_operator("=");
-        c2.setParameter_ref(Metric.AGENT_PING);
+        c2.setComparisonOperator("=");
+        c2.setParameterRef(Metric.AGENT_PING);
         c2.setThreshold("0");
 
         criterias.add(c1);
