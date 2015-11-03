@@ -1,14 +1,14 @@
 package org.openbaton.faultmanagement;
 
-import org.openbaton.catalogue.mano.common.faultmanagement.Criteria;
-import org.openbaton.catalogue.mano.common.faultmanagement.MonitoringParameter;
-import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
+import org.openbaton.catalogue.mano.common.faultmanagement.*;
 import org.openbaton.catalogue.nfvo.Item;
 import org.openbaton.faultmanagement.exceptions.ZabbixMetricParserException;
 import org.openbaton.faultmanagement.parser.Zabbix_v2_4_MetricParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -24,6 +24,8 @@ public class VNFFaultMonitor implements Runnable{
     private List<String> fakeMetrics;
 
     public VNFFaultMonitor(VNFFaultManagementPolicy vnfFaultManagementPolicy, VirtualDeploymentUnitShort vdus){
+        if(vnfFaultManagementPolicy==null || vdus==null)
+            throw new NullPointerException("The VNFFaultManagementPolicy or the vdus is null");
         this.vnfFaultManagementPolicy=vnfFaultManagementPolicy;
         this.vdus=vdus;
     }
@@ -72,15 +74,14 @@ public class VNFFaultMonitor implements Runnable{
                 }
             }
         }
-        for(Map.Entry<String,Integer> entry: criteriaViolated.entrySet()){
-            if(entry.getValue()==vnfFaultManagementPolicy.getCriteria().size()){
-                log.debug("The vnfc: "+entry.getKey()+" crossed the threshold of all the criteria");
+        for(Map.Entry<String,Integer> entry: criteriaViolated.entrySet()) {
+            if (entry.getValue() == vnfFaultManagementPolicy.getCriteria().size()) {
+                log.debug("The vnfc: " + entry.getKey() + " crossed the threshold of all the criteria");
                 log.debug(entry.toString());
-                log.debug("So the following action need to be executed: "+vnfFaultManagementPolicy.getAction());
+                log.debug("So the following action need to be executed: " + vnfFaultManagementPolicy.getAction());
+                createAndSendAlarm(vnfFaultManagementPolicy.getSeverity());
             }
         }
-
-
 
         log.debug("\n\n");
     }
@@ -107,7 +108,15 @@ public class VNFFaultMonitor implements Runnable{
         }
         return null;
     }
-    private void createAndSendAlarm() {
+    private void createAndSendAlarm(PerceivedSeverity perceivedSeverity) {
+        Alarm alarm = new Alarm();
+        DateFormat dateFormat= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        alarm.setEventTime(dateFormat.format(date));
+
+        alarm.setAlarmState(AlarmState.FIRED);
+        alarm.setPerceivedSeverity(perceivedSeverity);
+        alarm.setFaultType(FaultType.VNF_NOT_AVAILABLE);
 
     }
 

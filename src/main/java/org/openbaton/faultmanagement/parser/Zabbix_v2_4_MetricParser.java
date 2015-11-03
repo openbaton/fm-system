@@ -9,10 +9,6 @@ import java.util.Map;
  * Created by mob on 28.10.15.
  */
 public class Zabbix_v2_4_MetricParser {
-    private static String systemCpuIntr;
-    private static String systemCpuSwitches;
-    private static String systemUptime;
-    private static String systemUserNum;
 
     public static String getZabbixMetric(Metric metric, Map<String, String> params) throws ZabbixMetricParserException {
         switch (metric) {

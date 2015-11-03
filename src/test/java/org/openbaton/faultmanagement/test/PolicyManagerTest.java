@@ -3,8 +3,6 @@ package org.openbaton.faultmanagement.test;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
@@ -18,7 +16,6 @@ import org.openbaton.faultmanagement.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.parser.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -52,7 +49,6 @@ public class PolicyManagerTest {
 
     @Before
     public void init() {
-        MockitoAnnotations.initMocks(this);
         String json = Utils.getFile("json_file/NetworkServiceDescriptor-iperf.json");
         assertNotNull(json);
         nsd = Mapper.getMapper().fromJson(json, NetworkServiceDescriptor.class);
