@@ -67,5 +67,14 @@ public class VirtualNetworkFunctionRecordShort {
         virtualDeploymentUnitShorts.add(vdus);
     }
 
-
+    @Override
+    public String toString() {
+        return "VirtualNetworkFunctionRecordShort{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", nsrFatherId='" + nsrFatherId + '\'' +
+                ", vnfFaultManagementPolicies=" + vnfFaultManagementPolicies +
+                ", virtualDeploymentUnitShorts=" + virtualDeploymentUnitShorts +
+                '}';
+    }
 }

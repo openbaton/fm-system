@@ -60,7 +60,7 @@ public class VNFFaultMonitor implements Runnable{
                 for (Item item : getItemsFromHostname(randomItems,currentHostname)) {
                     if (item.getMetric().equals(currentMetric)) {
                             if (checkThreshold(item, criteria.getThreshold(),criteria.getComparisonOperator())) {
-                                log.debug("The vnfc: " + item.getHostname() + " has violated the criteria: " + criteria.getName());
+                                //log.debug("The vnfc: " + item.getHostname() + " has violated the criteria: " + criteria.getName());
                                 if (criteriaViolated.get(item.getHostname()) == null) {
                                     criteriaViolated.put(item.getHostname(), 1);
                                 }
@@ -75,6 +75,7 @@ public class VNFFaultMonitor implements Runnable{
         for(Map.Entry<String,Integer> entry: criteriaViolated.entrySet()){
             if(entry.getValue()==vnfFaultManagementPolicy.getCriteria().size()){
                 log.debug("The vnfc: "+entry.getKey()+" crossed the threshold of all the criteria");
+                log.debug(entry.toString());
                 log.debug("So the following action need to be executed: "+vnfFaultManagementPolicy.getAction());
             }
         }

@@ -58,4 +58,13 @@ public class VirtualDeploymentUnitShort {
         }
         return null;
     }
+
+    @Override
+    public String toString() {
+        return "VirtualDeploymentUnitShort{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", monitoringParameters=" + monitoringParameters +
+                '}';
+    }
 }

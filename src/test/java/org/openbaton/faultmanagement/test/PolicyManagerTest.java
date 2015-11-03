@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
+import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
@@ -36,7 +37,7 @@ import static org.junit.Assert.assertNotNull;
 public class PolicyManagerTest {
 
     @Configuration
-    static class AccountServiceTestContextConfiguration {
+    static class PolicyManagerTestTestContextConfiguration {
         @Bean
         public PolicyManager policyManager() {
             return new PolicyManagerImpl();
@@ -72,7 +73,9 @@ public class PolicyManagerTest {
             VirtualNetworkFunctionRecord vnfr=new VirtualNetworkFunctionRecord();
             vnfr.setName(vnfd.getName());
             vnfr.setId("vnfr" + Integer.toString(randomGenerator.nextInt(30)));
-            vnfr.setFaultManagementPolicy(vnfd.getFault_management_policy());
+            vnfr.setFaultManagementPolicy(new HashSet<VNFFaultManagementPolicy>());
+            if(vnfd.getFault_management_policy()!=null)
+                vnfr.setFaultManagementPolicy(vnfd.getFault_management_policy());
             for(VirtualDeploymentUnit vdu: vnfd.getVdu()){
                 vdu.setId("vdu"+Integer.toString(randomGenerator.nextInt(30)));
                 vdu.setName("vdu-name"+Integer.toString(randomGenerator.nextInt(30)));
@@ -88,12 +91,18 @@ public class PolicyManagerTest {
         }
 
         try {
-            Thread.sleep(1000*40);
+            Thread.sleep(1000*30);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        System.out.println("Unmanaging nsr");
         policyManager.unManageNSR(nsr.getId());
+
+        try {
+            Thread.sleep(1000*10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
     }
 

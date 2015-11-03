@@ -49,7 +49,13 @@ public class PolicyManagerImpl implements PolicyManager {
         for(VirtualNetworkFunctionRecordShort vnfs : nsrs.getVirtualNetworkFunctionRecordShorts()){
             for(VNFFaultManagementPolicy vnfp: vnfs.getVnfFaultManagementPolicies()){
                 VNFFaultMonitor fm = new VNFFaultMonitor(vnfp,vnfs.getVirtualDeploymentUnitShorts().get(0));
-                futures.put(vnfp.getName(),vnfScheduler.scheduleAtFixedRate(fm, 1, vnfp.getPeriod(), TimeUnit.SECONDS));
+                log.debug("Launching fm monitor with the following parameter: "+vnfp+" and vndus: "+vnfs.getVirtualDeploymentUnitShorts().get(0));
+
+                //ONLY FOR TEST
+                fm.setFakeHostname(new HashSet<>(Arrays.asList("host1", "host2","host3")));
+                fm.setFakeZabbixMetrics(Arrays.asList("net.tcp.listen[6161]", "agent.ping","system.cpu.load[all,avg5]"));
+
+                futures.put(vnfp.getName(), vnfScheduler.scheduleAtFixedRate(fm, 1, vnfp.getPeriod(), TimeUnit.SECONDS));
             }
         }
 
@@ -65,7 +71,6 @@ public class PolicyManagerImpl implements PolicyManager {
     private NetworkServiceRecordShort getNSRShort(NetworkServiceRecord nsr) throws FaultManagementPolicyException {
 
         NetworkServiceRecordShort nsrs = new NetworkServiceRecordShort(nsr.getId(),nsr.getName());
-        log.debug("here!");
         Set<? extends FaultManagementPolicy> fmpolicies=nsr.getFaultManagementPolicy();
         if(fmpolicies.isEmpty())
             log.warn("No NS fault management policies found for the NS: "+nsr.getName()+" with id: "+nsr.getId());
@@ -82,7 +87,7 @@ public class PolicyManagerImpl implements PolicyManager {
             fmpolicies.clear();
             fmpolicies = vnfr.getFaultManagementPolicy();
             VirtualNetworkFunctionRecordShort vnfrs=new VirtualNetworkFunctionRecordShort(vnfr.getId(),vnfr.getName(),vnfr.getParent_ns_id());
-            if(fmpolicies.isEmpty())
+            if(fmpolicies==null || fmpolicies.isEmpty())
                 log.warn("No VNF fault management policies found for the VNF: "+vnfr.getName()+" with id: "+vnfr.getId());
             else{
                 log.debug("Found the following VNF fault management policies: "+vnfr.getFaultManagementPolicy());
@@ -96,6 +101,7 @@ public class PolicyManagerImpl implements PolicyManager {
             for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
                 VirtualDeploymentUnitShort vdus= new VirtualDeploymentUnitShort(vdu.getId(),vdu.getName());
                 vdus.setMonitoringParameters(vdu.getMonitoring_parameter());
+                log.debug("Created vdus of vnfd:"+vnfr.getName());
                 vnfrs.addVirtualDeploymentUnitShort(vdus);
             }
             nsrs.addVNFS(vnfrs);
@@ -103,6 +109,7 @@ public class PolicyManagerImpl implements PolicyManager {
         this.networkServiceRecordShortList.add(nsrs);
         return nsrs;
     }
+    
     @Override
     public void unManageNSR(String id) {
         for (NetworkServiceRecordShort nsrs : networkServiceRecordShortList) {
