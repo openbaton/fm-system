@@ -112,6 +112,27 @@
                     "cooldown":10,
                     "severity":"CRITICAL",
                     "action":"REINSTANTIATE_SERVICE"
+                },
+                {
+                    "name":"vnf-not-available",
+                    "criteria":[
+                        {
+                            "name":"criteria1",
+                            "parameter_ref":"NET_TCP_LISTEN",
+                            "comparison_operator":"=",
+                            "threshold":"0"
+                        },
+                        {
+                            "name":"criteria2",
+                            "parameter_ref":"AGENT_PING",
+                            "comparison_operator":"=",
+                            "threshold":"0"
+                        }
+                    ],
+                    "period":"5",
+                    "cooldown":10,
+                    "severity":"CRITICAL",
+                    "action":"REINSTANTIATE_SERVICE"
                 }
             ],
             "deployment_flavour":[  
