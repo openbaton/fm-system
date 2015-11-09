@@ -1,4 +1,4 @@
-package org.openbaton.faultmanagement;
+package org.openbaton.faultmanagement.managers;
 
 import com.google.gson.JsonElement;
 import com.sun.net.httpserver.HttpExchange;
@@ -18,13 +18,12 @@ import org.openbaton.sdk.api.exception.SDKException;*/
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.util.Properties;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -45,12 +44,15 @@ public class NSRManager {
 
     @PostConstruct
     public void init() throws IOException/*, SDKException*/ {
-        Properties properties=new Properties();
-        properties.load(new FileInputStream("fm.properties"));
-        /*nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), properties.getProperty("nfvo-ip"),properties.getProperty("nfvo-port"),"1");
+        /*Properties properties=new Properties();
+        properties.load(new FileInputStream("fm.properties"));*/
         launchServer();
         nsrSet=new HashSet<>();
-        EventEndpoint eventEndpoint= createEventEndpoint();
+
+        //REGISTRATION TO NFVO
+        //nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), properties.getProperty("nfvo-ip"),properties.getProperty("nfvo-port"),"1");
+
+        /*EventEndpoint eventEndpoint= createEventEndpoint();
         EventEndpoint response = null;
         try {
             response = nfvoRequestor.getEventAgent().create(eventEndpoint);
@@ -68,8 +70,10 @@ public class NSRManager {
             throw e;
         }*/
     }
+
     @Autowired
     PolicyManager policyManager;
+
     public Set<NetworkServiceRecord> getNsrSet() {
         return nsrSet;
     }
@@ -88,6 +92,7 @@ public class NSRManager {
         server = HttpServer.create(new InetSocketAddress(0), 1);
         myHandler=new MyHandler();
         server.createContext("/" + name, myHandler);
+        log.debug("Receive event server running on url: "+server.getAddress()+" port:"+server.getAddress().getPort());
         server.setExecutor(null);
         server.start();
     }
@@ -165,8 +170,6 @@ public class NSRManager {
 
     }
 
-    public static void main(String[] args) {
-        SpringApplication.run(NSRManager.class);
-    }
+
 
 }

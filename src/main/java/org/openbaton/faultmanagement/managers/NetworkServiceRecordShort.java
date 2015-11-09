@@ -1,7 +1,6 @@
-package org.openbaton.faultmanagement;
+package org.openbaton.faultmanagement.managers;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.NSFaultManagementPolicy;
-import org.w3c.dom.ls.LSException;
 
 import java.util.ArrayList;
 import java.util.List;

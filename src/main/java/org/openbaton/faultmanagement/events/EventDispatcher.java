@@ -29,8 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.jms.annotation.EnableJms;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -47,7 +45,6 @@ import java.util.List;
  * Moreover receives also internal events and dispatches them to the external applications.
  */
 @Service
-@Scope
 public class EventDispatcher implements ApplicationListener<AbstractVNFAlarm>, AlarmDispatcher{
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -70,14 +67,15 @@ public class EventDispatcher implements ApplicationListener<AbstractVNFAlarm>, A
 
     @Override
     public void dispatchAlarm(AbstractVNFAlarm abstractAlarm) {
-        log.debug("dispatching Alarm to the world!!!");
-        log.debug("event is: " + abstractAlarm);
 
+        log.debug("event is: " + abstractAlarm);
+        Alarm alarm = alarmRepository.save(abstractAlarm.getAlarm());
+        log.debug("Alarm saved: "+alarm);
         Iterable<AlarmEndpoint> alarmEndpoints = subscriptionRegister.getSubscriptionRepository().findAll();
 
         for (AlarmEndpoint alarmEndpoint : alarmEndpoints) {
             log.debug("Checking endpoint: " + alarmEndpoint);
-            if(abstractAlarm.getAlarm().getVnfd().getName().equalsIgnoreCase(alarmEndpoint.getVirtualNetworkFunctionId()) &&
+            if(abstractAlarm.getAlarm().getVnfrId().equalsIgnoreCase(alarmEndpoint.getVirtualNetworkFunctionId()) &&
                     abstractAlarm.getAlarm().getPerceivedSeverity().ordinal()>= alarmEndpoint.getPerceivedSeverity().ordinal()){
                     log.debug("Dispatching event to endpoint: "+alarmEndpoint.getName());
                     notify(alarmEndpoint, abstractAlarm);
@@ -98,12 +96,7 @@ public class EventDispatcher implements ApplicationListener<AbstractVNFAlarm>, A
     }
 
     public List<Alarm> getAlarmList(String vnfId, PerceivedSeverity perceivedSeverity) {
-        Iterable<Alarm> alarms = alarmRepository.findAll();
-        for (Alarm a : alarms){
-            //if(a.getVnfd().getName().equals(vnfId) && a.getPerceivedSeverity().ordinal()>=perceivedSeverity.ordinal())
-                //TODO
-        }
-        return (List)alarms;
+        return alarmRepository.findByVnfrIdAndPerceivedSeverity(vnfId,perceivedSeverity);
     }
 
 }

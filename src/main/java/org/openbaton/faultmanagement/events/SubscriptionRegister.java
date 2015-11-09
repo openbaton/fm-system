@@ -4,14 +4,12 @@ import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.model.AlarmEndpoint;
 import org.openbaton.faultmanagement.repositories.SubscriptionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 /**
  * Created by mob on 28.10.15.
  */
 @Service
-@Scope
 public class SubscriptionRegister implements org.openbaton.faultmanagement.events.interfaces.SubscriptionRegister {
 
     @Autowired

@@ -6,13 +6,10 @@ import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPol
 import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
-import org.openbaton.faultmanagement.VNFFaultMonitor;
-import org.openbaton.faultmanagement.VirtualDeploymentUnitShort;
+/*import org.openbaton.faultmanagement.VNFFaultMonitor;*/
+import org.openbaton.faultmanagement.managers.VirtualDeploymentUnitShort;
 import org.openbaton.faultmanagement.parser.Mapper;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.*;
 
 import static org.junit.Assert.assertNotNull;
@@ -40,12 +37,12 @@ public class FaultMonitoringTest {
                 VirtualDeploymentUnitShort vdus1=getVDUS(vnfd.getVdu().iterator().next());
 
                 //The fault monitor will check every vnffmp.getPeriod() seconds if the VNFCs of that VDU have crossed the thresholds.
-                VNFFaultMonitor fm=new VNFFaultMonitor(vnffmp,vdus1);
+                /*VNFFaultMonitor fm=new VNFFaultMonitor(vnffmp,vdus1);
                 fm.setFakeZabbixMetrics(Arrays.asList("net.tcp.listen[6161]", "agent.ping"));
                 Set<String> set = new HashSet<>(Arrays.asList("host1", "host2","host3"));
                 fm.setFakeHostname(set);
                 System.out.println("Schedule a fault monitor each "+vnffmp.getPeriod()+" seconds");
-                scheduler.scheduleAtFixedRate(fm, 1, vnffmp.getPeriod(), TimeUnit.SECONDS);
+                scheduler.scheduleAtFixedRate(fm, 1, vnffmp.getPeriod(), TimeUnit.SECONDS);*/
             }
         }
         try {

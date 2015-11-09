@@ -1,4 +1,4 @@
-package org.openbaton.faultmanagement;
+package org.openbaton.faultmanagement.managers;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
 import org.openbaton.catalogue.mano.common.faultmanagement.NSFaultManagementPolicy;
@@ -10,32 +10,28 @@ import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.interfaces.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by mob on 29.10.15.
  */
 @Service
-@Scope
 public class PolicyManagerImpl implements PolicyManager {
 
+    @Autowired
+    private FaultMonitor faultMonitor;
     private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
     private List<NetworkServiceRecordShort> networkServiceRecordShortList;
-    private final ScheduledExecutorService vnfScheduler = Executors.newScheduledThreadPool(1);
-    private Map<String,ScheduledFuture<?>> futures;
-    private final ScheduledExecutorService nsScheduler = Executors.newScheduledThreadPool(1);
+
 
     @PostConstruct
     public void init(){
-        futures=new HashMap<>();
         networkServiceRecordShortList=new ArrayList<>();
     }
 
@@ -47,16 +43,7 @@ public class PolicyManagerImpl implements PolicyManager {
         }
         NetworkServiceRecordShort nsrs= getNSRShort(nsr);
         for(VirtualNetworkFunctionRecordShort vnfs : nsrs.getVirtualNetworkFunctionRecordShorts()){
-            for(VNFFaultManagementPolicy vnfp: vnfs.getVnfFaultManagementPolicies()){
-                VNFFaultMonitor fm = new VNFFaultMonitor(vnfp,vnfs.getVirtualDeploymentUnitShorts().get(0));
-                log.debug("Launching fm monitor with the following parameter: "+vnfp+" and vndus: "+vnfs.getVirtualDeploymentUnitShorts().get(0));
-
-                //ONLY FOR TEST
-                fm.setFakeHostname(new HashSet<>(Arrays.asList("host1", "host2","host3")));
-                fm.setFakeZabbixMetrics(Arrays.asList("net.tcp.listen[6161]", "agent.ping","system.cpu.load[all,avg5]"));
-
-                futures.put(vnfp.getName(), vnfScheduler.scheduleAtFixedRate(fm, 1, vnfp.getPeriod(), TimeUnit.SECONDS));
-            }
+            faultMonitor.startMonitorVNF(vnfs);
         }
 
     }
@@ -109,16 +96,13 @@ public class PolicyManagerImpl implements PolicyManager {
         this.networkServiceRecordShortList.add(nsrs);
         return nsrs;
     }
-    
+
     @Override
     public void unManageNSR(String id) {
         for (NetworkServiceRecordShort nsrs : networkServiceRecordShortList) {
             if (nsrs.getId().equals(id)) {
                 for(VirtualNetworkFunctionRecordShort vnfrs: nsrs.getVirtualNetworkFunctionRecordShorts()){
-                    for(VNFFaultManagementPolicy vnfp: vnfrs.getVnfFaultManagementPolicies()){
-                        if(futures.get(vnfp.getName())!=null)
-                            futures.get(vnfp.getName()).cancel(true);
-                    }
+                    faultMonitor.stopMonitorVNF(vnfrs);
                 }
                 networkServiceRecordShortList.remove(nsrs);
                 break;

@@ -18,7 +18,7 @@ project.ext{
     /**
      * gradle Related Vars
      */
-    mainClass = 'org.openbaton.vnfm.generic.GenericVNFM'
+    mainClass = 'org.openbaton.faultmanagement.Application'
     //------------------------------------------------//
     //------------------------------------------------//
     /**
@@ -41,6 +41,9 @@ dependencies {
 
     // CrudRepository
     compile 'org.springframework.data:spring-data-jpa:1.8.2.RELEASE'
+    compile 'org.hibernate:hibernate-entitymanager:4.3.10.Final'
+    compile 'commons-dbcp:commons-dbcp:1.4'
+    compile 'mysql:mysql-connector-java:5.1.35'
 
     //EnableJMS on EventDispatcher
     /**
@@ -65,5 +68,6 @@ dependencies {
     //Per testare Service in Spring (vedi PolicyManagerTest)
     testCompile 'org.springframework:spring-test:' + springVersion
     testCompile 'junit:junit:4.12'
+
 
 }

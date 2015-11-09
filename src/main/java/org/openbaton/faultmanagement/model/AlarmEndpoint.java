@@ -34,9 +34,7 @@ public class AlarmEndpoint implements Serializable {
         return perceivedSeverity;
     }
 
-    public void setPerceivedSeverity(PerceivedSeverity perceivedSeverity) {
-        this.perceivedSeverity = perceivedSeverity;
-    }
+
 
     @PrePersist
     public void ensureId() {
@@ -50,7 +48,9 @@ public class AlarmEndpoint implements Serializable {
     public void setVirtualNetworkFunctionId(String virtualNetworkFunctionId) {
         this.virtualNetworkFunctionId = virtualNetworkFunctionId;
     }
-
+    public void setPerceivedSeverity(PerceivedSeverity perceivedSeverity) {
+        this.perceivedSeverity = perceivedSeverity;
+    }
     public String getId() {
         return id;
     }

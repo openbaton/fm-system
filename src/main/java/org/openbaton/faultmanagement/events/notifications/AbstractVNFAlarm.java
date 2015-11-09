@@ -15,7 +15,6 @@ public abstract class AbstractVNFAlarm extends ApplicationEvent {
     public AbstractVNFAlarm(Object source,Alarm alarm) {
         super(source);
         this.alarm=alarm;
-
     }
 
     public Alarm getAlarm() {

@@ -1,4 +1,4 @@
-package org.openbaton.faultmanagement;
+package org.openbaton.faultmanagement.managers;
 
 /**
  * Created by mob on 29.10.15.

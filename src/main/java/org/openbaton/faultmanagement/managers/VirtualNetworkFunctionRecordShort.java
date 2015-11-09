@@ -1,4 +1,4 @@
-package org.openbaton.faultmanagement;
+package org.openbaton.faultmanagement.managers;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 
