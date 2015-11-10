@@ -75,7 +75,7 @@ public class EventDispatcher implements ApplicationListener<AbstractVNFAlarm>, A
 
         for (AlarmEndpoint alarmEndpoint : alarmEndpoints) {
             log.debug("Checking endpoint: " + alarmEndpoint);
-            if(abstractAlarm.getAlarm().getVnfrId().equalsIgnoreCase(alarmEndpoint.getVirtualNetworkFunctionId()) &&
+            if(abstractAlarm.getAlarm().getResourceId().equalsIgnoreCase(alarmEndpoint.getVirtualNetworkFunctionId()) &&
                     abstractAlarm.getAlarm().getPerceivedSeverity().ordinal()>= alarmEndpoint.getPerceivedSeverity().ordinal()){
                     log.debug("Dispatching event to endpoint: "+alarmEndpoint.getName());
                     notify(alarmEndpoint, abstractAlarm);

@@ -10,8 +10,8 @@ import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
-import org.openbaton.faultmanagement.managers.FaultMonitor;
-import org.openbaton.faultmanagement.managers.FaultMonitorImpl;
+import org.openbaton.faultmanagement.managers.VnfFaultMonitor;
+import org.openbaton.faultmanagement.managers.VnfFaultMonitorImpl;
 import org.openbaton.faultmanagement.managers.PolicyManagerImpl;
 import org.openbaton.faultmanagement.events.EventDispatcher;
 import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
@@ -43,8 +43,8 @@ public class PolicyManagerTest {
             return new PolicyManagerImpl();
         }
         @Bean
-        public FaultMonitor faultMonitor(){
-            return new FaultMonitorImpl();
+        public VnfFaultMonitor faultMonitor(){
+            return new VnfFaultMonitorImpl();
         }
 
         @Bean

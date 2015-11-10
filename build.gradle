@@ -65,6 +65,9 @@ dependencies {
     //Openbaton sdk
     //compile 'org.openbaton:sdk:0.14'
 
+    //Unirest
+    compile 'com.mashape.unirest:unirest-java:1.3.0'
+
     //Per testare Service in Spring (vedi PolicyManagerTest)
     testCompile 'org.springframework:spring-test:' + springVersion
     testCompile 'junit:junit:4.12'

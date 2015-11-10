@@ -1,6 +1,6 @@
 package org.openbaton.faultmanagement.fc;
 
-import org.openbaton.catalogue.mano.common.faultmanagement.Alarm;
+import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +13,7 @@ public class AlarmReceiver implements org.openbaton.faultmanagement.fc.interface
 
     @Override
     @JmsListener(destination = "vnf-alarm", containerFactory = "queueJmsContainerFactory")
-    public void receiveVnfAlarm(Alarm alarm) {
+    public void receiveVnfAlarm(AbstractVNFAlarm abstractVNFAlarm) {
 
     }
 }
