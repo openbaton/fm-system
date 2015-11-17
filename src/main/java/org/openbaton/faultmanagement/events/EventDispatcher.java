@@ -17,23 +17,6 @@
 package org.openbaton.faultmanagement.events;
 
 
-import org.openbaton.catalogue.mano.common.faultmanagement.Alarm;
-import org.openbaton.catalogue.mano.common.faultmanagement.PerceivedSeverity;
-import org.openbaton.faultmanagement.events.interfaces.AlarmDispatcher;
-import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
-import org.openbaton.faultmanagement.events.senders.interfaces.EventSender;
-import org.openbaton.faultmanagement.model.AlarmEndpoint;
-import org.openbaton.faultmanagement.repositories.AlarmRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.List;
-
 /**
  * Created by mob on 28/10/15.
  */
@@ -44,17 +27,16 @@ import java.util.List;
  * <p/>
  * Moreover receives also internal events and dispatches them to the external applications.
  */
-@Service
-public class EventDispatcher implements ApplicationListener<AbstractVNFAlarm>, AlarmDispatcher{
+//@Service
+public class EventDispatcher /*implements ApplicationListener<AbstractVNFAlarm>, AlarmDispatcher*/{
 
-    private Logger log = LoggerFactory.getLogger(this.getClass());
+    /*private Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private ConfigurableApplicationContext context;
 
     @Autowired
     private AlarmRepository alarmRepository;
-
     @Autowired
     private SubscriptionRegister subscriptionRegister;
 
@@ -98,5 +80,5 @@ public class EventDispatcher implements ApplicationListener<AbstractVNFAlarm>, A
     public List<Alarm> getAlarmList(String vnfId, PerceivedSeverity perceivedSeverity) {
         return alarmRepository.findByVnfrIdAndPerceivedSeverity(vnfId,perceivedSeverity);
     }
-
+*/
 }

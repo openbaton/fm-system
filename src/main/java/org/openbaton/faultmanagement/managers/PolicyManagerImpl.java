@@ -26,7 +26,7 @@ public class PolicyManagerImpl implements PolicyManager {
 
     @Autowired
     private VnfFaultMonitor faultMonitor;
-    private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
+    private static final Logger log = LoggerFactory.getLogger(PolicyManagerImpl.class);
     private List<NetworkServiceRecordShort> networkServiceRecordShortList;
 
 
@@ -102,7 +102,7 @@ public class PolicyManagerImpl implements PolicyManager {
         for (NetworkServiceRecordShort nsrs : networkServiceRecordShortList) {
             if (nsrs.getId().equals(id)) {
                 for(VirtualNetworkFunctionRecordShort vnfrs: nsrs.getVirtualNetworkFunctionRecordShorts()){
-                    faultMonitor.stopMonitorVNF(vnfrs);
+                    //faultMonitor.stopMonitorVNF(vnfrs);
                 }
                 networkServiceRecordShortList.remove(nsrs);
                 break;

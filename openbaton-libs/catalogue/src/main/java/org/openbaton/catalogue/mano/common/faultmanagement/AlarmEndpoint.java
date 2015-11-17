@@ -1,10 +1,9 @@
-package org.openbaton.faultmanagement.model;
+package org.openbaton.catalogue.mano.common.faultmanagement;
 
 /**
  * Created by mob on 27.10.15.
  */
 
-import org.openbaton.catalogue.mano.common.faultmanagement.PerceivedSeverity;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.util.IdGenerator;
 

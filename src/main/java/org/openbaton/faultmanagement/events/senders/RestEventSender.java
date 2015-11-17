@@ -15,9 +15,7 @@
  */
 
 package org.openbaton.faultmanagement.events.senders;
-import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
 import org.openbaton.faultmanagement.events.senders.interfaces.EventSender;
-import org.openbaton.faultmanagement.model.AlarmEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -32,16 +30,16 @@ import java.util.concurrent.Future;
  */
 @Service
 @Scope
-public class RestEventSender implements EventSender {
+public class RestEventSender /*implements EventSender*/ {
 
 
-    private Logger log = LoggerFactory.getLogger(this.getClass());
+    /*private Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Override
     @Async
     public Future<Void> send(AlarmEndpoint endpoint, AbstractVNFAlarm event) throws IOException {
         try {
-            /*CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+            *//*CloseableHttpClient httpClient = HttpClientBuilder.create().build();
             Gson mapper = new GsonBuilder().create();
             String json = "{\"action:\"" + event.getAction() + "\", \"payload\":" + mapper.toJson(event.getPayload()) + "}";
 
@@ -57,10 +55,10 @@ public class RestEventSender implements EventSender {
             if (response.getEntity().getContentLength() != 0) {
             } else {
 
-            }*/
+            }*//*
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
-    }
+    }*/
 }

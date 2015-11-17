@@ -17,13 +17,8 @@
 package org.openbaton.faultmanagement.events.senders;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.Alarm;
-import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
-import org.openbaton.faultmanagement.events.notifications.VNFAlarmNotification;
-import org.openbaton.faultmanagement.events.notifications.VNFAlarmStateChangedNotification;
 import org.openbaton.faultmanagement.events.senders.interfaces.EventSender;
-import org.openbaton.faultmanagement.model.AlarmEndpoint;
 import org.openbaton.faultmanagement.parser.Mapper;
-import org.openbaton.faultmanagement.parser.Zabbix_v2_4_MetricParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +37,11 @@ import java.util.concurrent.Future;
 /**
  * Created by mob on 28/10/15.
  */
-@Service
-@Scope
-public class JmsEventSender implements EventSender {
+/*@Service
+@Scope*/
+public class JmsEventSender /*implements EventSender*/ {
 
-    @Autowired
+    /*@Autowired
     private JmsTemplate jmsTemplate;
     private Logger log = LoggerFactory.getLogger(this.getClass());
     @Override
@@ -77,5 +72,5 @@ public class JmsEventSender implements EventSender {
             }
         };
         return messageCreator;
-    }
+    }*/
 }

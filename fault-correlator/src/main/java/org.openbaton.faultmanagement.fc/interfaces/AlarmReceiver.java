@@ -1,10 +1,15 @@
 package org.openbaton.faultmanagement.fc.interfaces;
 
-import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
+import org.openbaton.catalogue.mano.common.faultmanagement.*;
+import org.springframework.http.ResponseEntity;
 
 /**
  * Created by mob on 09.11.15.
  */
 public interface AlarmReceiver {
-    void receiveVnfAlarm(AbstractVNFAlarm abstractVNFAlarm);
+    Alarm receiveVnfNewAlarm(VNFAlarmNotification vnfAlarm);
+    Alarm receiveVnfStateChangedAlarm(VNFAlarmStateChangedNotification vnfAlarmStateChangedNotification);
+
+    Alarm receiveVRNewAlarm(VirtualizedResourceAlarmNotification vrAlarm);
+    Alarm receiveVRStateChangedAlarm(VirtualizedResourceAlarmStateChangedNotification abstractVNFAlarm);
 }

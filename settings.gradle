@@ -6,6 +6,7 @@ include 'vim-int'
 include 'exception'
 include 'monitoring'
 include 'vim-drivers'
+include 'fault-correlator'
 
 project(':catalogue').projectDir = file('openbaton-libs/catalogue')
 project(':plugin').projectDir = file('openbaton-libs/plugin')
@@ -13,5 +14,5 @@ project(':vim-int').projectDir = file('openbaton-libs/vim-int')
 project(':exception').projectDir = file('openbaton-libs/exception')
 project(':monitoring').projectDir = file('openbaton-libs/monitoring')
 project(':vim-drivers').projectDir = file('openbaton-libs/vim-drivers')
-include 'fault-correlator'
+
 

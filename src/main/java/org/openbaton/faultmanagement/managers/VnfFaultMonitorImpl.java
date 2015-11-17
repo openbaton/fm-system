@@ -10,8 +10,6 @@ import org.openbaton.catalogue.mano.common.faultmanagement.*;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Item;
-import org.openbaton.faultmanagement.events.notifications.AbstractVNFAlarm;
-import org.openbaton.faultmanagement.events.notifications.VNFAlarmNotification;
 import org.openbaton.faultmanagement.exceptions.ZabbixMetricParserException;
 import org.openbaton.faultmanagement.parser.Mapper;
 import org.openbaton.faultmanagement.parser.Zabbix_v2_4_MetricParser;
@@ -35,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPublisherAware{
-    protected static final Logger log = LoggerFactory.getLogger(NSRManager.class);
+    protected static final Logger log = LoggerFactory.getLogger(VnfFaultMonitorImpl.class);
     private final ScheduledExecutorService vnfScheduler = Executors.newScheduledThreadPool(1);
     private static final String monitorApiUrl="localhost:8090";
     private Map<String,ScheduledFuture<?>> futures;
@@ -79,7 +77,7 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
     private class VNFFaultMonitor implements Runnable {
         private VNFFaultManagementPolicy vnfFaultManagementPolicy;
         private VirtualDeploymentUnit vdu;
-        private Logger log = LoggerFactory.getLogger(NSRManager.class);
+        private Logger log = LoggerFactory.getLogger(VNFFaultMonitor.class);
         private Random randomGenerator = new Random();
         private VirtualNetworkFunctionRecord vnfr;
 
@@ -160,7 +158,7 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
                 log.debug("\n\n");
 
             } catch (ZabbixMetricParserException e) {
-                log.error(e.getMessage(),e);
+                log.error(e.getMessage(), e);
             }catch (UnirestException e) {
                 log.error(e.getMessage(),e);
             }catch(Exception e){
@@ -241,10 +239,10 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
             alarm.setFaultType(FaultType.VNF_NOT_AVAILABLE);
             alarm.setResourceId(vnfr.getId());
             alarm.setFaultDetails(vnfFaultManagementPolicy.getName());
-            AbstractVNFAlarm vnfAlarmNotification=new VNFAlarmNotification(this,alarm);
+            //AbstractVNFAlarm vnfAlarmNotification=new VNFAlarmNotification(this,alarm);
 
 
-            publisher.publishEvent(vnfAlarmNotification);
+            //publisher.publishEvent(vnfAlarmNotification);
         }
 
         private List<Item> getItemsFromHostname(List<Item> items,String hostname) {

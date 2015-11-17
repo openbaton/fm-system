@@ -2,7 +2,6 @@ package org.openbaton.faultmanagement.events.register;
 
 import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.events.SubscriptionRegister;
-import org.openbaton.faultmanagement.model.AlarmEndpoint;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -10,10 +9,10 @@ import org.springframework.stereotype.Component;
 /**
  * Created by mob on 28.10.15.
  */
-@Component
+/*@Component*/
 public class JmsRegister extends SubscriptionRegister {
 
-    @Override
+    /*@Override
     @JmsListener(destination = "vnf-alarm-unsubscribe", containerFactory = "queueJmsContainerFactory")
     public void unsubscribe(String id) throws NotFoundException {
         this.deleteSubscription(id);
@@ -24,5 +23,5 @@ public class JmsRegister extends SubscriptionRegister {
         AlarmEndpoint alarmEndpoint = this.saveSubscription(endpoint);
         return alarmEndpoint.getId();
     }
-
+*/
 }
