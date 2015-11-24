@@ -10,9 +10,9 @@ import java.util.List;
 /**
  * Created by mob on 26.10.15.
  */
-public interface AlarmRepository extends CrudRepository<Alarm, String> {
+public interface AlarmRepository extends CrudRepository<Alarm, String> ,AlarmRepositoryCustom{
     List<Alarm> findByTriggerIdAndPerceivedSeverity(String triggerId, PerceivedSeverity perceivedSeverity);
     List<Alarm> findByTriggerIdAndAlarmStateNot(String triggerId, AlarmState alarmState);
     List<Alarm> findByResourceId(String resourceId);
-    List<Alarm> findByTriggerId(String triggerId);
+    Alarm findFirstByTriggerId(String triggerId);
 }

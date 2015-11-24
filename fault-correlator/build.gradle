@@ -29,6 +29,7 @@ dependencies {
     compile 'org.hibernate:hibernate-entitymanager:4.3.10.Final'
     compile 'commons-dbcp:commons-dbcp:1.4'
     compile 'mysql:mysql-connector-java:5.1.35'
+    compile 'org.aspectj:aspectjweaver:1.8.7'
 
     //Gson
     compile 'com.google.code.gson:gson:2.4'

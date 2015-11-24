@@ -1,14 +1,13 @@
 package org.openbaton.faultmanagement.fc;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
-import org.openbaton.faultmanagement.fc.interfaces.*;
+import org.openbaton.faultmanagement.fc.interfaces.AlarmReceiver;
 import org.openbaton.faultmanagement.fc.repositories.AlarmRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -60,15 +59,12 @@ public class RestAlarmReceiver implements AlarmReceiver {
     }
 
     @Override
-    @RequestMapping(value = "/vr", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/vr", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Alarm receiveVRStateChangedAlarm(@RequestBody @Valid VirtualizedResourceAlarmStateChangedNotification vrascn) {
-            List<Alarm> alarms = alarmRepository.findByTriggerId(vrascn.getTriggerId());
-            if(alarms!=null && !alarms.isEmpty()){
-            log.debug("Changing alarm state from: "+alarms.iterator().next().getAlarmState() + " to: "+vrascn.getAlarmState());
-            alarms.iterator().next().setAlarmState(vrascn.getAlarmState());
-            return alarms.iterator().next();
-            }
-        return null;
+        Alarm alarm = alarmRepository.changeAlarmState(vrascn.getTriggerId(), vrascn.getAlarmState());
+        if(alarm!=null)
+            log.debug("Changed alarm state to: " + alarm.getAlarmState());
+        return alarm;
     }
 }
