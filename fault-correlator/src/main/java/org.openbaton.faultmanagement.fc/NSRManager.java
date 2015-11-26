@@ -38,6 +38,8 @@ public class NSRManager {
         properties.load(new FileInputStream("fm.properties"));*/
         nsrSet=new HashSet<>();
         log.debug("NSRManager started");
+
+
         //REGISTRATION TO NFVO
         //nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), properties.getProperty("nfvo-ip"),properties.getProperty("nfvo-port"),"1");
 
