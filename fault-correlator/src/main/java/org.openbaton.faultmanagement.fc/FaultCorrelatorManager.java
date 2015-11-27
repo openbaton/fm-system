@@ -51,6 +51,9 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
     @Override
     public void newVRAlarm(Alarm vrAlarm) {
         log.debug("New VR alarm: "+vrAlarm);
+
+
+
     }
 
     @Override
