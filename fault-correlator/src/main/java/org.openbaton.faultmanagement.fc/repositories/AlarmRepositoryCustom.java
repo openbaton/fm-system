@@ -1,7 +1,7 @@
 package org.openbaton.faultmanagement.fc.repositories;
 
-import org.openbaton.catalogue.mano.common.faultmanagement.Alarm;
-import org.openbaton.catalogue.mano.common.faultmanagement.AlarmState;
+import org.openbaton.catalogue.mano.common.monitoring.Alarm;
+import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
 
 /**
  * Created by mob on 19.11.15.

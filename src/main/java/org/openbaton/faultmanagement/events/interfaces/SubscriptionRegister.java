@@ -1,6 +1,5 @@
 package org.openbaton.faultmanagement.events.interfaces;
 
-import org.openbaton.catalogue.mano.common.faultmanagement.AlarmEndpoint;
 import org.openbaton.exceptions.NotFoundException;
 
 /**

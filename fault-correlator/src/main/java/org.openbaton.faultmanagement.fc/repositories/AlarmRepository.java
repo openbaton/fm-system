@@ -1,8 +1,7 @@
 package org.openbaton.faultmanagement.fc.repositories;
 
-import org.openbaton.catalogue.mano.common.faultmanagement.Alarm;
-import org.openbaton.catalogue.mano.common.faultmanagement.AlarmState;
-import org.openbaton.catalogue.mano.common.faultmanagement.PerceivedSeverity;
+import org.openbaton.catalogue.mano.common.monitoring.Alarm;
+import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;

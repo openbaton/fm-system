@@ -16,24 +16,6 @@
 
 package org.openbaton.faultmanagement.events.senders;
 
-import org.openbaton.catalogue.mano.common.faultmanagement.Alarm;
-import org.openbaton.faultmanagement.events.senders.interfaces.EventSender;
-import org.openbaton.faultmanagement.parser.Mapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import java.util.concurrent.Future;
-
 /**
  * Created by mob on 28/10/15.
  */

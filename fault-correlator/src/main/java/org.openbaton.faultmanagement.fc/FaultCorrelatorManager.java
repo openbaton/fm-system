@@ -1,6 +1,8 @@
 package org.openbaton.faultmanagement.fc;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
+import org.openbaton.catalogue.mano.common.monitoring.Alarm;
+import org.openbaton.catalogue.mano.common.monitoring.PerceivedSeverity;
 import org.openbaton.faultmanagement.fc.repositories.AlarmRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +37,7 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
     public void newVnfAlarm(Alarm vnfAlarm) {
         log.debug("New VNF alarm: "+vnfAlarm);
 
-        if(vnfAlarm.getPerceivedSeverity().ordinal()==PerceivedSeverity.CRITICAL.ordinal()){
+        if(vnfAlarm.getPerceivedSeverity().ordinal()== PerceivedSeverity.CRITICAL.ordinal()){
             //check if there are alarms in the same vm
             // get vnfr
             //List<Alarm> activeAlarms = alarmRepository.findByResourceIdAndAlarmStateNot("hostname",AlarmState.CLEARED);

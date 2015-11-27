@@ -1,6 +1,7 @@
 package org.openbaton.faultmanagement.fc;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
+import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 import org.openbaton.faultmanagement.fc.interfaces.AlarmReceiver;
 import org.openbaton.faultmanagement.fc.repositories.AlarmRepository;
 import org.slf4j.Logger;

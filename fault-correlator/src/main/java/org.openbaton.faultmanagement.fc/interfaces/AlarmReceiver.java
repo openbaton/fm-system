@@ -1,6 +1,7 @@
 package org.openbaton.faultmanagement.fc.interfaces;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
+import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 import org.springframework.http.ResponseEntity;
 
 /**
