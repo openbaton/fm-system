@@ -1,18 +1,25 @@
 package org.openbaton.faultmanagement.fc;
 
 import com.sun.net.httpserver.HttpServer;
+import org.openbaton.catalogue.mano.common.monitoring.ObjectSelection;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
+import org.openbaton.exceptions.MonitoringException;
+import org.openbaton.exceptions.NotFoundException;
+import org.openbaton.monitoring.interfaces.MonitoringPluginCaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 /*import org.openbaton.sdk.NFVORequestor;
 import org.openbaton.sdk.api.exception.SDKException;*/
@@ -31,13 +38,41 @@ public class NSRManager {
     //private NFVORequestor nfvoRequestor;
 
 
-
+    private ObjectSelection getObjectSelector(){
+        ObjectSelection objectSelection =new ObjectSelection();
+        objectSelection.addObjectInstanceId("iperf-client-110");
+        objectSelection.addObjectInstanceId("iperf-server-820");
+        return objectSelection;
+    }
+    private List<String> getPerformanceMetrics(){
+        List<String> performanceMetrics= new ArrayList<>();
+        performanceMetrics.add("net.tcp.listen[5001]");
+        return performanceMetrics;
+    }
     @PostConstruct
     public void init() throws IOException/*, SDKException*/ {
         /*Properties properties=new Properties();
         properties.load(new FileInputStream("fm.properties"));*/
         nsrSet=new HashSet<>();
         log.debug("NSRManager started");
+
+        MonitoringPluginCaller monitoringPluginCaller=null;
+        try {
+            monitoringPluginCaller = new MonitoringPluginCaller("zabbix");
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+        }
+        log.debug("monitoringplugincaller obtained");
+
+        ObjectSelection objectSelection = getObjectSelector();
+        List<String> performanceMetrics=getPerformanceMetrics();
+        try {
+            String pmJobId = monitoringPluginCaller.createPMJob(objectSelection, performanceMetrics, new ArrayList<String>(), 5, 0);
+        } catch (MonitoringException e) {
+            log.error(e.getMessage(),e);
+        }
 
 
         //REGISTRATION TO NFVO

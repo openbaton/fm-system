@@ -110,21 +110,21 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
 
             // Perform a request for the current vdu and get list of Items
             //TEST RANDOM ITEMS
-            try {
+            /*try {
 
-                HttpResponse<String> jsonResponse = null;
+               *//* HttpResponse<String> jsonResponse = null;
                 String body = prepareJson();
                 jsonResponse = Unirest.put(getUrlToMonitoringApi()).header("Content-type","application/json-rpc").header("KeepAliveTimeout","5000").body(body).asString();
                 List<Item> items= getItemsFromJson(jsonResponse.getBody());
 
                 log.debug("Received the following Items: "+ items);
-                /*List<Item> randomItems = createRandomItems(fakeHostNames, fakeMetrics);
+                *//**//*List<Item> randomItems = createRandomItems(fakeHostNames, fakeMetrics);
                 log.debug("Created the following random items:" + randomItems);
-                //TEST*/
+                //TEST*//**//*
                 Map<String,List<Item>> hostnameItems=getMap(items);
 
-                Map<String, Integer> criteriaViolated = new HashMap<>();
-                for (Criteria criteria : vnfFaultManagementPolicy.getCriteria()) {
+                Map<String, Integer> criteriaViolated = new HashMap<>();*//*
+                *//*for (Criteria criteria : vnfFaultManagementPolicy.getCriteria()) {
                     log.debug("Fetching criteria:" + criteria);
                     Metric currentMetric = criteria.getParameterRef();
                     MonitoringParameter mp = getMonitoringParameter(vdu,currentMetric);
@@ -149,7 +149,7 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
                             }
                         }
                     }
-                }
+                }*//**//*
                 for (Map.Entry<String, Integer> entry : criteriaViolated.entrySet()) {
                     if (entry.getValue() == vnfFaultManagementPolicy.getCriteria().size()) {
                         log.debug("The vnfc: " + entry.getKey() + " crossed the threshold of all the criteria");
@@ -159,7 +159,7 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
                     }
                 }
 
-                log.debug("\n\n");
+                log.debug("\n\n");*//*
 
             } catch (ZabbixMetricParserException e) {
                 log.error(e.getMessage(), e);
@@ -167,7 +167,7 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
                 log.error(e.getMessage(),e);
             }catch(Exception e){
                 log.error("Thread managing vnffmpolicy: "+vnfFaultManagementPolicy.getName(),e);
-            }
+            }*/
         }
 
         private Map<String, List<Item>> getMap(List<Item> items) {
@@ -187,13 +187,13 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
             return result;
         }
 
-        private MonitoringParameter getMonitoringParameter(VirtualDeploymentUnit vdu, Metric currentMetric) {
+        /*private MonitoringParameter getMonitoringParameter(VirtualDeploymentUnit vdu, Metric currentMetric) {
             for(MonitoringParameter mp: vdu.getMonitoring_parameter()){
                 if (mp.getMetric().ordinal()== currentMetric.ordinal())
                     return mp;
             }
             throw new NullPointerException("The vdu "+vdu.getId()+" has no monitoring parameter with the metric: "+currentMetric);
-        }
+        }*/
 
         private List<Item> getItemsFromJson(String body) {
             List<Item> items=new ArrayList<>();
@@ -222,7 +222,7 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
             }
             return result;
         }
-        private String prepareJson() throws ZabbixMetricParserException {
+        /*private String prepareJson() throws ZabbixMetricParserException {
             String apiRest="{ 'keys':[";
             for(MonitoringParameter mp: vdu.getMonitoring_parameter()){
                 String metric=Zabbix_v2_4_MetricParser.getZabbixMetric(mp.getMetric(),mp.getParams());
@@ -231,7 +231,7 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
             apiRest=apiRest.substring(0, apiRest.length()-1);
             apiRest+="],'period'='"+0+"'";
             return apiRest;
-        }
+        }*/
         private void createAndSendAlarm(PerceivedSeverity perceivedSeverity) {
             Alarm alarm = new Alarm();
             DateFormat dateFormat= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

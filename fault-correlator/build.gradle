@@ -12,6 +12,7 @@ dependencies {
 
     //Alarm entity
     compile project (':catalogue')
+    compile project (':monitoring')
 
     //EnableJMS on EventDispatcher
     /**

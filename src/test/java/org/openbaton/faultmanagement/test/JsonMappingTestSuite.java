@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
+import org.openbaton.catalogue.mano.common.monitoring.PerceivedSeverity;
 import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
@@ -51,13 +52,13 @@ public class JsonMappingTestSuite {
         Criteria c1 = new Criteria();
         c1.setName("criteria1");
         c1.setComparisonOperator("=");
-        c1.setParameterRef(Metric.NET_TCP_LISTEN);
+        //c1.setParameterRef(Metric.NET_TCP_LISTEN);
         c1.setThreshold("0");
 
         Criteria c2 = new Criteria();
         c2.setName("criteria2");
         c2.setComparisonOperator("=");
-        c2.setParameterRef(Metric.AGENT_PING);
+        //c2.setParameterRef(Metric.AGENT_PING);
         c2.setThreshold("0");
 
         criterias.add(c1);
@@ -72,7 +73,7 @@ public class JsonMappingTestSuite {
                 assertEquals("VNFFaultManagementPolicy name should be the same",expectedVnfFaultManagementPolicy.getName(),vnffmp.getName());
 
                 for (VirtualDeploymentUnit vdu : vnfd.getVdu()){
-                    Iterator<MonitoringParameter> it= vdu.getMonitoring_parameter().iterator();
+                    Iterator<String> it= vdu.getMonitoring_parameter().iterator();
                    while(it.hasNext()){
                         System.out.println(it.next().toString());
                     }

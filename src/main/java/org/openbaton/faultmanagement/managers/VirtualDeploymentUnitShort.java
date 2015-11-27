@@ -1,8 +1,5 @@
 package org.openbaton.faultmanagement.managers;
 
-import org.openbaton.catalogue.mano.common.faultmanagement.Metric;
-import org.openbaton.catalogue.mano.common.faultmanagement.MonitoringParameter;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,7 +9,7 @@ import java.util.Set;
 public class VirtualDeploymentUnitShort {
     private String id;
     private String name;
-    private Set<MonitoringParameter> monitoringParameters;
+    private Set<String> monitoringParameters;
 
     public VirtualDeploymentUnitShort(String id, String name){
         if(id==null || name==null)
@@ -30,20 +27,22 @@ public class VirtualDeploymentUnitShort {
         this.id = id;
     }
 
+/*
     public Set<MonitoringParameter> getMonitoringParameters() {
         return monitoringParameters;
     }
+*/
 
     public String getName() {
         return name;
     }
 
-    public void setMonitoringParameters(Set<MonitoringParameter> monitoringParameters) {
+    public void setMonitoringParameters(Set<String> monitoringParameters) {
         this.monitoringParameters = monitoringParameters;
     }
 
-    public boolean isMetricPresent(Metric metric){
-        for (MonitoringParameter mp: monitoringParameters){
+    /*public boolean isMetricPresent(Metric metric){
+        for (String mp: monitoringParameters){
             if(mp.getMetric().ordinal()==metric.ordinal())
                 return true;
         }
@@ -51,13 +50,13 @@ public class VirtualDeploymentUnitShort {
     }
     public MonitoringParameter getMonitoringParameter(Metric metric){
         if(isMetricPresent(metric)){
-            for (MonitoringParameter mp: monitoringParameters){
+            for (String mp: monitoringParameters){
                 if(mp.getMetric().ordinal()==metric.ordinal())
                     return mp;
             }
         }
         return null;
-    }
+    }*/
 
     @Override
     public String toString() {

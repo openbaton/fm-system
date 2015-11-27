@@ -1,5 +1,5 @@
 {  
-	"name":"iperf-NSD",
+	"name":"iperf-NSD-with-fault-management",
     "vendor":"fokus",
     "version":"0.1-ALPHA",
     "vnfd":[
@@ -35,40 +35,23 @@
                     "high_availability":"ACTIVE_PASSIVE",
                     "scale_in_out":2,
                     "vnfc":[  
-                        {  
-                            "exposed":true,
+                        {
                             "connection_point":[  
-                                {  
+                                {
+                                    "floatingIp":"random",
                                     "virtual_link_reference":"private"
                                 }
                             ]
                         }
                     ],
                     "monitoring_parameter":[
-                        {
-                            "name":"AGENT_PING"
-                        },
-                        {
-                            "name":"NET_TCP_LISTEN",
-                            "params": {
-                                "p1": "5001"
-                            }
-                        },
-                        {
-                            "name":"SYSTEM_CPU_LOAD",
-                            "params": {
-                                "p1":"all",
-                                "p2":"avg5"
-                            }
-                        },
-                        {
-                            "name":"VFS.FILE.REGMATCH",
-                            "params":
-                            {
-                                "p1":"/var/log/app.log",
-                                "p2":"[Ee]xception"
-                            }
-                        }
+                            "agent.ping",
+
+                            "net.tcp.listen[5001]",
+
+                            "system.cpu.load[all,avg5]",
+
+                            "vfs.file.regmatch[/var/log/app.log,Exception]"
                     ]
                 }
             ],
@@ -108,13 +91,13 @@
                     "criteria":[
                         {
                             "name":"Iper-server not listening",
-                            "parameter_ref":"NET_TCP_LISTEN",
+                            "parameter_ref":"net.tcp.listen[5001]",
                             "comparison_operator":"=",
                             "threshold":"0"
                         },
                         {
                             "name":"Log exception assertion",
-                            "parameter_ref":"VFS.FILE.REGMATCH",
+                            "parameter_ref":"vfs.file.regmatch[/var/log/app.log,Exception]",
                             "comparison_operator":"=",
                             "threshold":"1"
                         }
@@ -255,7 +238,7 @@
         "name": "iperf-client"
       },
       "parameters":[
-        "ip1"
+        "private"
       ]
     }
     ],
