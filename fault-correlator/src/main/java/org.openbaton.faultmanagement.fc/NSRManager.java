@@ -75,8 +75,7 @@ public class NSRManager {
 
         ObjectSelection objectSelection = getObjectSelector();
         List<String> performanceMetrics=getPerformanceMetrics();
-        try {
-
+        /*try {
 //            String pmJobId = monitoringPluginCaller.createPMJob(objectSelection, performanceMetrics, new ArrayList<String>(), 5, 0);
 //            log.debug("Created new pm job with id:"+pmJobId);
             ThresholdDetails thresholdDetails= new ThresholdDetails("last(0)","0","=");
@@ -89,17 +88,17 @@ public class NSRManager {
 
             String thresholdId = monitoringPluginCaller.createThreshold(objectSelection,"net.tcp.listen[5001]", ThresholdType.SINGLE_VALUE,thresholdDetails);
             log.debug("Created new threshold with id:"+thresholdId);
-           /* List<String> idsToDelete=new ArrayList<>();
+            List<String> idsToDelete=new ArrayList<>();
             idsToDelete.add(thresholdId);
             monitoringPluginCaller.deleteThreshold(idsToDelete);
             log.debug("Dleted threshold with id:"+pmJobId);
             idsToDelete.clear();
             idsToDelete.add(pmJobId);
             monitoringPluginCaller.deletePMJob(idsToDelete);
-            log.debug("Dleted pmjob with id:"+pmJobId);*/
+            log.debug("Dleted pmjob with id:"+pmJobId);
         } catch (MonitoringException e) {
             log.error(e.getMessage(),e);
-        }
+        }*/
 
 
         //REGISTRATION TO NFVO
