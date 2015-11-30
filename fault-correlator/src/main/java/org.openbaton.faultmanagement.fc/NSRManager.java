@@ -9,6 +9,7 @@ import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
+import org.openbaton.catalogue.nfvo.Item;
 import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.monitoring.interfaces.MonitoringPluginCaller;
@@ -80,6 +81,11 @@ public class NSRManager {
 //            log.debug("Created new pm job with id:"+pmJobId);
             ThresholdDetails thresholdDetails= new ThresholdDetails("last(0)","0","=");
             thresholdDetails.setPerceivedSeverity(PerceivedSeverity.CRITICAL);
+            ArrayList<String> hostnames = new ArrayList<String>();
+            hostnames.add("hostA");
+            ArrayList<String> metrics = new ArrayList<String>();
+            metrics.add("net.tcp.listen[5001]");
+            List<Item> items = monitoringPluginCaller.queryPMJob(hostnames,metrics,"0");
 
             String thresholdId = monitoringPluginCaller.createThreshold(objectSelection,"net.tcp.listen[5001]", ThresholdType.SINGLE_VALUE,thresholdDetails);
             log.debug("Created new threshold with id:"+thresholdId);

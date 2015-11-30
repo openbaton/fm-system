@@ -2,7 +2,8 @@ package org.openbaton.faultmanagement.fc;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
-import org.openbaton.faultmanagement.fc.interfaces.AlarmReceiver;
+import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
+import org.openbaton.faultmanagement.fc.interfaces.EventReceiver;
 import org.openbaton.faultmanagement.fc.repositories.AlarmRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,14 +13,12 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 
 /**
  * Created by mob on 09.11.15.
  */
 @RestController
-@RequestMapping("/alarm")
-public class RestAlarmReceiver implements AlarmReceiver {
+public class RestAlarmReceiver implements EventReceiver {
 
     private static final Logger log = LoggerFactory.getLogger(RestAlarmReceiver.class);
     @Autowired
@@ -29,7 +28,7 @@ public class RestAlarmReceiver implements AlarmReceiver {
     org.openbaton.faultmanagement.fc.interfaces.FaultCorrelatorManager faultCorrelatorManager;
 
     @Override
-    @RequestMapping(value = "/vnf", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/alarm/vnf", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Alarm receiveVnfNewAlarm(@RequestBody @Valid VNFAlarmNotification vnfAlarm) {
             Alarm alarm = alarmRepository.save(vnfAlarm.getAlarm());
@@ -38,7 +37,7 @@ public class RestAlarmReceiver implements AlarmReceiver {
     }
 
     @Override
-    @RequestMapping(value = "/vnf", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/alarm/vnf", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Alarm receiveVnfStateChangedAlarm(@RequestBody @Valid VNFAlarmStateChangedNotification vnfAlarmStateChangedNotification) {
         if(vnfAlarmStateChangedNotification!=null && vnfAlarmStateChangedNotification.getAlarmState()!=null
@@ -49,7 +48,7 @@ public class RestAlarmReceiver implements AlarmReceiver {
     }
 
     @Override
-    @RequestMapping(value = "/vr", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/alarm/vr", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Alarm receiveVRNewAlarm(@RequestBody @Valid VirtualizedResourceAlarmNotification vrAlarm) {
         log.debug("received: "+vrAlarm);
@@ -60,12 +59,24 @@ public class RestAlarmReceiver implements AlarmReceiver {
     }
 
     @Override
-    @RequestMapping(value = "/vr", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/alarm/vr", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Alarm receiveVRStateChangedAlarm(@RequestBody @Valid VirtualizedResourceAlarmStateChangedNotification vrascn) {
         Alarm alarm = alarmRepository.changeAlarmState(vrascn.getTriggerId(), vrascn.getAlarmState());
         if(alarm!=null)
             log.debug("Changed alarm state to: " + alarm.getAlarmState());
         return alarm;
+    }
+
+    @Override
+    @RequestMapping(value = "/nfvo/event/instantiatefinish", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void instantiateFinish(NetworkServiceRecord networkServiceRecord) {
+
+    }
+
+    @Override
+    @RequestMapping(value = "/nfvo/event/releaseResourcesfinish", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void releaseResourcesFinish(NetworkServiceRecord networkServiceRecord) {
+
     }
 }
