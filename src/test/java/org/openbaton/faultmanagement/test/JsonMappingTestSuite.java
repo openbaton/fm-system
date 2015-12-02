@@ -25,7 +25,7 @@ public class JsonMappingTestSuite {
     private NetworkServiceDescriptor nsd;
     @Before
     public void init(){
-        json=Utils.getFile("json_file/NetworkServiceDescriptor-iperf.json");
+        json=Utils.getFile("json_file/NetworkServiceDescriptor-iperf-server-solo.json");
         assertNotNull(json);
     }
 
@@ -42,27 +42,20 @@ public class JsonMappingTestSuite {
         nsd = mapper.fromJson(json,NetworkServiceDescriptor.class);
 
         VNFFaultManagementPolicy expectedVnfFaultManagementPolicy=new VNFFaultManagementPolicy();
-        expectedVnfFaultManagementPolicy.setName("vnf-not-available");
-        expectedVnfFaultManagementPolicy.setCooldown(10);
-        expectedVnfFaultManagementPolicy.setPeriod(30);
+        expectedVnfFaultManagementPolicy.setName("Iper-server-down");
+        expectedVnfFaultManagementPolicy.setCooldown(60);
+        expectedVnfFaultManagementPolicy.setPeriod(5);
         expectedVnfFaultManagementPolicy.setSeverity(PerceivedSeverity.CRITICAL);
-        expectedVnfFaultManagementPolicy.setAction(FaultManagementVNFCAction.REINSTANTIATE_SERVICE);
+        expectedVnfFaultManagementPolicy.setAction(FaultManagementVNFCAction.SWITCH_TO_STANDBY);
 
         Set<Criteria> criterias = new HashSet<>();
         Criteria c1 = new Criteria();
-        c1.setName("criteria1");
-        c1.setComparisonOperator("=");
-        //c1.setParameterRef(Metric.NET_TCP_LISTEN);
+        c1.setName("Iper-server not listening");
+        c1.setComparison_operator("=");
+        c1.setParameter_ref("net.tcp.listen[5001]");
         c1.setThreshold("0");
 
-        Criteria c2 = new Criteria();
-        c2.setName("criteria2");
-        c2.setComparisonOperator("=");
-        //c2.setParameterRef(Metric.AGENT_PING);
-        c2.setThreshold("0");
-
         criterias.add(c1);
-        criterias.add(c2);
         expectedVnfFaultManagementPolicy.setCriteria(criterias);
 
         for(VirtualNetworkFunctionDescriptor vnfd : nsd.getVnfd()){
@@ -75,7 +68,7 @@ public class JsonMappingTestSuite {
                 for (VirtualDeploymentUnit vdu : vnfd.getVdu()){
                     Iterator<String> it= vdu.getMonitoring_parameter().iterator();
                    while(it.hasNext()){
-                        System.out.println(it.next().toString());
+                        System.out.println("mon par: "+it.next());
                     }
                 }
             }

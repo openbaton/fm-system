@@ -4,11 +4,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
-import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
-/*import org.openbaton.faultmanagement.VNFFaultMonitor;*/
-import org.openbaton.faultmanagement.managers.VirtualDeploymentUnitShort;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.VnfFaultMonitor;
 import org.openbaton.faultmanagement.parser.Mapper;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.*;
 
@@ -26,6 +25,7 @@ public class FaultMonitoringTest {
         String json = Utils.getFile("json_file/NetworkServiceDescriptor-iperf.json");
         assertNotNull(json);
         nsd = Mapper.getMapper().fromJson(json, NetworkServiceDescriptor.class);
+
     }
 
     @Test
@@ -34,7 +34,7 @@ public class FaultMonitoringTest {
             if (vnfd.getName().equals("iperf-server")) {
                 //get the first VnfFaultManagementPolicy
                 VNFFaultManagementPolicy vnffmp= vnfd.getFault_management_policy().iterator().next();
-                VirtualDeploymentUnitShort vdus1=getVDUS(vnfd.getVdu().iterator().next());
+
 
                 //The fault monitor will check every vnffmp.getPeriod() seconds if the VNFCs of that VDU have crossed the thresholds.
                 /*VNFFaultMonitor fm=new VNFFaultMonitor(vnffmp,vdus1);
@@ -51,12 +51,6 @@ public class FaultMonitoringTest {
             e.printStackTrace();
         }
         shutdownAndAwaitTermination(scheduler);
-    }
-
-    private VirtualDeploymentUnitShort getVDUS(VirtualDeploymentUnit next) {
-        VirtualDeploymentUnitShort vdus=new VirtualDeploymentUnitShort("FakeID","vdu1");
-        vdus.setMonitoringParameters(next.getMonitoring_parameter());
-        return vdus;
     }
     void shutdownAndAwaitTermination(ExecutorService pool) {
         pool.shutdown(); // Disable new tasks from being submitted

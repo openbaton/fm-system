@@ -1,31 +1,27 @@
 package org.openbaton.faultmanagement.test;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
-import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
-import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
-import org.openbaton.faultmanagement.managers.VnfFaultMonitor;
-import org.openbaton.faultmanagement.managers.VnfFaultMonitorImpl;
-import org.openbaton.faultmanagement.managers.PolicyManagerImpl;
-import org.openbaton.faultmanagement.events.EventDispatcher;
-import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
-import org.openbaton.faultmanagement.interfaces.PolicyManager;
+import org.openbaton.faultmanagement.Application;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.parser.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.HashSet;
+import java.lang.reflect.Array;
 import java.util.Random;
-import java.util.Set;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -33,38 +29,19 @@ import static org.junit.Assert.assertNotNull;
  * Created by mob on 02.11.15.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@ContextConfiguration(classes = {Application.class})
 public class PolicyManagerTest {
 
-    @Configuration
-    static class PolicyManagerTestTestContextConfiguration {
-        @Bean
-        public PolicyManager policyManager() {
-            return new PolicyManagerImpl();
-        }
-        @Bean
-        public VnfFaultMonitor faultMonitor(){
-            return new VnfFaultMonitorImpl();
-        }
-
-        @Bean
-        public EventDispatcher eventDispatcher(){
-            return new EventDispatcher();
-        }
-    }
-
-    @Autowired
-    private PolicyManager policyManager;
-
     private NetworkServiceDescriptor nsd;
-    private Random randomGenerator;
+    private Gson mapper=new GsonBuilder().create();
+    @Autowired
+    PolicyManager policyManager;
 
     @Before
     public void init() {
         String json = Utils.getFile("json_file/NetworkServiceDescriptor-iperf.json");
         assertNotNull(json);
         nsd = Mapper.getMapper().fromJson(json, NetworkServiceDescriptor.class);
-        randomGenerator = new Random();
     }
 
     @Test
@@ -72,46 +49,25 @@ public class PolicyManagerTest {
 
     @Test
     public void manageNSRTest(){
-        NetworkServiceRecord nsr = new NetworkServiceRecord();
-        nsr.setName(nsd.getName());
-        nsr.setId("1");
-        nsr.setFaultManagementPolicy(new HashSet<FaultManagementPolicy>());
-        Set<VirtualNetworkFunctionRecord> listVnfr=new HashSet<>();
-        for(VirtualNetworkFunctionDescriptor vnfd: nsd.getVnfd()){
-            VirtualNetworkFunctionRecord vnfr=new VirtualNetworkFunctionRecord();
-            vnfr.setName(vnfd.getName());
-            vnfr.setId("vnfr" + Integer.toString(randomGenerator.nextInt(30)));
-            vnfr.setFaultManagementPolicy(new HashSet<VNFFaultManagementPolicy>());
-            if(vnfd.getFault_management_policy()!=null)
-                vnfr.setFaultManagementPolicy(vnfd.getFault_management_policy());
-            for(VirtualDeploymentUnit vdu: vnfd.getVdu()){
-                vdu.setId("vdu"+Integer.toString(randomGenerator.nextInt(30)));
-                vdu.setName("vdu-name"+Integer.toString(randomGenerator.nextInt(30)));
+        String url="http://localhost:8080/api/v1/ns-records";
+        HttpResponse<JsonNode> jsonResponse=null;
+        try {
+            jsonResponse = Unirest.get(url).asJson();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+
+        Class<?> aClass = Array.newInstance(NetworkServiceRecord.class, 3).getClass();
+
+        NetworkServiceRecord[] nsrArray = (NetworkServiceRecord[]) mapper.fromJson(jsonResponse.getBody().toString(), aClass);
+
+        /*for(NetworkServiceRecord nsr : nsrArray){
+           System.out.println("Nsr name: "+nsr.getName() +" nsr id:"+nsr.getId());
+            for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
+                for(VNFFaultManagementPolicy fmp: vnfr.getFault_management_policy()){
+                    System.out.println("fmpolicy: "+fmp);
+                }
             }
-            vnfr.setVdu(vnfd.getVdu());
-            listVnfr.add(vnfr);
-        }
-        nsr.setVnfr(listVnfr);
-        try {
-            policyManager.manageNSR(nsr);
-        } catch (FaultManagementPolicyException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            Thread.sleep(1000*30);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Unmanaging nsr");
-        policyManager.unManageNSR(nsr.getId());
-
-        try {
-            Thread.sleep(1000*10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
+        }*/
     }
-
 }

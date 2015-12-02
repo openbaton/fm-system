@@ -31,8 +31,6 @@ gradle/gradlew
 gradle/gradlew.bat
 
 */build/*
-build/*
-build
 buildSrc/build
 /spring-*/build
 /src/asciidoc/build

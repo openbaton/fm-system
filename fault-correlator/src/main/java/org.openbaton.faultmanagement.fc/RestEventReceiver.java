@@ -1,9 +1,16 @@
 package org.openbaton.faultmanagement.fc;
 
-import org.openbaton.catalogue.mano.common.faultmanagement.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmNotification;
+import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedNotification;
+import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmNotification;
+import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
+import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.faultmanagement.fc.interfaces.EventReceiver;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.fc.repositories.AlarmRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,12 +25,13 @@ import javax.validation.Valid;
  * Created by mob on 09.11.15.
  */
 @RestController
-public class RestAlarmReceiver implements EventReceiver {
+public class RestEventReceiver implements EventReceiver {
 
-    private static final Logger log = LoggerFactory.getLogger(RestAlarmReceiver.class);
+    private static final Logger log = LoggerFactory.getLogger(RestEventReceiver.class);
     @Autowired
     AlarmRepository alarmRepository;
-
+    @Autowired
+    PolicyManager policyManager;
     @Autowired
     org.openbaton.faultmanagement.fc.interfaces.FaultCorrelatorManager faultCorrelatorManager;
 
@@ -69,14 +77,18 @@ public class RestAlarmReceiver implements EventReceiver {
     }
 
     @Override
-    @RequestMapping(value = "/nfvo/event/instantiatefinish", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void instantiateFinish(NetworkServiceRecord networkServiceRecord) {
-
+    @RequestMapping(value = "/nfvo/event", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void eventFromNfvo(@RequestBody @Valid OpenbatonEvent openbatonEvent) {
+        log.info("Received nfvo event with action: " + openbatonEvent.getAction());
+        try {
+            if (openbatonEvent.getAction().ordinal() == Action.INSTANTIATE_FINISH.ordinal()) {
+                policyManager.manageNSR(openbatonEvent.getPayload());
+            } else if (openbatonEvent.getAction().ordinal() == Action.RELEASE_RESOURCES_FINISH.ordinal()) {
+                policyManager.unManageNSR(openbatonEvent.getPayload().getId());
+            }
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
+        }
     }
 
-    @Override
-    @RequestMapping(value = "/nfvo/event/releaseResourcesfinish", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void releaseResourcesFinish(NetworkServiceRecord networkServiceRecord) {
-
-    }
 }

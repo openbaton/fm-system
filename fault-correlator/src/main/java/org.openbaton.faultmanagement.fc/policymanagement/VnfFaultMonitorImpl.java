@@ -1,79 +1,108 @@
-package org.openbaton.faultmanagement.managers;
+package org.openbaton.faultmanagement.fc.policymanagement;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
-import org.openbaton.catalogue.mano.common.monitoring.Alarm;
-import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
-import org.openbaton.catalogue.mano.common.monitoring.FaultType;
-import org.openbaton.catalogue.mano.common.monitoring.PerceivedSeverity;
+import org.openbaton.catalogue.mano.common.monitoring.*;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
+import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Item;
-import org.openbaton.faultmanagement.exceptions.ZabbixMetricParserException;
-import org.openbaton.faultmanagement.parser.Mapper;
-import org.openbaton.faultmanagement.parser.Zabbix_v2_4_MetricParser;
+import org.openbaton.exceptions.MonitoringException;
+import org.openbaton.exceptions.NotFoundException;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.VnfFaultMonitor;
+import org.openbaton.monitoring.interfaces.MonitoringPluginCaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by mob on 04.11.15.
  */
 @Service
-public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPublisherAware{
+public class VnfFaultMonitorImpl implements VnfFaultMonitor{
     protected static final Logger log = LoggerFactory.getLogger(VnfFaultMonitorImpl.class);
     private final ScheduledExecutorService vnfScheduler = Executors.newScheduledThreadPool(1);
     private static final String monitorApiUrl="localhost:8090";
     private Map<String,ScheduledFuture<?>> futures;
+    private Map<String,String > vduIdPmJobIdMap;
+    private MonitoringPluginCaller monitoringPluginCaller;
     protected ApplicationEventPublisher publisher;
 
     @PostConstruct
     public void init(){
         futures=new HashMap<>();
+        vduIdPmJobIdMap=new HashMap<>();
+        try {
+            monitoringPluginCaller = new MonitoringPluginCaller("zabbix");
+        } catch (TimeoutException e) {
+            log.error(e.getMessage(),e);
+        } catch (NotFoundException e) {
+            log.error(e.getMessage(), e);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+        log.debug("monitoringplugincaller obtained");
     }
 
     public void startMonitorVNF(VirtualNetworkFunctionRecord vnfr){
-        for(VNFFaultManagementPolicy vnfp: vnfr.getFaultManagementPolicy()){
-            //There is no vdu selector yet, so the first vdu is passed for every fault management policies
-            VNFFaultMonitor fm = new VNFFaultMonitor(vnfp,vnfr.getVdu().iterator().next());
-            log.debug("Launching fm monitor with the following parameter: "+vnfp+" and vdu: "+vnfr.getVdu().iterator().next());
-            fm.setVnfr(vnfr);
-
-            //ONLY FOR TEST
-            /*fm.setFakeHostname(new HashSet<>(Arrays.asList("host1", "host2","host3")));
-            fm.setFakeZabbixMetrics(Arrays.asList("net.tcp.listen[6161]", "agent.ping","system.cpu.load[all,avg5]"));*/
-
-
-            futures.put(vnfp.getId(), vnfScheduler.scheduleAtFixedRate(fm, 1, vnfp.getPeriod(), TimeUnit.SECONDS));
+        if(vnfr.getFault_management_policy()!=null){
+            VNFPolicyCreator mpc = new VNFPolicyCreator(vnfr);
+            futures.put(vnfr.getId(), vnfScheduler.schedule(mpc, 1, TimeUnit.SECONDS));
         }
     }
 
     @Override
-    public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
-        this.publisher=publisher;
+    public void stopMonitorVNF(VirtualNetworkFunctionRecord vnfr) {
+
     }
 
-    public void stopMonitorVNF(VirtualNetworkFunctionRecord vnfr){
-        for(VNFFaultManagementPolicy vnfp: vnfr.getFaultManagementPolicy()){
-            if(futures.get(vnfp.getId())!=null){
-                futures.get(vnfp.getId()).cancel(true);
-                futures.remove(vnfp.getId());
+    private class VNFPolicyCreator implements Runnable{
+        private Set<VNFCInstance> vnfcInstances;
+        private VirtualNetworkFunctionRecord vnfr;
+        private Logger log = LoggerFactory.getLogger(VNFPolicyCreator.class);
+
+        public VNFPolicyCreator(VirtualNetworkFunctionRecord vnfr) {
+            this.vnfr=vnfr;
+        }
+
+        @Override
+        public void run() {
+            //Note: We consider there will be only one vdu per vnf !
+            VirtualDeploymentUnit vdu = vnfr.getVdu().iterator().next();
+            try {
+                ObjectSelection objectSelection = new ObjectSelection();
+                for (VNFCInstance vnfcInstance: vdu.getVnfc_instance() ){
+                    log.debug("vnfcinstance name: "+vnfcInstance.getHostname());
+                    objectSelection.addObjectInstanceId(vnfcInstance.getHostname());
+                }
+                List<String> monitoringParamenters=new ArrayList<>();
+                monitoringParamenters.addAll(vdu.getMonitoring_parameter());
+                //One pmJob per vdu (Actually)
+                log.debug("monitoring paramenter are:  "+monitoringParamenters);
+                String pmJobId = monitoringPluginCaller.createPMJob(objectSelection,monitoringParamenters,new ArrayList<String>(),10,0);
+                vduIdPmJobIdMap.put(vdu.getId(),pmJobId);
+
+                for (VNFFaultManagementPolicy vnffmp : vnfr.getFault_management_policy()){
+                    for(Criteria criteria: vnffmp.getCriteria()){
+                        String performanceMetric= criteria.getParameter_ref();
+                        ThresholdDetails thresholdDetails= new ThresholdDetails("last(0)",criteria.getThreshold(),criteria.getComparison_operator());
+                        thresholdDetails.setPerceivedSeverity(vnffmp.getSeverity());
+                        String thresholdId = monitoringPluginCaller.createThreshold(objectSelection, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
+                    }
+
+                }
+                log.debug("end vnfPolicyCreator:  ");
+            } catch (MonitoringException e) {
+                log.error(e.getMessage(),e);
+            } catch (Exception e){
+                log.error(e.getMessage(),e);
             }
         }
     }
@@ -81,7 +110,7 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
     private class VNFFaultMonitor implements Runnable {
         private VNFFaultManagementPolicy vnfFaultManagementPolicy;
         private VirtualDeploymentUnit vdu;
-        private Logger log = LoggerFactory.getLogger(VNFFaultMonitor.class);
+
         private Random randomGenerator = new Random();
         private VirtualNetworkFunctionRecord vnfr;
 
@@ -197,14 +226,14 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor,ApplicationEventPubl
 
         private List<Item> getItemsFromJson(String body) {
             List<Item> items=new ArrayList<>();
-            JsonElement jsonElement = Mapper.getMapper().fromJson(body, JsonElement.class);
+            /*JsonElement jsonElement = Mapper.getMapper().fromJson(body, JsonElement.class);
             if(!jsonElement.isJsonArray())
                 throw new JsonParseException("The json received is not a list of Items");
             JsonArray jsonArray = jsonElement.getAsJsonArray();
             for(JsonElement el : jsonArray){
                 Item i= Mapper.getMapper().fromJson(el,Item.class);
                 items.add(i);
-            }
+            }*/
             return items;
         }
 

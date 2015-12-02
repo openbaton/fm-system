@@ -1,4 +1,4 @@
-package org.openbaton.faultmanagement.interfaces;
+package org.openbaton.faultmanagement.fc.policymanagement.interfaces;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.AbstractVNFAlarm;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;

@@ -1,4 +1,4 @@
-package org.openbaton.faultmanagement.managers;
+package org.openbaton.faultmanagement.fc.policymanagement;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
 import org.openbaton.catalogue.mano.common.faultmanagement.NSFaultManagementPolicy;
@@ -6,8 +6,12 @@ import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPol
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
-import org.openbaton.faultmanagement.exceptions.FaultManagementPolicyException;
-import org.openbaton.faultmanagement.interfaces.PolicyManager;
+import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
+import org.openbaton.faultmanagement.fc.policymanagement.catalogue.NetworkServiceRecordShort;
+import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualDeploymentUnitShort;
+import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualNetworkFunctionRecordShort;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.VnfFaultMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +28,10 @@ import java.util.Set;
 @Service
 public class PolicyManagerImpl implements PolicyManager {
 
-    @Autowired
-    private VnfFaultMonitor faultMonitor;
     private static final Logger log = LoggerFactory.getLogger(PolicyManagerImpl.class);
     private List<NetworkServiceRecordShort> networkServiceRecordShortList;
-
-
+    @Autowired
+    VnfFaultMonitor vnfFaultMonitor;
     @PostConstruct
     public void init(){
         networkServiceRecordShortList=new ArrayList<>();
@@ -41,18 +43,21 @@ public class PolicyManagerImpl implements PolicyManager {
             log.debug("The NSR"+ nsr.getName()+" needn't fault management monitoring");
             return;
         }
-        NetworkServiceRecordShort nsrs= getNSRShort(nsr);
+        log.debug("The NSR"+ nsr.getName()+" need fault management monitoring");
+        //NetworkServiceRecordShort nsrs= getNSRShort(nsr);
         for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
-            faultMonitor.startMonitorVNF(vnfr);
+            vnfFaultMonitor.startMonitorVNF(vnfr);
         }
-
     }
 
     private boolean nsrNeedsMonitoring(NetworkServiceRecord nsr) {
-        if(nsr == null)
-            throw new NullPointerException("The nsr is null");
-        //TODO Check if the nsr must be monitored
-        return true;
+        if(nsr.getFaultManagementPolicy() != null && !nsr.getFaultManagementPolicy().isEmpty())
+            return true;
+        for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
+            if(vnfr.getFault_management_policy()!= null && !vnfr.getFault_management_policy().isEmpty())
+                return true;
+        }
+        return false;
     }
 
     private NetworkServiceRecordShort getNSRShort(NetworkServiceRecord nsr) throws FaultManagementPolicyException {
@@ -72,12 +77,12 @@ public class PolicyManagerImpl implements PolicyManager {
         }
         for(VirtualNetworkFunctionRecord vnfr: nsr.getVnfr()){
             fmpolicies.clear();
-            fmpolicies = vnfr.getFaultManagementPolicy();
+            fmpolicies = vnfr.getFault_management_policy();
             VirtualNetworkFunctionRecordShort vnfrs=new VirtualNetworkFunctionRecordShort(vnfr.getId(),vnfr.getName(),vnfr.getParent_ns_id());
             if(fmpolicies==null || fmpolicies.isEmpty())
                 log.warn("No VNF fault management policies found for the VNF: "+vnfr.getName()+" with id: "+vnfr.getId());
             else{
-                log.debug("Found the following VNF fault management policies: "+vnfr.getFaultManagementPolicy());
+                log.debug("Found the following VNF fault management policies: "+vnfr.getFault_management_policy());
                 for(FaultManagementPolicy fmp: fmpolicies){
                     if(!(fmp instanceof VNFFaultManagementPolicy))
                         throw new FaultManagementPolicyException("Impossible to cast to VNFFaultManagementPolicy");
@@ -88,6 +93,7 @@ public class PolicyManagerImpl implements PolicyManager {
             for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
                 VirtualDeploymentUnitShort vdus= new VirtualDeploymentUnitShort(vdu.getId(),vdu.getName());
                 vdus.setMonitoringParameters(vdu.getMonitoring_parameter());
+
                 log.debug("Created vdus of vnfd:"+vnfr.getName());
                 vnfrs.addVirtualDeploymentUnitShort(vdus);
             }

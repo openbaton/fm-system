@@ -1,7 +1,6 @@
 package org.openbaton.faultmanagement.parser;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.Metric;
-import org.openbaton.faultmanagement.exceptions.ZabbixMetricParserException;
 
 import java.util.Map;
 
@@ -10,7 +9,7 @@ import java.util.Map;
  */
 public class Zabbix_v2_4_MetricParser {
 
-    public static String getZabbixMetric(Metric metric, Map<String, String> params) throws ZabbixMetricParserException {
+    /*public static String getZabbixMetric(Metric metric, Map<String, String> params) throws ZabbixMetricParserException {
         switch (metric) {
             case AGENT_PING:
                 return getAgentPing();
@@ -344,5 +343,5 @@ public class Zabbix_v2_4_MetricParser {
 
     public static String getSystemUserNum() {
         return "system.user.num";
-    }
+    }*/
 }
