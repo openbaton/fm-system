@@ -137,7 +137,7 @@ public abstract class AbstractVnfm implements VNFLifecycleManagement, VNFLifecyc
         }
         endpoint = (String) properties.get("endpoint");
         type = (String) properties.get("type");
-        endpointType = properties.getProperty("endpoint-type", "JMS");
+        endpointType = properties.getProperty("endpoint-type", "RABBIT");
     }
 
     protected void onAction(NFVMessage message) throws NotFoundException, BadFormatException {
@@ -229,6 +229,7 @@ public abstract class AbstractVnfm implements VNFLifecycleManagement, VNFLifecyc
                     Future<VirtualNetworkFunctionRecord> result = executor.submit(grantOperation);
                     virtualNetworkFunctionRecord = result.get();
 
+                    log.trace("VERISON IS: " + virtualNetworkFunctionRecord.getHb_version());
 
                     if (!properties.getProperty("allocate", "true").equalsIgnoreCase("true")) {
                         AllocateResources allocateResources = new AllocateResources();
@@ -276,6 +277,14 @@ public abstract class AbstractVnfm implements VNFLifecycleManagement, VNFLifecyc
                     return;
                 }
             }
+            else if (e.getCause() instanceof VnfmSdkException){
+                VnfmSdkException vnfmSdkException = (VnfmSdkException) e.getCause();
+                if (vnfmSdkException.getVnfr() != null){
+                    log.debug("sending VNFR with version: " + vnfmSdkException.getVnfr().getHb_version());
+                    vnfmHelper.sendToNfvo(VnfmUtils.getNfvMessage(Action.ERROR, vnfmSdkException.getVnfr()));
+                    return;
+                }
+            }
             vnfmHelper.sendToNfvo(VnfmUtils.getNfvMessage(Action.ERROR, virtualNetworkFunctionRecord));
         }
     }
@@ -296,7 +305,7 @@ public abstract class AbstractVnfm implements VNFLifecycleManagement, VNFLifecyc
             try {
                 response = vnfmHelper.sendAndReceive(VnfmUtils.getNfvMessage(Action.GRANT_OPERATION, virtualNetworkFunctionRecord));
             } catch (Exception e) {
-                throw new VnfmSdkException("Not able to grant operation", e);
+                throw new VnfmSdkException("Not able to grant operation", e,virtualNetworkFunctionRecord);
             }
             if (response.getAction().ordinal() == Action.ERROR.ordinal()) {
                 throw new VnfmSdkException("Not able to grant operation because: " + ((OrVnfmErrorMessage) response).getMessage(), ((OrVnfmErrorMessage) response).getVnfr());
@@ -325,15 +334,18 @@ public abstract class AbstractVnfm implements VNFLifecycleManagement, VNFLifecyc
         public VirtualNetworkFunctionRecord allocateResources() throws VnfmSdkException {
             NFVMessage response;
             try {
+
+
                 response = vnfmHelper.sendAndReceive(VnfmUtils.getNfvMessage(Action.ALLOCATE_RESOURCES, virtualNetworkFunctionRecord));
             } catch (Exception e) {
                 log.error("" + e.getMessage());
-                throw new VnfmSdkException("Not able to allocate Resources", e);
+                throw new VnfmSdkException("Not able to allocate Resources", e,virtualNetworkFunctionRecord);
             }
             if (response.getAction().ordinal() == Action.ERROR.ordinal()) {
                 OrVnfmErrorMessage errorMessage = (OrVnfmErrorMessage) response;
                 log.error(errorMessage.getMessage());
-                throw new VnfmSdkException("Not able to allocate Resources because: " + errorMessage.getMessage());
+                virtualNetworkFunctionRecord = errorMessage.getVnfr();
+                throw new VnfmSdkException("Not able to allocate Resources because: " + errorMessage.getMessage(), virtualNetworkFunctionRecord);
             }
             OrVnfmGenericMessage orVnfmGenericMessage = (OrVnfmGenericMessage) response;
             log.debug("Received from ALLOCATE: " + orVnfmGenericMessage.getVnfr());
