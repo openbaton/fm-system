@@ -1,8 +1,19 @@
 package org.openbaton.faultmanagement.fc;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 import org.openbaton.catalogue.mano.common.monitoring.PerceivedSeverity;
+import org.openbaton.catalogue.nfvo.Action;
+import org.openbaton.catalogue.nfvo.messages.OrVnfmHealVNFRequestMessage;
+import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualDeploymentUnitShort;
+import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualNetworkFunctionRecordShort;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
 import org.openbaton.faultmanagement.fc.repositories.AlarmRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by mob on 09.11.15.
@@ -21,16 +29,21 @@ import java.util.Map;
 @Service
 public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.interfaces.FaultCorrelatorManager{
 
-    private Map<String, List<Alarm>> alarmRepo;
     private static final Logger log = LoggerFactory.getLogger(FaultCorrelatorManager.class);
+    private static final String nfvoUrl = "http://localhost:8080/api/v1/ns-records";
+    private Gson mapper;
     @Autowired
-    AlarmRepository alarmRepository;
+    private AlarmRepository alarmRepository;
+
+    @Autowired
+    private MonitoringManager vnfFaultMonitor;
+
+    @Autowired
+    private PolicyManager policyManager;
 
     @PostConstruct
     public void init(){
-        alarmRepo=new HashMap<>();
-        alarmRepo.put("VNF Alarms", new ArrayList<Alarm>());
-        alarmRepo.put("VIM Alarms", new ArrayList<Alarm>());
+        mapper= new GsonBuilder().setPrettyPrinting().create();
     }
 
     @Override
@@ -51,9 +64,50 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
     @Override
     public void newVRAlarm(Alarm vrAlarm) {
         log.debug("New VR alarm: "+vrAlarm);
+        // getting hostname
+        List<String> hostnames=null;
+        if(vrAlarm.getTriggerId()!=null) {
+            hostnames = vnfFaultMonitor.getHostnamesFromTrhresholdId(vrAlarm.getTriggerId());
+            if(hostnames!=null) {
+                log.debug("This is a VNF alarm coming from the hostnames: " + hostnames);
+                log.debug("Getting the VNF faultManagementPolicy");
+                String policyId= vnfFaultMonitor.getPolicyIdFromTrhresholdId(vrAlarm.getTriggerId());
+                VNFFaultManagementPolicy vnfFaultManagementPolicy = policyManager.getVNFFaultManagementPolicy(policyId);
+                FaultManagementVNFCAction action = vnfFaultManagementPolicy.getAction();
+                log.debug("this action need to be executed: " + action);
 
+                OrVnfmHealVNFRequestMessage healMessage = getHealMessage(vnfFaultManagementPolicy.getName());
+                VirtualNetworkFunctionRecordShort vnfrs = policyManager.getVNFRShort(policyId);
+                VirtualDeploymentUnitShort vdus=vnfrs.getVirtualDeploymentUnitShorts().iterator().next();
+                for(String vnfcInstanceId : vdus.getVNFCInstanceIdFromHostname(hostnames) )
+                    sendHealMessage(healMessage,vnfrs.getNsrFatherId(),vnfrs.getId(),vdus.getId(),vnfcInstanceId);
+            }
+        }
+    }
 
+    private void sendHealMessage(OrVnfmHealVNFRequestMessage healMessage,String ... ids) {
+        HttpResponse<String> jsonResponse=null;
+        String finalUrl=nfvoUrl;
+        finalUrl += "/"+ids[0];
+        finalUrl += ids[1]==null ? "" : "/vnfrecords/"+ids[1];
+        finalUrl += ids[2]==null ? "" : "/vdunits/"+ids[2];
+        finalUrl += ids[3]==null ? "" : "/vnfcinstances/"+ids[3];
+        finalUrl+="/actions";
+        log.debug("Posting action heal at url: "+finalUrl);
+        String jsonMessage= mapper.toJson(healMessage,OrVnfmHealVNFRequestMessage.class);
+        try {
+            jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+        log.debug("Response from heal function: "+jsonResponse.getBody());
+    }
 
+    private OrVnfmHealVNFRequestMessage getHealMessage(String cause) {
+        OrVnfmHealVNFRequestMessage orVnfmHealVNFRequestMessage = new OrVnfmHealVNFRequestMessage();
+        orVnfmHealVNFRequestMessage.setAction(Action.HEAL);
+        orVnfmHealVNFRequestMessage.setCause(cause);
+        return orVnfmHealVNFRequestMessage;
     }
 
     @Override

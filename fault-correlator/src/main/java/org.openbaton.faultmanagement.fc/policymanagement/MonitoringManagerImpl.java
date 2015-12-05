@@ -3,12 +3,13 @@ package org.openbaton.faultmanagement.fc.policymanagement;
 import org.openbaton.catalogue.mano.common.faultmanagement.*;
 import org.openbaton.catalogue.mano.common.monitoring.*;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
+import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Item;
 import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.exceptions.NotFoundException;
-import org.openbaton.faultmanagement.fc.policymanagement.interfaces.VnfFaultMonitor;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
 import org.openbaton.monitoring.interfaces.MonitoringPluginCaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +27,14 @@ import java.util.concurrent.*;
  * Created by mob on 04.11.15.
  */
 @Service
-public class VnfFaultMonitorImpl implements VnfFaultMonitor{
-    protected static final Logger log = LoggerFactory.getLogger(VnfFaultMonitorImpl.class);
+public class MonitoringManagerImpl implements MonitoringManager {
+    protected static final Logger log = LoggerFactory.getLogger(MonitoringManagerImpl.class);
     private final ScheduledExecutorService vnfScheduler = Executors.newScheduledThreadPool(1);
     private static final String monitorApiUrl="localhost:8090";
     private Map<String,ScheduledFuture<?>> futures;
     private Map<String,String > vduIdPmJobIdMap;
+    private Map<String,List<String> > thresholdIdListHostname;
+    private Map<String, String> thresholdIdFMPolicyId;
     private MonitoringPluginCaller monitoringPluginCaller;
     protected ApplicationEventPublisher publisher;
 
@@ -39,8 +42,10 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor{
     public void init(){
         futures=new HashMap<>();
         vduIdPmJobIdMap=new HashMap<>();
+        thresholdIdListHostname= new HashMap<>();
+        thresholdIdFMPolicyId= new HashMap<>();
         try {
-            monitoringPluginCaller = new MonitoringPluginCaller("zabbix");
+            monitoringPluginCaller = new MonitoringPluginCaller("zabbix","15672");
         } catch (TimeoutException e) {
             log.error(e.getMessage(),e);
         } catch (NotFoundException e) {
@@ -51,11 +56,11 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor{
         log.debug("monitoringplugincaller obtained");
     }
 
-    public void startMonitorVNF(VirtualNetworkFunctionRecord vnfr){
-        if(vnfr.getFault_management_policy()!=null){
-            VNFPolicyCreator mpc = new VNFPolicyCreator(vnfr);
-            futures.put(vnfr.getId(), vnfScheduler.schedule(mpc, 1, TimeUnit.SECONDS));
-        }
+    public void startMonitorNS(NetworkServiceRecord nsr){
+
+            /*MonitoringThread mpc = new MonitoringThread(vnfr);
+            futures.put(vnfr.getId(), vnfScheduler.schedule(mpc, 1, TimeUnit.SECONDS));*/
+
     }
 
     @Override
@@ -63,19 +68,26 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor{
 
     }
 
-    private class VNFPolicyCreator implements Runnable{
-        private Set<VNFCInstance> vnfcInstances;
-        private VirtualNetworkFunctionRecord vnfr;
-        private Logger log = LoggerFactory.getLogger(VNFPolicyCreator.class);
+    public List<String> getHostnamesFromTrhresholdId(String thresholdId){
+        return thresholdIdListHostname.get(thresholdId);
+    }
+    public String getPolicyIdFromTrhresholdId(String thresholdId){
+        return thresholdIdFMPolicyId.get(thresholdId);
+    }
 
-        public VNFPolicyCreator(VirtualNetworkFunctionRecord vnfr) {
-            this.vnfr=vnfr;
+    private class MonitoringThread implements Runnable{
+        private Set<VNFCInstance> vnfcInstances;
+        private NetworkServiceRecord nsr;
+        private Logger log = LoggerFactory.getLogger(MonitoringThread.class);
+
+        public MonitoringThread(NetworkServiceRecord nsr) {
+            this.nsr=nsr;
         }
 
         @Override
         public void run() {
             //Note: We consider there will be only one vdu per vnf !
-            VirtualDeploymentUnit vdu = vnfr.getVdu().iterator().next();
+            /*VirtualDeploymentUnit vdu = vnfr.getVdu().iterator().next();
             try {
                 ObjectSelection objectSelection = new ObjectSelection();
                 for (VNFCInstance vnfcInstance: vdu.getVnfc_instance() ){
@@ -95,6 +107,8 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor{
                         ThresholdDetails thresholdDetails= new ThresholdDetails("last(0)",criteria.getThreshold(),criteria.getComparison_operator());
                         thresholdDetails.setPerceivedSeverity(vnffmp.getSeverity());
                         String thresholdId = monitoringPluginCaller.createThreshold(objectSelection, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
+                        thresholdIdListHostname.put(thresholdId,objectSelection.getObjectInstanceIds());
+                        thresholdIdFMPolicyId.put(thresholdId,vnffmp.getId());
                     }
 
                 }
@@ -103,10 +117,9 @@ public class VnfFaultMonitorImpl implements VnfFaultMonitor{
                 log.error(e.getMessage(),e);
             } catch (Exception e){
                 log.error(e.getMessage(),e);
-            }
+            }*/
         }
     }
-
     private class VNFFaultMonitor implements Runnable {
         private VNFFaultManagementPolicy vnfFaultManagementPolicy;
         private VirtualDeploymentUnit vdu;

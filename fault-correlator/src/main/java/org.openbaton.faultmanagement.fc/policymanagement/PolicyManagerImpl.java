@@ -5,13 +5,15 @@ import org.openbaton.catalogue.mano.common.faultmanagement.NSFaultManagementPoli
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
+import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.NetworkServiceRecordShort;
+import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VNFCInstanceShort;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualDeploymentUnitShort;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualNetworkFunctionRecordShort;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
-import org.openbaton.faultmanagement.fc.policymanagement.interfaces.VnfFaultMonitor;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +33,7 @@ public class PolicyManagerImpl implements PolicyManager {
     private static final Logger log = LoggerFactory.getLogger(PolicyManagerImpl.class);
     private List<NetworkServiceRecordShort> networkServiceRecordShortList;
     @Autowired
-    VnfFaultMonitor vnfFaultMonitor;
+    MonitoringManager vnfFaultMonitor;
     @PostConstruct
     public void init(){
         networkServiceRecordShortList=new ArrayList<>();
@@ -44,9 +46,11 @@ public class PolicyManagerImpl implements PolicyManager {
             return;
         }
         log.debug("The NSR"+ nsr.getName()+" need fault management monitoring");
-        //NetworkServiceRecordShort nsrs= getNSRShort(nsr);
+        NetworkServiceRecordShort nsrs = getNSRShort(nsr);
+        networkServiceRecordShortList.add(nsrs);
+
         for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
-            vnfFaultMonitor.startMonitorVNF(vnfr);
+           // vnfFaultMonitor.startMonitorNS(vnfr);
         }
     }
 
@@ -59,7 +63,11 @@ public class PolicyManagerImpl implements PolicyManager {
         }
         return false;
     }
+    private VirtualNetworkFunctionRecordShort getVNFRShortFromHostnames(List<String> hostnames){
+        VirtualNetworkFunctionRecordShort result=null;
 
+        return result;
+    }
     private NetworkServiceRecordShort getNSRShort(NetworkServiceRecord nsr) throws FaultManagementPolicyException {
 
         NetworkServiceRecordShort nsrs = new NetworkServiceRecordShort(nsr.getId(),nsr.getName());
@@ -91,9 +99,13 @@ public class PolicyManagerImpl implements PolicyManager {
                 }
             }
             for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
+
                 VirtualDeploymentUnitShort vdus= new VirtualDeploymentUnitShort(vdu.getId(),vdu.getName());
                 vdus.setMonitoringParameters(vdu.getMonitoring_parameter());
-
+                for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
+                    VNFCInstanceShort vnfcInstanceShort = new VNFCInstanceShort(vnfcInstance.getId(),vnfcInstance.getHostname());
+                    vdus.addVNFCInstanceShort(vnfcInstanceShort);
+                }
                 log.debug("Created vdus of vnfd:"+vnfr.getName());
                 vnfrs.addVirtualDeploymentUnitShort(vdus);
             }
@@ -114,5 +126,28 @@ public class PolicyManagerImpl implements PolicyManager {
                 break;
             }
         }
+    }
+
+    @Override
+    public VNFFaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId) {
+                for(VNFFaultManagementPolicy vnfFMPolicy : getVNFRShort(vnfFMPolicyId).getVnfFaultManagementPolicies()) {
+                    if (vnfFMPolicy.getId().equals(vnfFMPolicyId)) {
+                        return vnfFMPolicy;
+                    }
+                }
+        return null;
+    }
+    @Override
+    public VirtualNetworkFunctionRecordShort getVNFRShort(String vnfFMPolicyId) {
+        for(NetworkServiceRecordShort nsrs : networkServiceRecordShortList){
+            for(VirtualNetworkFunctionRecordShort vnfrs: nsrs.getVirtualNetworkFunctionRecordShorts()){
+                for(VNFFaultManagementPolicy vnfFMPolicy : vnfrs.getVnfFaultManagementPolicies()){
+                    if(vnfFMPolicy.getId().equals(vnfFMPolicyId)){
+                        return vnfrs;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }

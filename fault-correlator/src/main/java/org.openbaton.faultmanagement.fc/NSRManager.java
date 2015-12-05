@@ -13,6 +13,7 @@ import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
+import org.openbaton.catalogue.nfvo.messages.OrVnfmHealVNFRequestMessage;
 import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
@@ -68,23 +69,12 @@ public class NSRManager {
 
         // returns an array of TypeVariable object
         GsonBuilder builder = new GsonBuilder();
-        builder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
+        /*builder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
             public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
                 return new Date(json.getAsJsonPrimitive().getAsLong());
             }
-        });
-        this.mapper = builder.create();
-
-
-        MonitoringPluginCaller monitoringPluginCaller=null;
-        try {
-            monitoringPluginCaller = new MonitoringPluginCaller("zabbix");
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (NotFoundException e) {
-            e.printStackTrace();
-        }
-        log.debug("monitoringplugincaller obtained");
+        });*/
+        this.mapper = builder.setPrettyPrinting().create();
 
         ObjectSelection objectSelection = getObjectSelector();
         List<String> performanceMetrics=getPerformanceMetrics();

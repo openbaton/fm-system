@@ -73,6 +73,7 @@ public class RestEventReceiver implements EventReceiver {
         Alarm alarm = alarmRepository.changeAlarmState(vrascn.getTriggerId(), vrascn.getAlarmState());
         if(alarm!=null)
             log.debug("Changed alarm state to: " + alarm.getAlarmState());
+        faultCorrelatorManager.updateStatusVRAlarm(vrascn);
         return alarm;
     }
 

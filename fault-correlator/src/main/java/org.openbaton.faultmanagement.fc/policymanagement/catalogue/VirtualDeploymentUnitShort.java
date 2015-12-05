@@ -1,6 +1,8 @@
 package org.openbaton.faultmanagement.fc.policymanagement.catalogue;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -10,13 +12,15 @@ public class VirtualDeploymentUnitShort {
     private String id;
     private String name;
     private Set<String> monitoringParameters;
+    private List<VNFCInstanceShort> vnfcInstanceShortList;
 
     public VirtualDeploymentUnitShort(String id, String name){
-        if(id==null || name==null)
-            throw new NullPointerException("VDUshort name or id cannot be null");
+        if(id==null)
+            throw new NullPointerException("VDUshort id cannot be null");
         this.id=id;
         this.name=name;
         this.monitoringParameters=new HashSet<>();
+        vnfcInstanceShortList =new ArrayList<>();
     }
 
     public String getId() {
@@ -32,6 +36,17 @@ public class VirtualDeploymentUnitShort {
         return monitoringParameters;
     }
 */
+    public void addVNFCInstanceShort (VNFCInstanceShort vnfcInstanceShort){
+        vnfcInstanceShortList.add(vnfcInstanceShort);
+    }
+
+    public List<VNFCInstanceShort> getVnfcInstanceShortList() {
+        return vnfcInstanceShortList;
+    }
+
+    public void setVnfcInstanceShortList(List<VNFCInstanceShort> vnfcInstanceShortList) {
+        this.vnfcInstanceShortList = vnfcInstanceShortList;
+    }
 
     public String getName() {
         return name;
@@ -57,7 +72,14 @@ public class VirtualDeploymentUnitShort {
         }
         return null;
     }*/
-
+    public List<String> getVNFCInstanceIdFromHostname(List<String> hostnames){
+        List<String> result=new ArrayList<>();
+        for(VNFCInstanceShort vnfcInstanceShort : vnfcInstanceShortList){
+            if(hostnames.contains(vnfcInstanceShort.getHostname()))
+                result.add(vnfcInstanceShort.getId());
+        }
+        return result;
+    }
     @Override
     public String toString() {
         return "VirtualDeploymentUnitShort{" +
