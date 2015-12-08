@@ -86,32 +86,28 @@
             ],
             "fault_management_policy":[
                 {
-                    "name":"Iper-server-down",
-                    "vdu_selector":"vdu1",
+                    "name":"Iperf-server-down",
                     "criteria":[
                         {
-                            "name":"Iper-server not listening",
+                            "name":"Iper-server-not-listening",
                             "parameter_ref":"net.tcp.listen[5001]",
+                            "function":"last(0)",
+                            "vnfc_selector":"at_least_one",
                             "comparison_operator":"=",
                             "threshold":"0"
-                        },
-                        {
-                            "name":"Log exception assertion",
-                            "parameter_ref":"vfs.file.regmatch[/var/log/app.log,Exception]",
-                            "comparison_operator":"=",
-                            "threshold":"1"
                         }
                     ],
+                    "action":"HEAL",
+                    "period":5,
+                    "cooldown":60,
+                    "severity":"CRITICAL",
                     "actions":[{
                         "action_name":"HEAL",
                         "cause":"1"
                     },{
                         "action_name":"SWITCH_TO_STANDBY"
                     }
-                    ],
-                    "period":"5",
-                    "cooldown":60,
-                    "severity":"CRITICAL"
+                    ]
                 }
             ],
             "deployment_flavour":[  

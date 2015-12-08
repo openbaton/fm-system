@@ -86,38 +86,47 @@ public class MonitoringManagerImpl implements MonitoringManager {
 
         @Override
         public void run() {
-            //Note: We consider there will be only one vdu per vnf !
-            /*VirtualDeploymentUnit vdu = vnfr.getVdu().iterator().next();
             try {
-                ObjectSelection objectSelection = new ObjectSelection();
-                for (VNFCInstance vnfcInstance: vdu.getVnfc_instance() ){
-                    log.debug("vnfcinstance name: "+vnfcInstance.getHostname());
-                    objectSelection.addObjectInstanceId(vnfcInstance.getHostname());
-                }
-                List<String> monitoringParamenters=new ArrayList<>();
-                monitoringParamenters.addAll(vdu.getMonitoring_parameter());
-                //One pmJob per vdu (Actually)
-                log.debug("monitoring paramenter are:  "+monitoringParamenters);
-                String pmJobId = monitoringPluginCaller.createPMJob(objectSelection,monitoringParamenters,new ArrayList<String>(),10,0);
-                vduIdPmJobIdMap.put(vdu.getId(),pmJobId);
+                for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
 
-                for (VNFFaultManagementPolicy vnffmp : vnfr.getFault_management_policy()){
-                    for(Criteria criteria: vnffmp.getCriteria()){
-                        String performanceMetric= criteria.getParameter_ref();
-                        ThresholdDetails thresholdDetails= new ThresholdDetails("last(0)",criteria.getThreshold(),criteria.getComparison_operator());
-                        thresholdDetails.setPerceivedSeverity(vnffmp.getSeverity());
-                        String thresholdId = monitoringPluginCaller.createThreshold(objectSelection, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
-                        thresholdIdListHostname.put(thresholdId,objectSelection.getObjectInstanceIds());
-                        thresholdIdFMPolicyId.put(thresholdId,vnffmp.getId());
+                    //Note: We consider there will be only one vdu per vnf !
+                    VirtualDeploymentUnit vdu = vnfr.getVdu().iterator().next();
+
+                    ObjectSelection objectSelection = new ObjectSelection();
+                    for (VNFCInstance vnfcInstance: vdu.getVnfc_instance() ){
+                        log.debug("vnfcinstance name: "+vnfcInstance.getHostname());
+                        objectSelection.addObjectInstanceId(vnfcInstance.getHostname());
                     }
+                    List<String> monitoringParamenters=new ArrayList<>();
+                    monitoringParamenters.addAll(vdu.getMonitoring_parameter());
+                    //One pmJob per vdu (Actually)
+                    log.debug("monitoring paramenter are:  "+monitoringParamenters);
 
+                    //set period
+                    int period=0;
+                    /*if(getPeriodFromThreshold())
+                        */
+                    String pmJobId = monitoringPluginCaller.createPMJob(objectSelection,monitoringParamenters,new ArrayList<String>(),10,1);
+                    vduIdPmJobIdMap.put(vdu.getId(),pmJobId);
+
+                    for (VNFFaultManagementPolicy vnffmp : vnfr.getFault_management_policy()){
+                        for(Criteria criteria: vnffmp.getCriteria()){
+                            String performanceMetric= criteria.getParameter_ref();
+                            ThresholdDetails thresholdDetails= new ThresholdDetails("last(0)",criteria.getThreshold(),criteria.getComparison_operator());
+                            thresholdDetails.setPerceivedSeverity(vnffmp.getSeverity());
+                            String thresholdId = monitoringPluginCaller.createThreshold(objectSelection, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
+                            thresholdIdListHostname.put(thresholdId,objectSelection.getObjectInstanceIds());
+                            thresholdIdFMPolicyId.put(thresholdId,vnffmp.getId());
+                        }
+
+                    }
+                    log.debug("end vnfPolicyCreator:  ");
                 }
-                log.debug("end vnfPolicyCreator:  ");
             } catch (MonitoringException e) {
                 log.error(e.getMessage(),e);
             } catch (Exception e){
                 log.error(e.getMessage(),e);
-            }*/
+            }
         }
     }
     private class VNFFaultMonitor implements Runnable {
