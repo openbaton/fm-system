@@ -1,7 +1,7 @@
 package org.openbaton.faultmanagement.fc.policymanagement.interfaces;
 
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
-import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
+import org.openbaton.exceptions.MonitoringException;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface MonitoringManager {
     void startMonitorNS(NetworkServiceRecord networkServiceRecord);
-    void stopMonitorVNF(VirtualNetworkFunctionRecord vnfrs);
+    void stopMonitorNS(NetworkServiceRecord nsr) throws MonitoringException;
     List<String> getHostnamesFromTrhresholdId(String thresholdId);
     String getPolicyIdFromTrhresholdId(String thresholdId);
 }

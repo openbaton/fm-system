@@ -7,6 +7,7 @@ import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
+import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.NetworkServiceRecordShort;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VNFCInstanceShort;
@@ -33,7 +34,7 @@ public class PolicyManagerImpl implements PolicyManager {
     private static final Logger log = LoggerFactory.getLogger(PolicyManagerImpl.class);
     private List<NetworkServiceRecordShort> networkServiceRecordShortList;
     @Autowired
-    MonitoringManager vnfFaultMonitor;
+    MonitoringManager monitoringManager;
     @PostConstruct
     public void init(){
         networkServiceRecordShortList=new ArrayList<>();
@@ -49,9 +50,7 @@ public class PolicyManagerImpl implements PolicyManager {
         NetworkServiceRecordShort nsrs = getNSRShort(nsr);
         networkServiceRecordShortList.add(nsrs);
 
-        for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
-           // vnfFaultMonitor.startMonitorNS(vnfr);
-        }
+        monitoringManager.startMonitorNS(nsr);
     }
 
     private boolean nsrNeedsMonitoring(NetworkServiceRecord nsr) {
@@ -116,12 +115,11 @@ public class PolicyManagerImpl implements PolicyManager {
     }
 
     @Override
-    public void unManageNSR(String id) {
+    public void unManageNSR(NetworkServiceRecord networkServiceRecord) throws MonitoringException {
         for (NetworkServiceRecordShort nsrs : networkServiceRecordShortList) {
-            if (nsrs.getId().equals(id)) {
-                for(VirtualNetworkFunctionRecordShort vnfrs: nsrs.getVirtualNetworkFunctionRecordShorts()){
-                    //faultMonitor.stopMonitorVNF(vnfrs);
-                }
+            if (nsrs.getId().equals(networkServiceRecord.getId())) {
+
+                monitoringManager.stopMonitorNS(networkServiceRecord);
                 networkServiceRecordShortList.remove(nsrs);
                 break;
             }

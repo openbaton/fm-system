@@ -100,14 +100,7 @@
                     "action":"HEAL",
                     "period":5,
                     "cooldown":60,
-                    "severity":"CRITICAL",
-                    "actions":[{
-                        "action_name":"HEAL",
-                        "cause":"1"
-                    },{
-                        "action_name":"SWITCH_TO_STANDBY"
-                    }
-                    ]
+                    "severity":"CRITICAL"
                 }
             ],
             "deployment_flavour":[  

@@ -14,6 +14,7 @@ import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
 import org.openbaton.catalogue.nfvo.messages.OrVnfmHealVNFRequestMessage;
+import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
@@ -45,6 +47,8 @@ public class NSRManager {
     private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
     private String unsubscriptionIdINSTANTIATE_FINISH;
     private String unsubscriptionIdRELEASE_RESOURCES_FINISH;
+    private List<NetworkServiceRecord> nsrList;
+
     //private NFVORequestor nfvoRequestor;
     @Autowired
     private PolicyManager policyManager;
@@ -59,6 +63,16 @@ public class NSRManager {
         List<String> performanceMetrics= new ArrayList<>();
         performanceMetrics.add("net.tcp.listen[5001]");
         return performanceMetrics;
+    }
+    @PreDestroy
+    public void stopNSMonitoring(){
+        for (NetworkServiceRecord nsr : nsrList){
+            try {
+                policyManager.unManageNSR(nsr);
+            } catch (MonitoringException e) {
+                log.error(e.getMessage(),e);
+            }
+        }
     }
     @PostConstruct
     public void init() throws IOException/*, SDKException*/ {
@@ -88,7 +102,7 @@ public class NSRManager {
 
         Class<?> aClass = Array.newInstance(NetworkServiceRecord.class, 3).getClass();
         Object[] nsrArray = (Object[]) mapper.fromJson(jsonResponse.getBody().toString(), aClass);
-        List<NetworkServiceRecord> nsrList = Arrays.asList((NetworkServiceRecord[]) nsrArray);
+        nsrList = Arrays.asList((NetworkServiceRecord[]) nsrArray);
         for(NetworkServiceRecord nsr : nsrList){
             log.debug("Nsr name: "+nsr.getName() +" nsr id:"+nsr.getId());
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
