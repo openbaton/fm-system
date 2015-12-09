@@ -85,7 +85,7 @@ public class RestEventReceiver implements EventReceiver {
             if (openbatonEvent.getAction().ordinal() == Action.INSTANTIATE_FINISH.ordinal()) {
                 policyManager.manageNSR(openbatonEvent.getPayload());
             } else if (openbatonEvent.getAction().ordinal() == Action.RELEASE_RESOURCES_FINISH.ordinal()) {
-                policyManager.unManageNSR(openbatonEvent.getPayload().getId());
+                policyManager.unManageNSR(openbatonEvent.getPayload());
             }
         }catch (Exception e){
             log.error(e.getMessage(),e);
