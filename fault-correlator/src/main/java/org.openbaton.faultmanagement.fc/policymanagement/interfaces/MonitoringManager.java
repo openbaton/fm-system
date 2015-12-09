@@ -11,6 +11,6 @@ import java.util.List;
 public interface MonitoringManager {
     void startMonitorNS(NetworkServiceRecord networkServiceRecord);
     void stopMonitorNS(NetworkServiceRecord nsr) throws MonitoringException;
-    List<String> getHostnamesFromTrhresholdId(String thresholdId);
+    List<String> getHostnamesFromThresholdId(String thresholdId);
     String getPolicyIdFromTrhresholdId(String thresholdId);
 }
