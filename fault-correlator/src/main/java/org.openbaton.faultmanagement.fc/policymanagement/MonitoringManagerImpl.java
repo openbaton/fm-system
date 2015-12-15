@@ -24,7 +24,7 @@ import java.util.concurrent.*;
  */
 @Service
 public class MonitoringManagerImpl implements MonitoringManager {
-    protected static final Logger log = LoggerFactory.getLogger(MonitoringManagerImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(MonitoringManagerImpl.class);
     private final ScheduledExecutorService nsScheduler = Executors.newScheduledThreadPool(1);
     private static final String monitorApiUrl="localhost:8090";
     private Map<String,ScheduledFuture<?>> futures;
@@ -34,7 +34,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
     private MonitoringPluginCaller monitoringPluginCaller;
 
     @PostConstruct
-    public void init(){
+    public void init() throws NotFoundException {
         futures=new HashMap<>();
         vduIdPmJobIdMap=new HashMap<>();
         thresholdIdListHostname= new HashMap<>();
@@ -45,6 +45,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
             log.error(e.getMessage(),e);
         } catch (NotFoundException e) {
             log.error(e.getMessage(), e);
+            throw e;
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
@@ -78,8 +79,6 @@ public class MonitoringManagerImpl implements MonitoringManager {
 
     private class MonitoringThreadCreator implements Runnable{
         private NetworkServiceRecord nsr;
-        private Logger log = LoggerFactory.getLogger(MonitoringThreadCreator.class);
-
         public MonitoringThreadCreator(NetworkServiceRecord nsr) {
             this.nsr=nsr;
         }
@@ -99,10 +98,9 @@ public class MonitoringManagerImpl implements MonitoringManager {
                     }
 
                     List<String> monitoringParamentersLIst=new ArrayList<>();
-                    Set<String> monitoringParamentersWithoutPeriod= getMonitoringParamentersWithoutPeriod(vdu.getMonitoring_parameter(),vnfr);
+                    Set<String> monitoringParamentersWithoutPeriod = getMonitoringParamentersWithoutPeriod(vdu.getMonitoring_parameter(),vnfr);
                     monitoringParamentersLIst.addAll(monitoringParamentersWithoutPeriod);
                     //One pmJob per vdu (Actually)
-                    log.debug("monitoring paramenters without period are:  "+monitoringParamentersWithoutPeriod);
                     //create all pm job without a custom period in the criteria
                     //default period is 30 seconds
                     String pmJobId = monitoringPluginCaller.createPMJob(objectSelection,monitoringParamentersLIst,new ArrayList<String>(),30,0);
@@ -111,9 +109,11 @@ public class MonitoringManagerImpl implements MonitoringManager {
                     //create all pm job with a custom period in the criteria
                     Set<String> monitoringParameterWithPeriod = vdu.getMonitoring_parameter();
                     monitoringParameterWithPeriod.removeAll(monitoringParamentersWithoutPeriod);
+
                     for(String mpwp : monitoringParameterWithPeriod){
                         int period = getPeriodFromThreshold(mpwp,vnfr.getFault_management_policy());
                         monitoringParamentersLIst.clear();monitoringParamentersLIst.add(mpwp);
+                        log.debug("This monitoringParameter: "+mpwp+" has custom period of: "+period+" seconds");
                         pmJobId = monitoringPluginCaller.createPMJob(objectSelection,monitoringParamentersLIst,new ArrayList<String>(),period,0);
                         savePmJobId(vdu.getId(),pmJobId);
                     }
@@ -131,7 +131,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
                     }
 
                 }
-                log.debug("end vnfPolicyCreator");
+                log.debug("End MonitoringThreadCreator");
             } catch (MonitoringException e) {
                 log.error(e.getMessage(),e);
             } catch (Exception e){
@@ -151,9 +151,9 @@ public class MonitoringManagerImpl implements MonitoringManager {
             }
         }
         private Set<String> getMonitoringParamentersWithoutPeriod(Set<String> monitoring_parameter, VirtualNetworkFunctionRecord vnfr) {
-            Set<String> result = monitoring_parameter;
+            Set<String> result = new HashSet<>(monitoring_parameter);
             Set<String> tmp = new HashSet<>();
-            Iterator<String> iterator= monitoring_parameter.iterator();
+            Iterator<String> iterator= result.iterator();
             while(iterator.hasNext()) {
                 String currentMonitoringParameter = iterator.next();
                 for (VNFFaultManagementPolicy vnffmp : vnfr.getFault_management_policy()) {

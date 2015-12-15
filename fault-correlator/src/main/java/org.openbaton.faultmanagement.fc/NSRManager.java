@@ -60,18 +60,9 @@ public class NSRManager {
         performanceMetrics.add("net.tcp.listen[5001]");
         return performanceMetrics;
     }
-    @PreDestroy
-    public void stopNSMonitoring(){
-        for (NetworkServiceRecord nsr : nsrList){
-            try {
-                policyManager.unManageNSR(nsr);
-            } catch (MonitoringException e) {
-                log.error(e.getMessage(),e);
-            }
-        }
-    }
+    
     @PostConstruct
-    public void init() throws IOException/*, SDKException*/ {
+    public void init() throws IOException {
         /*Properties properties=new Properties();
         properties.load(new FileInputStream("fm.properties"));*/
         nsrSet=new HashSet<>();
@@ -86,8 +77,6 @@ public class NSRManager {
         });*/
         this.mapper = builder.setPrettyPrinting().create();
 
-        ObjectSelection objectSelection = getObjectSelector();
-        List<String> performanceMetrics=getPerformanceMetrics();
         String url="http://localhost:8080/api/v1/ns-records";
         HttpResponse<JsonNode> jsonResponse=null;
         try {
@@ -135,6 +124,22 @@ public class NSRManager {
             log.error("Subscription failed for the NSRs");
             throw e;
         }*/
+        ///clean zabbix server
+        /*try {
+            Thread.sleep(30000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for (NetworkServiceRecord nsr : nsrList){
+            try {
+                policyManager.unManageNSR(nsr);
+            } catch (MonitoringException e) {
+                log.error(e.getMessage(),e);
+            }
+        }
+
+*/
+
     }
 
 
