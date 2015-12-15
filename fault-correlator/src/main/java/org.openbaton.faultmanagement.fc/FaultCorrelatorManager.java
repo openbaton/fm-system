@@ -67,12 +67,12 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
 
     @Override
     public void newVRAlarm(Alarm vrAlarm) {
-        log.debug("New VR alarm: "+vrAlarm);
+        log.debug("New VR alarm: \n"+vrAlarm);
         executeVNFPolicy(vrAlarm.getTriggerId());
     }
     @Override
     public void updateStatusVRAlarm(VirtualizedResourceAlarmStateChangedNotification vrascn) {
-        log.debug("VR state changed notification: "+vrascn);
+        //log.debug("VR state changed notification: "+vrascn);
         if(vrascn.getAlarmState().ordinal() == AlarmState.UPDATED.ordinal())
             executeVNFPolicy(vrascn.getTriggerId());
         else if (vrascn.getAlarmState().ordinal() == AlarmState.CLEARED.ordinal()) {
@@ -87,7 +87,7 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
             hostnames = monitoringManager.getHostnamesFromThresholdId(triggerId);
             if(hostnames!=null) {
                 log.debug("This is a VNF alarm coming from the hostnames: " + hostnames);
-                log.debug("Getting the VNF faultManagementPolicy");
+                //log.debug("Getting the VNF faultManagementPolicy");
                 String policyId = monitoringManager.getPolicyIdFromTrhresholdId(triggerId);
                 VNFFaultManagementPolicy vnfFaultManagementPolicy = policyManager.getVNFFaultManagementPolicy(policyId);
                 FaultManagementVNFCAction action = vnfFaultManagementPolicy.getAction();

@@ -59,8 +59,8 @@ public class RestEventReceiver implements EventReceiver {
     @RequestMapping(value = "/alarm/vr", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Alarm receiveVRNewAlarm(@RequestBody @Valid VirtualizedResourceAlarmNotification vrAlarm) {
-        log.debug("received: "+vrAlarm);
-        log.debug("Saving new vr alarm: "+vrAlarm.getAlarm());
+        //log.debug("received: "+vrAlarm);
+        //log.debug("Saving new vr alarm: "+vrAlarm.getAlarm());
         Alarm alarm = alarmRepository.save(vrAlarm.getAlarm());
         faultCorrelatorManager.newVRAlarm(alarm);
         return alarm;
@@ -72,7 +72,7 @@ public class RestEventReceiver implements EventReceiver {
     public Alarm receiveVRStateChangedAlarm(@RequestBody @Valid VirtualizedResourceAlarmStateChangedNotification vrascn) {
         Alarm alarm = alarmRepository.changeAlarmState(vrascn.getTriggerId(), vrascn.getAlarmState());
         if(alarm!=null)
-            log.debug("Changed alarm state to: " + alarm.getAlarmState());
+            //log.debug("Changed alarm state to: " + alarm.getAlarmState());
         faultCorrelatorManager.updateStatusVRAlarm(vrascn);
         return alarm;
     }
