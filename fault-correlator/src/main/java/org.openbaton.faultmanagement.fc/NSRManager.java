@@ -17,13 +17,11 @@ import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.slf4j.Logger;
-import java.lang.reflect.Type;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -40,6 +38,7 @@ public class NSRManager {
     private Set<NetworkServiceRecord> nsrSet;
     private static final String name = "FaultManagement";
     private Gson mapper;
+    private String fmsIp,fmsPort;
     private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
     private String unsubscriptionIdINSTANTIATE_FINISH;
     private String unsubscriptionIdRELEASE_RESOURCES_FINISH;
@@ -48,18 +47,6 @@ public class NSRManager {
     //private NFVORequestor nfvoRequestor;
     @Autowired
     private PolicyManager policyManager;
-
-    private ObjectSelection getObjectSelector(){
-        ObjectSelection objectSelection =new ObjectSelection();
-        objectSelection.addObjectInstanceId("iperf-client-110");
-        objectSelection.addObjectInstanceId("iperf-server-820");
-        return objectSelection;
-    }
-    private List<String> getPerformanceMetrics(){
-        List<String> performanceMetrics= new ArrayList<>();
-        performanceMetrics.add("net.tcp.listen[5001]");
-        return performanceMetrics;
-    }
 
     @PostConstruct
     public void init() throws IOException {
@@ -70,14 +57,51 @@ public class NSRManager {
 
         // returns an array of TypeVariable object
         GsonBuilder builder = new GsonBuilder();
-        builder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
+        /*builder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
             public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
                 return new Date(json.getAsJsonPrimitive().getAsLong());
             }
-        });
+        });*/
         this.mapper = builder.setPrettyPrinting().create();
 
-        String url="http://localhost:8080/api/v1/ns-records";
+
+        String nfvoUrlRecords="http://localhost:8080/api/v1/ns-records";
+
+        //List<NetworkServiceRecord> nsrList = getNetworkServiceRecords(nfvoUrl);
+
+        /*try {
+            policyManager.manageNSR(nsrList.iterator().next());
+        } catch (FaultManagementPolicyException e) {
+            log.error(e.getMessage(),e);
+        }*/
+
+        String nfvoUrlEvent="http://localhost:8080/api/v1/events";
+        fmsIp="http://localhost";
+        fmsPort="9000";
+        EventEndpoint eventEndpointInstantiateFinish = createEventEndpoint(name,EndpointType.REST,Action.INSTANTIATE_FINISH,fmsIp+":"+fmsPort+"/nfvo/event");
+        EventEndpoint eventEndpointReleaseResourcesFinish = createEventEndpoint(name,EndpointType.REST,Action.RELEASE_RESOURCES_FINISH,fmsIp+":"+fmsPort+"/nfvo/event");
+
+        String eventEndpointJson=mapper.toJson(eventEndpointInstantiateFinish);
+        HttpResponse<JsonNode> jsonResponse=null;
+        try {
+            jsonResponse = Unirest.post(nfvoUrlEvent).header("accept", "application/json").header("Content-Type", "application/json").body(eventEndpointJson).asJson();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+        EventEndpoint response= mapper.fromJson(jsonResponse.getBody().toString(),EventEndpoint.class);
+        unsubscriptionIdINSTANTIATE_FINISH = response.getId();
+
+        eventEndpointJson=mapper.toJson(eventEndpointReleaseResourcesFinish);
+        try {
+            jsonResponse = Unirest.post(nfvoUrlEvent).header("accept", "application/json").header("Content-Type", "application/json").body(eventEndpointJson).asJson();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+        response= mapper.fromJson(jsonResponse.getBody().toString(),EventEndpoint.class);
+        unsubscriptionIdRELEASE_RESOURCES_FINISH = response.getId();
+    }
+
+    private List<NetworkServiceRecord> getNetworkServiceRecords(String url){
         HttpResponse<JsonNode> jsonResponse=null;
         try {
             jsonResponse = Unirest.get(url).asJson();
@@ -99,95 +123,15 @@ public class NSRManager {
             }
         }
 
-        try {
-            policyManager.manageNSR(nsrList.iterator().next());
-        } catch (FaultManagementPolicyException e) {
-            log.error(e.getMessage(),e);
-        }
-        //REGISTRATION TO NFVO
-        //nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), properties.getProperty("nfvo-ip"),properties.getProperty("nfvo-port"),"1");
-
-        /*EventEndpoint eventEndpoint= createEventEndpoint();
-        EventEndpoint response = null;
-        try {
-            response = nfvoRequestor.getEventAgent().create(eventEndpoint);
-            if (response == null)
-                throw new NullPointerException("Response is null");
-            unsubscriptionIdINSTANTIATE_FINISH=response.getId();
-            eventEndpoint.setEvent(Action.RELEASE_RESOURCES_FINISH);
-
-            response = nfvoRequestor.getEventAgent().create(eventEndpoint);
-            if (response == null)
-                throw new NullPointerException("Response is null");
-            unsubscriptionIdRELEASE_RESOURCES_FINISH=response.getId();
-        } catch (SDKException e) {
-            log.error("Subscription failed for the NSRs");
-            throw e;
-        }*/
-        ///clean zabbix server
-        /*try {
-            Thread.sleep(30000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        for (NetworkServiceRecord nsr : nsrList){
-            try {
-                policyManager.unManageNSR(nsr);
-            } catch (MonitoringException e) {
-                log.error(e.getMessage(),e);
-            }
-        }
-
-*/
-
+        return nsrList;
     }
 
-
-    public Set<NetworkServiceRecord> getNsrSet() {
-        return nsrSet;
-    }
-
-    private EventEndpoint createEventEndpoint(){
-        EventEndpoint eventEndpoint= new EventEndpoint();
+    protected EventEndpoint createEventEndpoint(String name, EndpointType type, Action action,String url){
+        EventEndpoint eventEndpoint = new EventEndpoint();
+        eventEndpoint.setEvent(action);
         eventEndpoint.setName(name);
-        eventEndpoint.setEvent(Action.INSTANTIATE_FINISH);
-        eventEndpoint.setType(EndpointType.REST);
-        String url = "http://localhost:" + server.getAddress().getPort() + "/" + name;
+        eventEndpoint.setType(type);
         eventEndpoint.setEndpoint(url);
         return eventEndpoint;
-    }
-
-    private boolean checkRequest(String message) {
-        /*JsonElement jsonElement = Mapper.getMapper().fromJson(message, JsonElement.class);
-
-        String actionReceived= jsonElement.getAsJsonObject().get("action").getAsString();
-        log.debug("Action received: " + actionReceived);
-        Action action=Action.valueOf(actionReceived);
-        String payload= jsonElement.getAsJsonObject().get("payload").getAsString();
-        log.debug("Payload received: " + payload);
-        NetworkServiceRecord nsr=null;
-        try {
-            nsr = Mapper.getMapper().fromJson(payload, NetworkServiceRecord.class);
-        }catch (Exception e){
-            log.warn("Impossible to retrive the NSR received",e);
-            return false;
-        }
-        if(action.ordinal()==Action.INSTANTIATE_FINISH.ordinal()) {
-            nsrSet.add(nsr);
-            try {
-                policyManager.manageNSR(nsr);
-            } catch (FaultManagementPolicyException e) {
-                log.error("Policy manager Exception", e);
-            }
-        }
-        else if(action.ordinal()==Action.RELEASE_RESOURCES_FINISH.ordinal()){
-            nsrSet.remove(nsr);
-            policyManager.unManageNSR(nsr.getId());
-        }
-        else {
-            log.debug("Action unknow: "+action);
-            return false;
-        }*/
-        return true;
     }
 }

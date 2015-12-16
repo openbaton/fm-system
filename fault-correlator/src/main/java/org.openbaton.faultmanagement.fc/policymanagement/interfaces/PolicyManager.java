@@ -12,6 +12,7 @@ import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualNetwor
 public interface PolicyManager {
     void manageNSR(NetworkServiceRecord networkServiceRecord) throws FaultManagementPolicyException;
     void unManageNSR(NetworkServiceRecord networkServiceRecord) throws MonitoringException;
+    boolean isNSRManaged(String id);
     VNFFaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId);
     VirtualNetworkFunctionRecordShort getVNFRShort(String vnfFMPolicyId);
 }

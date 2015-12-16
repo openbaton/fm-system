@@ -127,6 +127,15 @@ public class PolicyManagerImpl implements PolicyManager {
     }
 
     @Override
+    public boolean isNSRManaged(String id) {
+        for (NetworkServiceRecordShort nsrs : networkServiceRecordShortList){
+            if(nsrs.getId().equals(id))
+                return true;
+        }
+        return false;
+    }
+
+    @Override
     public VNFFaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId) {
                 for(VNFFaultManagementPolicy vnfFMPolicy : getVNFRShort(vnfFMPolicyId).getVnfFaultManagementPolicies()) {
                     if (vnfFMPolicy.getId().equals(vnfFMPolicyId)) {

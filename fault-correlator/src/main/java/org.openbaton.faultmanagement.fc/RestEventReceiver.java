@@ -82,10 +82,11 @@ public class RestEventReceiver implements EventReceiver {
     public void eventFromNfvo(@RequestBody @Valid OpenbatonEvent openbatonEvent) {
         log.info("Received nfvo event with action: " + openbatonEvent.getAction());
         try {
-            if (openbatonEvent.getAction().ordinal() == Action.INSTANTIATE_FINISH.ordinal()) {
-                policyManager.manageNSR(openbatonEvent.getPayload());
-            } else if (openbatonEvent.getAction().ordinal() == Action.RELEASE_RESOURCES_FINISH.ordinal()) {
-                policyManager.unManageNSR(openbatonEvent.getPayload());
+            boolean isNSRManaged = policyManager.isNSRManaged(openbatonEvent.getPayload().getId());
+            if (openbatonEvent.getAction().ordinal() == Action.INSTANTIATE_FINISH.ordinal() && !isNSRManaged) {
+                    policyManager.manageNSR(openbatonEvent.getPayload());
+            } else if (openbatonEvent.getAction().ordinal() == Action.RELEASE_RESOURCES_FINISH.ordinal() && isNSRManaged) {
+                    policyManager.unManageNSR(openbatonEvent.getPayload());
             }
         }catch (Exception e){
             log.error(e.getMessage(),e);
