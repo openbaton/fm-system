@@ -64,7 +64,6 @@ public class NSRManager {
         });*/
         this.mapper = builder.setPrettyPrinting().create();
 
-
         String nfvoUrlRecords="http://localhost:8080/api/v1/ns-records";
 
         //List<NetworkServiceRecord> nsrList = getNetworkServiceRecords(nfvoUrl);
@@ -74,31 +73,6 @@ public class NSRManager {
         } catch (FaultManagementPolicyException e) {
             log.error(e.getMessage(),e);
         }*/
-
-        String nfvoUrlEvent="http://localhost:8080/api/v1/events";
-        fmsIp="http://localhost";
-        fmsPort="9000";
-        EventEndpoint eventEndpointInstantiateFinish = createEventEndpoint(name,EndpointType.REST,Action.INSTANTIATE_FINISH,fmsIp+":"+fmsPort+"/nfvo/event");
-        EventEndpoint eventEndpointReleaseResourcesFinish = createEventEndpoint(name,EndpointType.REST,Action.RELEASE_RESOURCES_FINISH,fmsIp+":"+fmsPort+"/nfvo/event");
-
-        String eventEndpointJson=mapper.toJson(eventEndpointInstantiateFinish);
-        HttpResponse<JsonNode> jsonResponse=null;
-        try {
-            jsonResponse = Unirest.post(nfvoUrlEvent).header("accept", "application/json").header("Content-Type", "application/json").body(eventEndpointJson).asJson();
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        }
-        EventEndpoint response= mapper.fromJson(jsonResponse.getBody().toString(),EventEndpoint.class);
-        unsubscriptionIdINSTANTIATE_FINISH = response.getId();
-
-        eventEndpointJson=mapper.toJson(eventEndpointReleaseResourcesFinish);
-        try {
-            jsonResponse = Unirest.post(nfvoUrlEvent).header("accept", "application/json").header("Content-Type", "application/json").body(eventEndpointJson).asJson();
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        }
-        response= mapper.fromJson(jsonResponse.getBody().toString(),EventEndpoint.class);
-        unsubscriptionIdRELEASE_RESOURCES_FINISH = response.getId();
     }
 
     private List<NetworkServiceRecord> getNetworkServiceRecords(String url){
@@ -124,14 +98,5 @@ public class NSRManager {
         }
 
         return nsrList;
-    }
-
-    protected EventEndpoint createEventEndpoint(String name, EndpointType type, Action action,String url){
-        EventEndpoint eventEndpoint = new EventEndpoint();
-        eventEndpoint.setEvent(action);
-        eventEndpoint.setName(name);
-        eventEndpoint.setType(type);
-        eventEndpoint.setEndpoint(url);
-        return eventEndpoint;
     }
 }

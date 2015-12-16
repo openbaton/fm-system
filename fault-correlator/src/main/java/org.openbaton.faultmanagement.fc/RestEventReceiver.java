@@ -78,7 +78,7 @@ public class RestEventReceiver implements EventReceiver {
     }
 
     @Override
-    @RequestMapping(value = "/nfvo/event", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/nfvo/events", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public void eventFromNfvo(@RequestBody @Valid OpenbatonEvent openbatonEvent) {
         log.info("Received nfvo event with action: " + openbatonEvent.getAction());
         try {
