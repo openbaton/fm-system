@@ -67,6 +67,13 @@ public class PolicyManagerImpl implements PolicyManager {
 
         return result;
     }
+    @Override
+    public boolean isVNFAlarm(String triggerId){
+        String policyId = monitoringManager.getPolicyIdFromTrhresholdId(triggerId);
+        if(policyId==null)
+            return false;
+        return true;
+    }
     private NetworkServiceRecordShort getNSRShort(NetworkServiceRecord nsr) throws FaultManagementPolicyException {
 
         NetworkServiceRecordShort nsrs = new NetworkServiceRecordShort(nsr.getId(),nsr.getName());

@@ -59,10 +59,11 @@ public class RestEventReceiver implements EventReceiver {
     @RequestMapping(value = "/alarm/vr", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Alarm receiveVRNewAlarm(@RequestBody @Valid VirtualizedResourceAlarmNotification vrAlarm) {
-        //log.debug("received: "+vrAlarm);
-        //log.debug("Saving new vr alarm: "+vrAlarm.getAlarm());
         Alarm alarm = alarmRepository.save(vrAlarm.getAlarm());
-        faultCorrelatorManager.newVRAlarm(alarm);
+        if(policyManager.isVNFAlarm(vrAlarm.getTriggerId()))
+            faultCorrelatorManager.newVnfAlarm(alarm);
+        else
+            faultCorrelatorManager.newVRAlarm(alarm);
         return alarm;
     }
 
@@ -71,9 +72,13 @@ public class RestEventReceiver implements EventReceiver {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Alarm receiveVRStateChangedAlarm(@RequestBody @Valid VirtualizedResourceAlarmStateChangedNotification vrascn) {
         Alarm alarm = alarmRepository.changeAlarmState(vrascn.getTriggerId(), vrascn.getAlarmState());
-        if(alarm!=null)
-            //log.debug("Changed alarm state to: " + alarm.getAlarmState());
-        faultCorrelatorManager.updateStatusVRAlarm(vrascn);
+        if(policyManager.isVNFAlarm(vrascn.getTriggerId())){
+
+            //VNFAlarmStateChangedNotification vnfAlarmStateChangedNotification = new VNFAlarmStateChangedNotification()
+            //faultCorrelatorManager.updateStatusVnfAlarm(vrascn);
+        }
+        else
+            faultCorrelatorManager.updateStatusVRAlarm(vrascn);
         return alarm;
     }
 

@@ -13,6 +13,7 @@ public interface PolicyManager {
     void manageNSR(NetworkServiceRecord networkServiceRecord) throws FaultManagementPolicyException;
     void unManageNSR(NetworkServiceRecord networkServiceRecord) throws MonitoringException;
     boolean isNSRManaged(String id);
+    boolean isVNFAlarm(String triggerId);
     VNFFaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId);
     VirtualNetworkFunctionRecordShort getVNFRShort(String vnfFMPolicyId);
 }

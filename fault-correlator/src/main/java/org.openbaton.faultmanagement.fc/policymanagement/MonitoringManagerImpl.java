@@ -131,7 +131,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
                     }
 
                 }
-                log.debug("End MonitoringThreadCreator");
+                log.debug("End MonitoringThreadCreator for the nsr with name: "+nsr.getName());
             } catch (MonitoringException e) {
                 log.error(e.getMessage(),e);
             } catch (Exception e){
