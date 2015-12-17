@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
 import org.openbaton.catalogue.mano.descriptor.VirtualNetworkFunctionDescriptor;
-import org.openbaton.faultmanagement.parser.Mapper;
+import org.openbaton.faultmanagement.fc.parser.Mapper;
 
 import java.util.concurrent.*;
 

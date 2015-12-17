@@ -16,4 +16,3 @@ project(':exception').projectDir = file('openbaton-libs/exception')
 project(':monitoring').projectDir = file('openbaton-libs/monitoring')
 project(':vim-drivers').projectDir = file('openbaton-libs/vim-drivers')
 project(':utils').projectDir = file('openbaton-libs/utils')
-

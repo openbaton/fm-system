@@ -1,9 +1,7 @@
 group 'org.openbaton'
-version '1.0-SNAPSHOT'
-
+version '0.2'
 
 apply plugin: 'java'
-
 apply from: 'openbaton-libs/gradle/gradle/application.java.gradle'
 
 repositories {
@@ -28,6 +26,11 @@ project.ext{
     springBootVersion = '1.2.5.RELEASE'
     //------------------------------------------------//
     //------------------------------------------------//
+    /**
+     * Application Related Version
+     */
+    applicationVersion = version
+    applicationVersionDebian = "1";
 }
 
 apply from: 'openbaton-libs/gradle/gradle/run.application.java.gradle'
@@ -53,9 +56,6 @@ dependencies {
 
     //Gson
     compile 'com.google.code.gson:gson:2.4'
-
-    //JMS
-    compile 'javax.jms:javax.jms-api:2.0.1'
 
     //Unirest
     compile 'com.mashape.unirest:unirest-java:1.3.0'

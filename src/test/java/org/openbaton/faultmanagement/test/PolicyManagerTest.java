@@ -9,19 +9,16 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.NetworkServiceDescriptor;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
-import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.faultmanagement.Application;
+import org.openbaton.faultmanagement.fc.parser.Mapper;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
-import org.openbaton.faultmanagement.parser.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.lang.reflect.Array;
-import java.util.Random;
 
 import static org.junit.Assert.assertNotNull;
 
