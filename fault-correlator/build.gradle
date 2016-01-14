@@ -14,16 +14,9 @@ repositories {
 dependencies {
 
     //Alarm entity
-    compile project (':catalogue')
     compile project (':monitoring')
-
-    //EnableJMS on EventDispatcher
-    /**
-     * Spring dependencies
-     */
-    compile 'org.springframework.boot:spring-boot:' + springBootVersion
-    compile 'org.springframework.boot:spring-boot-starter-logging:' + springBootVersion
-    compile 'org.springframework:spring-jms:' + springVersion
+    compile project (':catalogue')
+    compile project (':high-availability')
 
     //Rest Annotation in AlarmReceiverImpl
     compile("org.springframework.boot:spring-boot-starter-websocket:" + springBootVersion)
@@ -34,12 +27,6 @@ dependencies {
     compile 'commons-dbcp:commons-dbcp:1.4'
     compile 'mysql:mysql-connector-java:5.1.35'
     compile 'org.aspectj:aspectjweaver:1.8.7'
-
-    //Unirest
-    compile 'com.mashape.unirest:unirest-java:1.3.0'
-
-    //Gson
-    compile 'com.google.code.gson:gson:2.4'
 
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }

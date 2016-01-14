@@ -1,6 +1,5 @@
 package org.openbaton.faultmanagement.events;
 
-import org.openbaton.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

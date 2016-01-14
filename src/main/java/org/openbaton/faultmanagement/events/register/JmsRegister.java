@@ -1,6 +1,5 @@
 package org.openbaton.faultmanagement.events.register;
 
-import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.events.SubscriptionRegister;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.messaging.handler.annotation.Payload;

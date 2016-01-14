@@ -7,14 +7,11 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.sun.net.httpserver.HttpServer;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
-import org.openbaton.catalogue.mano.common.monitoring.ObjectSelection;
+import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
+import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
-import org.openbaton.catalogue.nfvo.Action;
-import org.openbaton.catalogue.nfvo.EndpointType;
-import org.openbaton.catalogue.nfvo.EventEndpoint;
-import org.openbaton.exceptions.MonitoringException;
-import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
+import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,28 +19,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.util.*;
 
 /*import org.openbaton.sdk.NFVORequestor;
-import org.openbaton.sdk.api.exception.SDKException;*/
+import org.openbaton.sdk.api.exceptions.SDKException;*/
 
 /**
  * Created by mob on 26.10.15.
  */
 @Service
-public class NSRManager {
+public class NSRManagerImpl implements NSRManager {
     private HttpServer server;
     private Set<NetworkServiceRecord> nsrSet;
     private static final String name = "FaultManagement";
     private Gson mapper;
     private String fmsIp,fmsPort;
-    private static final Logger log = LoggerFactory.getLogger(NSRManager.class);
+    private static final Logger log = LoggerFactory.getLogger(NSRManagerImpl.class);
     private String unsubscriptionIdINSTANTIATE_FINISH;
     private String unsubscriptionIdRELEASE_RESOURCES_FINISH;
     private List<NetworkServiceRecord> nsrList;
-
+    private String nfvoIp,nfvoPort,nfvoUrl;
     //private NFVORequestor nfvoRequestor;
     @Autowired
     private PolicyManager policyManager;
@@ -55,34 +54,36 @@ public class NSRManager {
         nsrSet=new HashSet<>();
         log.debug("NSRManager started");
 
-        // returns an array of TypeVariable object
-        GsonBuilder builder = new GsonBuilder();
-        /*builder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
-            public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                return new Date(json.getAsJsonPrimitive().getAsLong());
-            }
-        });*/
-        this.mapper = builder.setPrettyPrinting().create();
+        this.mapper = new GsonBuilder().setPrettyPrinting().create();
+        InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
+        Properties properties = new Properties();
+        properties.load(is);
+        nfvoIp = properties.getProperty("nfvo.publicIp");
+        nfvoPort = properties.getProperty("server.port","8080");
+        nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
 
-        String nfvoUrlRecords="http://localhost:8080/api/v1/ns-records";
-
-        //List<NetworkServiceRecord> nsrList = getNetworkServiceRecords(nfvoUrl);
-
-        /*try {
-            policyManager.manageNSR(nsrList.iterator().next());
-        } catch (FaultManagementPolicyException e) {
-            log.error(e.getMessage(),e);
+        /*VirtualNetworkFunctionRecord vnfr = getVirtualNetworkFunctionRecord("60a52def-ae27-4927-932a-a78cf6130a1a","00be8f38-f721-463b-bf7b-3cc39222e3d9");
+        log.debug("------------The vnfr is: "+vnfr.toString());
+        for(VirtualDeploymentUnit vdu: vnfr.getVdu()){
+            for(VNFCInstance vnfcInstance : vdu.getVnfc_instance())
+                    log.debug("....."+vnfcInstance);
         }*/
+
     }
 
-    private List<NetworkServiceRecord> getNetworkServiceRecords(String url){
+    private HttpResponse<JsonNode> executeGet(String url){
         HttpResponse<JsonNode> jsonResponse=null;
         try {
             jsonResponse = Unirest.get(url).asJson();
         } catch (UnirestException e) {
             e.printStackTrace();
         }
+        return jsonResponse;
+    }
 
+    private List<NetworkServiceRecord> getNetworkServiceRecordsFromNfvo(String url){
+
+        HttpResponse<JsonNode> jsonResponse = executeGet(url);
         Class<?> aClass = Array.newInstance(NetworkServiceRecord.class, 3).getClass();
         Object[] nsrArray = (Object[]) mapper.fromJson(jsonResponse.getBody().toString(), aClass);
         nsrList = Arrays.asList((NetworkServiceRecord[]) nsrArray);
@@ -98,5 +99,25 @@ public class NSRManager {
         }
 
         return nsrList;
+    }
+
+    @Override
+    public NetworkServiceRecord getNetworkServiceRecord(String nsrId) {
+        return this.getNetworkServiceRecordFromNfvo(nfvoUrl+"/"+nsrId);
+    }
+
+    private NetworkServiceRecord getNetworkServiceRecordFromNfvo(String url) {
+        HttpResponse<JsonNode> jsonResponse = executeGet(url);
+        return mapper.fromJson(jsonResponse.getBody().toString(), NetworkServiceRecord.class);
+    }
+    @Override
+    public List<NetworkServiceRecord> getNetworkServiceRecords() {
+        return this.getNetworkServiceRecordsFromNfvo(nfvoUrl);
+    }
+
+    @Override
+    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId) {
+        HttpResponse<JsonNode> jsonResponse = executeGet(nfvoUrl+"/"+nsrId+"/vnfrecords/"+vnfrId);
+        return mapper.fromJson(jsonResponse.getBody().toString(), VirtualNetworkFunctionRecord.class);
     }
 }

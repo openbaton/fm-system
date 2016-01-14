@@ -43,11 +43,7 @@ public class SystemStartup implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         GsonBuilder builder = new GsonBuilder();
-        /*builder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
-            public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                return new Date(json.getAsJsonPrimitive().getAsLong());
-            }
-        });*/
+
         this.mapper = builder.setPrettyPrinting().create();
         InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
         Properties properties = new Properties();
@@ -60,8 +56,8 @@ public class SystemStartup implements CommandLineRunner {
 
         String nfvoUrlEvent = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/events";
         String fmsIp=nfvoIp;
-        EventEndpoint eventEndpointInstantiateFinish = createEventEndpoint(name, EndpointType.REST, Action.INSTANTIATE_FINISH,fmsIp+":"+ fmsPort +"/nfvo/events");
-        EventEndpoint eventEndpointReleaseResourcesFinish = createEventEndpoint(name,EndpointType.REST,Action.RELEASE_RESOURCES_FINISH,fmsIp+":"+ fmsPort +"/nfvo/events");
+        EventEndpoint eventEndpointInstantiateFinish = createEventEndpoint(name, EndpointType.REST, Action.INSTANTIATE_FINISH,"http://"+fmsIp+":"+ fmsPort +"/nfvo/events");
+        EventEndpoint eventEndpointReleaseResourcesFinish = createEventEndpoint(name,EndpointType.REST,Action.RELEASE_RESOURCES_FINISH,"http://"+fmsIp+":"+ fmsPort +"/nfvo/events");
 
         String eventEndpointJson=mapper.toJson(eventEndpointInstantiateFinish);
         HttpResponse<JsonNode> jsonResponse=null;

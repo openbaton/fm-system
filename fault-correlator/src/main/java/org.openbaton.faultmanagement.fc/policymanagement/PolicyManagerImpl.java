@@ -15,6 +15,8 @@ import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualDeploy
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualNetworkFunctionRecordShort;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
+import org.openbaton.faultmanagement.ha.HighAvailabilityManager;
+import org.openbaton.faultmanagement.ha.exceptions.HighAvailabilityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,24 +37,33 @@ public class PolicyManagerImpl implements PolicyManager {
     private List<NetworkServiceRecordShort> networkServiceRecordShortList;
     @Autowired
     MonitoringManager monitoringManager;
+
+    @Autowired
+    HighAvailabilityManager highAvailabilityManager;
+
     @PostConstruct
     public void init(){
         networkServiceRecordShortList=new ArrayList<>();
     }
 
     @Override
-    public void manageNSR(NetworkServiceRecord nsr) throws FaultManagementPolicyException {
+    public void manageNSR(NetworkServiceRecord nsr) throws FaultManagementPolicyException, HighAvailabilityException {
         if(!nsrNeedsMonitoring(nsr)){
-            log.debug("The NSR"+ nsr.getName()+" needn't fault management monitoring");
+            log.info("The NSR"+ nsr.getName()+" needn't fault management monitoring");
             return;
         }
-        log.debug("The NSR"+ nsr.getName()+" need fault management monitoring");
-        NetworkServiceRecordShort nsrs = getNSRShort(nsr);
-        networkServiceRecordShortList.add(nsrs);
+        else {
+            log.debug("The NSR" + nsr.getName() + " need fault management monitoring");
+            NetworkServiceRecordShort nsrs = getNSRShort(nsr);
+            networkServiceRecordShortList.add(nsrs);
+            monitoringManager.startMonitorNS(nsr);
+        }
+        for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
+            highAvailabilityManager.configureRedundancy(vnfr);
+        }
 
-        monitoringManager.startMonitorNS(nsr);
+
     }
-
     private boolean nsrNeedsMonitoring(NetworkServiceRecord nsr) {
         if(nsr.getFaultManagementPolicy() != null && !nsr.getFaultManagementPolicy().isEmpty())
             return true;
@@ -90,7 +101,6 @@ public class PolicyManagerImpl implements PolicyManager {
             }
         }
         for(VirtualNetworkFunctionRecord vnfr: nsr.getVnfr()){
-            fmpolicies.clear();
             fmpolicies = vnfr.getFault_management_policy();
             VirtualNetworkFunctionRecordShort vnfrs=new VirtualNetworkFunctionRecordShort(vnfr.getId(),vnfr.getName(),vnfr.getParent_ns_id());
             if(fmpolicies==null || fmpolicies.isEmpty())
