@@ -2,6 +2,7 @@ package org.openbaton.faultmanagement.fc.repositories;
 
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
+import org.openbaton.catalogue.mano.common.monitoring.AlarmType;
 import org.openbaton.catalogue.mano.common.monitoring.PerceivedSeverity;
 import org.springframework.data.repository.CrudRepository;
 
@@ -15,4 +16,5 @@ public interface AlarmRepository extends CrudRepository<Alarm, String> ,AlarmRep
     List<Alarm> findByTriggerIdAndAlarmStateNot(String triggerId, AlarmState alarmState);
     List<Alarm> findByResourceId(String resourceId);
     Alarm findFirstByTriggerId(String triggerId);
+    List<Alarm> findByResourceIdAndAlarmStateNotAndAlarmType(String resourceId, AlarmState alarmState, AlarmType alarmType);
 }

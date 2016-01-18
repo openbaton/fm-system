@@ -54,6 +54,7 @@ public class SystemStartup implements CommandLineRunner {
         log.info("NFVO port: "+nfvoPort);
         log.info("FMS port: "+ fmsPort);
 
+
         String nfvoUrlEvent = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/events";
         String fmsIp=nfvoIp;
         EventEndpoint eventEndpointInstantiateFinish = createEventEndpoint(name, EndpointType.REST, Action.INSTANTIATE_FINISH,"http://"+fmsIp+":"+ fmsPort +"/nfvo/events");

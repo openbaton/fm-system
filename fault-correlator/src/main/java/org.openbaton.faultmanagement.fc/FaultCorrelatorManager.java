@@ -12,6 +12,7 @@ import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPol
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
+import org.openbaton.catalogue.mano.common.monitoring.AlarmType;
 import org.openbaton.catalogue.mano.common.monitoring.PerceivedSeverity;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
@@ -67,27 +68,43 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
     @Override
     public void newVnfAlarm(Alarm vnfAlarm) {
         log.debug("New VNF alarm: "+vnfAlarm);
-        try {
-            executeVNFPolicy(vnfAlarm.getTriggerId());
-        } catch (FaultCorrelatorException e) {
-            log.error(e.getMessage(),e);
-        } catch (HighAvailabilityException e) {
-            log.error(e.getMessage(),e);
+
+        // FAULT CORRELATION
+        //check if there are alarms in the same vm
+
+        List<Alarm> activeAlarms = alarmRepository.findByResourceIdAndAlarmStateNotAndAlarmType(vnfAlarm.getResourceId(),AlarmState.CLEARED, AlarmType.VIRTUALIZED_RESOURCE);
+
+
+
+
+        for(Alarm activeVRAlarm : activeAlarms){
+            if(activeVRAlarm.getPerceivedSeverity().ordinal()>=vnfAlarm.getPerceivedSeverity().ordinal()){
+                log.info("There is an active VR alarm with "+ activeVRAlarm.getPerceivedSeverity()+" severity on the same vm of the VNFC "+vnfAlarm.getResourceId());
+                if(activeVRAlarm.getFaultType().ordinal()==vnfAlarm.getFaultType().ordinal()){
+                    log.info("The VR fault is of type "+ activeVRAlarm.getFaultType()+" the same that the VNFC, can be a correlation");
+                }
+                log.info("No actions are executed");
+                return;
+            }
         }
-        if(vnfAlarm.getPerceivedSeverity().ordinal()== PerceivedSeverity.CRITICAL.ordinal()){
-            //check if there are alarms in the same vm
-            // get vnfr
-            //List<Alarm> activeAlarms = alarmRepository.findByResourceIdAndAlarmStateNot("hostname",AlarmState.CLEARED);
-            /*if(activeAlarms.isEmpty()){
-                //get VNFFaultManagementPolicy
-                //executeActionInVNFPolicy(VNFFaultManagementPolicy);
-            }*/
+
+        if(activeAlarms.isEmpty()){
+            try {
+                executeVNFPolicy(vnfAlarm.getTriggerId());
+            } catch (FaultCorrelatorException e) {
+                log.error(e.getMessage(),e);
+            } catch (HighAvailabilityException e) {
+                log.error(e.getMessage(),e);
+            }
         }
+        // END FAULT CORRELATION
+
     }
 
     @Override
     public void newVRAlarm(Alarm vrAlarm) {
         log.debug("New VR alarm: \n"+vrAlarm);
+
     }
 
     @Override

@@ -44,9 +44,9 @@ dependencies {
     /**
      * Spring dependencies
     */
-    compile 'org.springframework.boot:spring-boot:' + springBootVersion
-    compile 'org.springframework.boot:spring-boot-starter-logging:' + springBootVersion
-    compile 'org.springframework:spring-jms:' + springVersion
+    compile 'org.springframework.boot:spring-boot:'
+    compile 'org.springframework.boot:spring-boot-starter-logging:'
+    compile 'org.springframework:spring-jms:'
 
 
     //EnableJPA annotation
@@ -74,7 +74,6 @@ allprojects{
          */
         compile 'org.springframework.boot:spring-boot:' + springBootVersion
         compile 'org.springframework.boot:spring-boot-starter-logging:' + springBootVersion
-        compile 'org.springframework:spring-jms:' + springVersion
 
         //Gson
         compile 'com.google.code.gson:gson:2.4'

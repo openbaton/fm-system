@@ -134,9 +134,19 @@ public class MonitoringManagerImpl implements MonitoringManager {
                                 String function = criteria.getFunction();
                                 String hostOperator = criteria.getVnfc_selector() == VNFCSelector.all ? "&" : "|";
                                 ThresholdDetails thresholdDetails = new ThresholdDetails(function, criteria.getComparison_operator(), vnffmp.getSeverity(), criteria.getThreshold(), hostOperator);
-                                String thresholdId = monitoringPluginCaller.createThreshold(objectSelection, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
-                                thresholdIdListHostname.put(thresholdId, objectSelection.getObjectInstanceIds());
-                                thresholdIdFMPolicyId.put(thresholdId, vnffmp.getId());
+                                if(criteria.getVnfc_selector() == VNFCSelector.at_least_one)
+                                    for(String host: objectSelection.getObjectInstanceIds()){
+                                        ObjectSelection objs = new ObjectSelection();
+                                        objs.addObjectInstanceId(host);
+                                        String thresholdId = monitoringPluginCaller.createThreshold(objs, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
+                                        thresholdIdListHostname.put(thresholdId, objs.getObjectInstanceIds());
+                                        thresholdIdFMPolicyId.put(thresholdId, vnffmp.getId());
+                                    }
+                                else {
+                                    String thresholdId = monitoringPluginCaller.createThreshold(objectSelection, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
+                                    thresholdIdListHostname.put(thresholdId, objectSelection.getObjectInstanceIds());
+                                    thresholdIdFMPolicyId.put(thresholdId, vnffmp.getId());
+                                }
                             }
                         }
                     }

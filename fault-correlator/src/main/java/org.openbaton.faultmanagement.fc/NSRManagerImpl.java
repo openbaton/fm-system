@@ -6,7 +6,11 @@ import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.sun.net.httpserver.HttpServer;
+import org.kie.api.cdi.KSession;
+import org.kie.api.runtime.KieSession;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
+import org.openbaton.catalogue.mano.common.monitoring.Alarm;
+import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
@@ -46,6 +50,8 @@ public class NSRManagerImpl implements NSRManager {
     //private NFVORequestor nfvoRequestor;
     @Autowired
     private PolicyManager policyManager;
+    @Autowired
+    private KieSession kieSession;
 
     @PostConstruct
     public void init() throws IOException {
@@ -69,6 +75,11 @@ public class NSRManagerImpl implements NSRManager {
                     log.debug("....."+vnfcInstance);
         }*/
 
+        Alarm a = new Alarm();
+        a.setResourceId("host-example");
+        a.setAlarmState(AlarmState.FIRED);
+        kieSession.insert(a);
+        kieSession.fireAllRules();
     }
 
     private HttpResponse<JsonNode> executeGet(String url){

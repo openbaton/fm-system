@@ -40,13 +40,13 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
-      <library name="Gradle: org.springframework:spring-jms:4.2.0.RELEASE">
+      <library name="Gradle: org.springframework:spring-jms:4.1.7.RELEASE">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-jms/4.2.0.RELEASE/d8508d6a5991d866bd497576ffd19c71737200f0/spring-jms-4.2.0.RELEASE.jar!/" />
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-jms/4.1.7.RELEASE/75cce2b45bf573a2c9197c2e4dae6480bdb2d27c/spring-jms-4.1.7.RELEASE.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-jms/4.2.0.RELEASE/dd88a9ab6654446119810e9db737f0a12746553c/spring-jms-4.2.0.RELEASE-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-jms/4.1.7.RELEASE/b5ecdb0a475331fbbe55c7313d0b54f6ad9f400c/spring-jms-4.1.7.RELEASE-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -139,46 +139,24 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
-      <library name="Gradle: org.springframework:spring-aop:4.2.0.RELEASE">
+      <library name="Gradle: org.springframework:spring-messaging:4.1.7.RELEASE">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-aop/4.2.0.RELEASE/59d0f2975b818859872211e219b0141d12843547/spring-aop-4.2.0.RELEASE.jar!/" />
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-messaging/4.1.7.RELEASE/329df947037c2dff0a922a234de575cc0caca09d/spring-messaging-4.1.7.RELEASE.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-aop/4.2.0.RELEASE/e36e1b61e777d1b45e396fc2e69a13708cbef817/spring-aop-4.2.0.RELEASE-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-messaging/4.1.7.RELEASE/a0c91c03697ea0560eac2a2f9656001c93b9e4ee/spring-messaging-4.1.7.RELEASE-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
-      <library name="Gradle: org.springframework:spring-beans:4.2.0.RELEASE">
+      <library name="Gradle: org.springframework:spring-tx:4.1.7.RELEASE">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-beans/4.2.0.RELEASE/3f3b38ccca8b5fa19a667e3c54c410ee404a39f0/spring-beans-4.2.0.RELEASE.jar!/" />
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-tx/4.1.7.RELEASE/3465a5d3b24006d51482cf45abd13e347f64582a/spring-tx-4.1.7.RELEASE.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-beans/4.2.0.RELEASE/4e2a13469a30fac0efed7c4a5b3217afcf9b5433/spring-beans-4.2.0.RELEASE-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library name="Gradle: org.springframework:spring-messaging:4.2.0.RELEASE">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-messaging/4.2.0.RELEASE/819ce75eeddf4b07373b97c1cf8af07c79f8e4b0/spring-messaging-4.2.0.RELEASE.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-messaging/4.2.0.RELEASE/134fd12f047fd0658936161967b3fdfcae644bab/spring-messaging-4.2.0.RELEASE-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library name="Gradle: org.springframework:spring-tx:4.2.0.RELEASE">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-tx/4.2.0.RELEASE/6dcd7790b53d88077947dce524ee501e30f8d39f/spring-tx-4.2.0.RELEASE.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-tx/4.2.0.RELEASE/50990631d71f61fc968707581e6e460193767538/spring-tx-4.2.0.RELEASE-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-tx/4.1.7.RELEASE/2a60e819e88273ec4666cb2e0081b835ce6bc3b9/spring-tx-4.1.7.RELEASE-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -478,13 +456,13 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
-      <library name="Gradle: org.springframework:spring-core:4.2.0.RELEASE">
+      <library name="Gradle: org.springframework:spring-aop:4.2.0.RELEASE">
         <CLASSES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-core/4.2.0.RELEASE/9c807aff0032dea05dcc17a477f2442139671ed7/spring-core-4.2.0.RELEASE.jar!/" />
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-aop/4.2.0.RELEASE/59d0f2975b818859872211e219b0141d12843547/spring-aop-4.2.0.RELEASE.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-core/4.2.0.RELEASE/699226901b379075311a66102aaa8e8f6b34640c/spring-core-4.2.0.RELEASE-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-aop/4.2.0.RELEASE/e36e1b61e777d1b45e396fc2e69a13708cbef817/spring-aop-4.2.0.RELEASE-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -496,6 +474,28 @@
         <JAVADOC />
         <SOURCES>
           <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/aopalliance/aopalliance/1.0/4a4b6d692e17846a9f3da036438a7ac491d3c814/aopalliance-1.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="Gradle: org.springframework:spring-beans:4.2.0.RELEASE">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-beans/4.2.0.RELEASE/3f3b38ccca8b5fa19a667e3c54c410ee404a39f0/spring-beans-4.2.0.RELEASE.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-beans/4.2.0.RELEASE/4e2a13469a30fac0efed7c4a5b3217afcf9b5433/spring-beans-4.2.0.RELEASE-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="Gradle: org.springframework:spring-core:4.2.0.RELEASE">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-core/4.2.0.RELEASE/9c807aff0032dea05dcc17a477f2442139671ed7/spring-core-4.2.0.RELEASE.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-core/4.2.0.RELEASE/699226901b379075311a66102aaa8e8f6b34640c/spring-core-4.2.0.RELEASE-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -518,6 +518,17 @@
         <JAVADOC />
         <SOURCES>
           <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.2/ecf26c7507d67782a3bbd148d170b31dfad001aa/commons-logging-1.2-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="Gradle: commons-codec:commons-codec:1.9">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.9/9ce04e34240f674bc72680f8b843b1457383161a/commons-codec-1.9.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.9/3f15fff45d57656685abfee9e8302bf14580044c/commons-codec-1.9-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -551,17 +562,6 @@
         <JAVADOC />
         <SOURCES>
           <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpcore/4.4.3/b972b5dfd2db7d41d76a6fc5445852522a136e2e/httpcore-4.4.3-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library name="Gradle: commons-codec:commons-codec:1.9">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.9/9ce04e34240f674bc72680f8b843b1457383161a/commons-codec-1.9.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.9/3f15fff45d57656685abfee9e8302bf14580044c/commons-codec-1.9-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
