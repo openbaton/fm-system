@@ -41,10 +41,10 @@ public class PolicyManagerTest {
         nsd = Mapper.getMapper().fromJson(json, NetworkServiceDescriptor.class);
     }
 
-    @Test
-    public void policyManagerNotNull(){assertNotNull(policyManager);}
+    /*@Test
+    public void policyManagerNotNull(){assertNotNull(policyManager);}*/
 
-    @Test
+    /*@Test
     public void manageNSRTest(){
         String url="http://localhost:8080/api/v1/ns-records";
         HttpResponse<JsonNode> jsonResponse=null;
@@ -58,13 +58,13 @@ public class PolicyManagerTest {
 
         NetworkServiceRecord[] nsrArray = (NetworkServiceRecord[]) mapper.fromJson(jsonResponse.getBody().toString(), aClass);
 
-        /*for(NetworkServiceRecord nsr : nsrArray){
+        *//*for(NetworkServiceRecord nsr : nsrArray){
            System.out.println("Nsr name: "+nsr.getName() +" nsr id:"+nsr.getId());
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
-                for(VNFFaultManagementPolicy fmp: vnfr.getFault_management_policy()){
+                for(VRFaultManagementPolicy fmp: vnfr.getFault_management_policy()){
                     System.out.println("fmpolicy: "+fmp);
                 }
             }
-        }*/
-    }
+        }*//*
+    }*/
 }

@@ -33,7 +33,6 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
     @PostConstruct
     public void init() throws IOException {
         mapper = new GsonBuilder().setPrettyPrinting().create();
-
         InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
         Properties properties = new Properties();
         properties.load(is);
@@ -42,13 +41,22 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
     }
 
-    public void switchToRedundantVNFC(VirtualNetworkFunctionRecord vnfr, VirtualDeploymentUnit vdu,VNFCInstance vnfcInstance) throws HighAvailabilityException {
+    public void switchToRedundantVNFC(String nsrId, String vnfrId, String vduId,String vnfcInstanceId) throws HighAvailabilityException {
         try {
-            sendSwitchToStandbyMessage(vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId(),vnfcInstance.getId());
+            sendSwitchToStandbyMessage(nsrId, vnfrId, vduId,vnfcInstanceId);
         } catch (UnirestException e) {
             throw new HighAvailabilityException(e.getMessage(),e);
         }
     }
+    public void switchToRedundantVNFC(VirtualNetworkFunctionRecord vnfr,VirtualDeploymentUnit vdu) throws HighAvailabilityException {
+
+        for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
+            if(vnfcInstance.getState()!=null && vnfcInstance.getState().equals("standby"))
+                switchToRedundantVNFC(vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
+        }
+    }
+
+
 
     public void configureRedundancy(VirtualNetworkFunctionRecord vnfr) throws HighAvailabilityException {
         if(!vnfrNeedsRedundancy(vnfr))
@@ -61,7 +69,6 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
                 }
             }
         }
-
     }
     private boolean vnfrNeedsRedundancy(VirtualNetworkFunctionRecord vnfr) {
 

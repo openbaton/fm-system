@@ -1,16 +1,13 @@
 package org.openbaton.faultmanagement.fc;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.sun.net.httpserver.HttpServer;
-import org.kie.api.cdi.KSession;
-import org.kie.api.runtime.KieSession;
-import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
-import org.openbaton.catalogue.mano.common.monitoring.Alarm;
-import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
+import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
@@ -50,8 +47,6 @@ public class NSRManagerImpl implements NSRManager {
     //private NFVORequestor nfvoRequestor;
     @Autowired
     private PolicyManager policyManager;
-    @Autowired
-    private KieSession kieSession;
 
     @PostConstruct
     public void init() throws IOException {
@@ -75,11 +70,7 @@ public class NSRManagerImpl implements NSRManager {
                     log.debug("....."+vnfcInstance);
         }*/
 
-        Alarm a = new Alarm();
-        a.setResourceId("host-example");
-        a.setAlarmState(AlarmState.FIRED);
-        kieSession.insert(a);
-        kieSession.fireAllRules();
+
     }
 
     private HttpResponse<JsonNode> executeGet(String url){
@@ -102,8 +93,9 @@ public class NSRManagerImpl implements NSRManager {
             log.debug("Nsr name: "+nsr.getName() +" nsr id:"+nsr.getId());
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
                 log.debug("Vnfr name: "+vnfr.getName());
-                if(vnfr.getFault_management_policy()!=null)
-                    for(VNFFaultManagementPolicy fmp: vnfr.getFault_management_policy()){
+                for(VirtualDeploymentUnit vdu : vnfr.getVdu() )
+                if(vdu.getFault_management_policy()!=null)
+                    for(VRFaultManagementPolicy fmp: vdu.getFault_management_policy()){
                         log.debug("fmpolicy: "+fmp);
                     }
             }
@@ -126,9 +118,61 @@ public class NSRManagerImpl implements NSRManager {
         return this.getNetworkServiceRecordsFromNfvo(nfvoUrl);
     }
 
+
+
     @Override
     public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId) {
         HttpResponse<JsonNode> jsonResponse = executeGet(nfvoUrl+"/"+nsrId+"/vnfrecords/"+vnfrId);
         return mapper.fromJson(jsonResponse.getBody().toString(), VirtualNetworkFunctionRecord.class);
+    }
+
+    @Override
+    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String vnfrId) {
+        for(NetworkServiceRecord nsr : getNetworkServiceRecords()){
+            for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
+                if(vnfr.getId().equals(vnfrId))
+                    return vnfr;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public VNFCInstance getVNFCInstanceFromVnfr(VirtualNetworkFunctionRecord vnfr, String vnfcInstaceId) {
+            for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
+                for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
+                    if(vnfcInstance.getId().equals(vnfcInstaceId))
+                        return vnfcInstance;
+                }
+            }
+        return null;
+    }
+
+    public VirtualDeploymentUnit getVDU(VirtualNetworkFunctionRecord vnfr,String vnfcInstaceId) {
+        for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
+            for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
+                if(vnfcInstance.getId().equals(vnfcInstaceId))
+                    return vdu;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public VNFCInstance getVNFCInstance(String hostname) {
+
+        log.debug("getVNFCInstance called with hostname:"+hostname);
+        /*List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
+        for(NetworkServiceRecord nsr : nsrs){
+            for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
+                for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
+                    for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
+                        if(vnfcInstance.getHostname().equals(hostname))
+                            return vnfcInstance;
+                    }
+                }
+            }
+        }*/
+        return new VNFCInstance();
     }
 }

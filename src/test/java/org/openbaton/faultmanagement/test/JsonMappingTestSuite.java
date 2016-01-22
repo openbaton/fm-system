@@ -25,14 +25,14 @@ public class JsonMappingTestSuite {
     private NetworkServiceDescriptor nsd;
     @Before
     public void init(){
-        json=Utils.getFile("json_file/NetworkServiceDescriptor-iperf-server-solo.json");
+        json=Utils.getFile("json_file/NetworkServiceDescriptor-iperf-server-vim-18.json");
         assertNotNull(json);
     }
 
     @Test
     public void testJsonMapping(){
         nsd = mapper.fromJson(json,NetworkServiceDescriptor.class);
-        assertEquals("NSD name must be equals",nsd.getName(),"iperf-NSD");
+        assertEquals("NSD name must be equals",nsd.getName(),"iperf-NS");
 
     }
 
@@ -41,12 +41,11 @@ public class JsonMappingTestSuite {
 
         nsd = mapper.fromJson(json,NetworkServiceDescriptor.class);
 
-        VNFFaultManagementPolicy expectedVnfFaultManagementPolicy=new VNFFaultManagementPolicy();
-        expectedVnfFaultManagementPolicy.setName("Iper-server-down");
-        expectedVnfFaultManagementPolicy.setCooldown(60);
-        expectedVnfFaultManagementPolicy.setPeriod(5);
-        expectedVnfFaultManagementPolicy.setSeverity(PerceivedSeverity.CRITICAL);
-        expectedVnfFaultManagementPolicy.setAction(FaultManagementVNFCAction.SWITCH_TO_STANDBY);
+        VRFaultManagementPolicy expectedVRFaultManagementPolicy = new VRFaultManagementPolicy();
+        expectedVRFaultManagementPolicy.setName("Iper-server-down");
+        expectedVRFaultManagementPolicy.setPeriod(5);
+        expectedVRFaultManagementPolicy.setSeverity(PerceivedSeverity.CRITICAL);
+        expectedVRFaultManagementPolicy.setAction(FaultManagementAction.SWITCH_TO_STANDBY);
 
         Set<Criteria> criterias = new HashSet<>();
         Criteria c1 = new Criteria();
@@ -56,23 +55,23 @@ public class JsonMappingTestSuite {
         c1.setThreshold("0");
 
         criterias.add(c1);
-        expectedVnfFaultManagementPolicy.setCriteria(criterias);
+        expectedVRFaultManagementPolicy.setCriteria(criterias);
 
         for(VirtualNetworkFunctionDescriptor vnfd : nsd.getVnfd()){
             if(vnfd.getName().equals("iperf-server")){
-                VNFFaultManagementPolicy vnffmp= vnfd.getFault_management_policy().iterator().next();
-                System.out.println("Actual"+vnffmp);
-                System.out.println("Expect"+expectedVnfFaultManagementPolicy);
-                assertEquals("VNFFaultManagementPolicy name should be the same",expectedVnfFaultManagementPolicy.getName(),vnffmp.getName());
-
-                for (VirtualDeploymentUnit vdu : vnfd.getVdu()){
+                for(VirtualDeploymentUnit vdu : vnfd.getVdu()){
+                    for(VRFaultManagementPolicy vnffmp: vdu.getFault_management_policy()){
+                        System.out.println("Actual"+vnffmp);
+                    }
+                    System.out.println("\n\n");
+                    //System.out.println("Expect"+ expectedVRFaultManagementPolicy);
+                    //assertEquals("VRFaultManagementPolicy name should be the same", expectedVRFaultManagementPolicy.getName(),vnffmp.getName());
                     Iterator<String> it= vdu.getMonitoring_parameter().iterator();
-                   while(it.hasNext()){
-                        System.out.println("mon par: "+it.next());
+                    while(it.hasNext()){
+                        System.out.println("Mon par: "+it.next());
                     }
                 }
             }
-
         }
     }
 }

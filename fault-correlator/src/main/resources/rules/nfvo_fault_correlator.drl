@@ -1,0 +1,71 @@
+import org.openbaton.catalogue.mano.common.monitoring.*
+import org.openbaton.faultmanagement.fc.repositories.AlarmRepository
+import org.openbaton.catalogue.mano.record.VNFCInstance
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager
+import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord
+import org.openbaton.faultmanagement.fc.interfaces.NSRManager
+import org.slf4j.Logger
+import org.openbaton.faultmanagement.fc.RecoveryAction
+import org.openbaton.faultmanagement.ha.HighAvailabilityManager
+import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+
+global HighAvailabilityManager highAvailabilityManager
+global AlarmRepository alarmRepository
+global PolicyManager policyManager
+global Logger logger
+global NSRManager nsrManager
+
+
+rule "Get a VNF Alarm from a VNFM"
+    agenda-group "correlation"
+    when
+        vnfAlarm : VNFAlarm()
+    then
+        VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecord(vnfAlarm.getVnfrId());
+        logger.debug("The NFVO got a VNFAlarm from the manager: "+vnfr.getEndpoint());
+end
+
+rule "Save a VNFAlarm"
+    agenda-group "correlation"
+    when
+        vnfAlarm : VNFAlarm()
+    then
+    alarmRepository.save(vnfAlarm);
+    logger.debug("Saved VnfAlarm");
+end
+
+rule "Execute a switch to standby if no action is ongoing on the vim"
+    agenda-group "correlation"
+    when
+       vnfAlarm : VNFAlarm(  alarmState == AlarmState.FIRED, perceivedSeverity == PerceivedSeverity.CRITICAL, vimName : vimName )
+       //not (RecoveryAction( vimName == vimName))
+    then
+    //RecoveryAction recoveryAction;
+    try{
+    //Get the vnfr
+    VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecord(vnfAlarm.getVnfrId());
+
+    //Get the vnfc failed (assuming only one vnfc is failed)
+    VNFCInstance vnfcInstance = nsrManager.getVNFCInstanceFromVnfr(vnfr,vnfAlarm.getVnfcIds().iterator().next());
+
+    logger.info("A CRITICAL alarm is received by the vnfc: "+vnfcInstance.getHostname());
+
+    //Get the vdu of the failed VNFC
+    VirtualDeploymentUnit vdu = nsrManager.getVDU(vnfr,vnfcInstance.getId());
+
+    logger.info("Switch to a standby vnfc");
+    highAvailabilityManager.switchToRedundantVNFC(vnfr,vdu);
+
+    //Insert a new recovery action
+    DateFormat dateFormat= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+    Date date = new Date();
+    //recoveryAction= new RecoveryAction("SwitchToStandby",vnfr.getEndpoint(),dateFormat.format(date),vnfAlarm.getVimName());
+    }catch (Exception e){
+        logger.error("'Execute a switch to standby if no action is ongoing on the vim' rule "+e.getMessage(),e);
+    }
+    //insert(recoveryAction);
+end
+

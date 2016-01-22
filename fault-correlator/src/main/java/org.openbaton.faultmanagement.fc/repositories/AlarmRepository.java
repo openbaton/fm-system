@@ -12,9 +12,8 @@ import java.util.List;
  * Created by mob on 26.10.15.
  */
 public interface AlarmRepository extends CrudRepository<Alarm, String> ,AlarmRepositoryCustom{
-    List<Alarm> findByTriggerIdAndPerceivedSeverity(String triggerId, PerceivedSeverity perceivedSeverity);
-    List<Alarm> findByTriggerIdAndAlarmStateNot(String triggerId, AlarmState alarmState);
-    List<Alarm> findByResourceId(String resourceId);
-    Alarm findFirstByTriggerId(String triggerId);
-    List<Alarm> findByResourceIdAndAlarmStateNotAndAlarmType(String resourceId, AlarmState alarmState, AlarmType alarmType);
+    List<Alarm> findByThresholdIdAndPerceivedSeverity(String thresholdId, PerceivedSeverity perceivedSeverity);
+    List<Alarm> findByThresholdIdAndAlarmStateNot(String threshold, AlarmState alarmState);
+    Alarm findFirstByThresholdId(String threshold);
+    //List<Alarm> findByResourceIdAndAlarmStateNotAndAlarmType(String resourceId, AlarmState alarmState, AlarmType alarmType);
 }

@@ -2,6 +2,7 @@ package org.openbaton.faultmanagement.fc;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.kie.api.runtime.KieSession;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmNotification;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmNotification;
@@ -33,6 +34,8 @@ public class RestEventReceiver implements EventReceiver {
     @Autowired
     PolicyManager policyManager;
     @Autowired
+    private KieSession kieSession;
+    @Autowired
     org.openbaton.faultmanagement.fc.interfaces.FaultCorrelatorManager faultCorrelatorManager;
 
     @Override
@@ -60,12 +63,10 @@ public class RestEventReceiver implements EventReceiver {
     @ResponseStatus(HttpStatus.CREATED)
     public Alarm receiveVRNewAlarm(@RequestBody @Valid VirtualizedResourceAlarmNotification vrAlarm) {
         log.debug("Received  new VR alarm");
-        Alarm alarm = alarmRepository.save(vrAlarm.getAlarm());
-        if(policyManager.isVNFAlarm(vrAlarm.getTriggerId()))
-            faultCorrelatorManager.newVnfAlarm(alarm);
-        else
-            faultCorrelatorManager.newVRAlarm(alarm);
-        return alarm;
+        kieSession.insert(vrAlarm.getAlarm());
+        kieSession.fireAllRules();
+
+        return vrAlarm.getAlarm();
     }
 
     @Override

@@ -62,7 +62,7 @@ public class SystemStartup implements CommandLineRunner {
 
         String eventEndpointJson=mapper.toJson(eventEndpointInstantiateFinish);
         HttpResponse<JsonNode> jsonResponse=null;
-        try {
+        /*try {
             jsonResponse = Unirest.post(nfvoUrlEvent).header("accept", "application/json").header("Content-Type", "application/json").body(eventEndpointJson).asJson();
         } catch (UnirestException e) {
             e.printStackTrace();
@@ -77,7 +77,7 @@ public class SystemStartup implements CommandLineRunner {
             e.printStackTrace();
         }
         response= mapper.fromJson(jsonResponse.getBody().toString(),EventEndpoint.class);
-        unsubscriptionIdRELEASE_RESOURCES_FINISH = response.getId();
+        unsubscriptionIdRELEASE_RESOURCES_FINISH = response.getId();*/
         log.info("Correctly registered to the NFVO");
     }
     private EventEndpoint createEventEndpoint(String name, EndpointType type, Action action,String url){

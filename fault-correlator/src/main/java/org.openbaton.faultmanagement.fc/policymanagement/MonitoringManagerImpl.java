@@ -105,7 +105,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
                         }
 
 
-                        Set<String> monitoringParamentersWithoutPeriod = getMonitoringParamentersWithoutPeriod(vdu.getMonitoring_parameter(), vnfr);
+                        Set<String> monitoringParamentersWithoutPeriod = getMonitoringParamentersWithoutPeriod(vdu.getMonitoring_parameter(), vdu);
                         log.debug("monitoring Paramenters Without period: " + monitoringParamentersWithoutPeriod);
                         List<String> monitoringParamentersLIst = new ArrayList<>();
                         monitoringParamentersLIst.addAll(monitoringParamentersWithoutPeriod);
@@ -120,15 +120,15 @@ public class MonitoringManagerImpl implements MonitoringManager {
                         monitoringParameterWithPeriod.removeAll(monitoringParamentersWithoutPeriod);
 
                         for (String mpwp : monitoringParameterWithPeriod) {
-                            int period = getPeriodFromThreshold(mpwp, vnfr.getFault_management_policy());
+                            int period = getPeriodFromThreshold(mpwp, vdu.getFault_management_policy());
                             monitoringParamentersLIst.clear();
                             monitoringParamentersLIst.add(mpwp);
                             log.debug("This monitoringParameter: " + mpwp + " has custom period of: " + period + " seconds");
                             pmJobId = monitoringPluginCaller.createPMJob(objectSelection, monitoringParamentersLIst, new ArrayList<String>(), period, 0);
                             savePmJobId(vdu.getId(), pmJobId);
                         }
-
-                        for (VNFFaultManagementPolicy vnffmp : vnfr.getFault_management_policy()) {
+                        if(vdu.getFault_management_policy()!=null)
+                        for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
                             for (Criteria criteria : vnffmp.getCriteria()) {
                                 String performanceMetric = criteria.getParameter_ref();
                                 String function = criteria.getFunction();
@@ -170,7 +170,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
                 vduIdPmJobIdMap.put(vduId,pmjobIds);
             }
         }
-        private Set<String> getMonitoringParamentersWithoutPeriod(Set<String> monitoring_parameter, VirtualNetworkFunctionRecord vnfr) {
+        private Set<String> getMonitoringParamentersWithoutPeriod(Set<String> monitoring_parameter, VirtualDeploymentUnit vdu) {
             Set<String> result = new HashSet<>(monitoring_parameter);
             Set<String> tmp = new HashSet<>();
             log.debug("monitoring parameter= "+monitoring_parameter);
@@ -178,7 +178,9 @@ public class MonitoringManagerImpl implements MonitoringManager {
             while(iterator.hasNext()) {
                 String currentMonitoringParameter = iterator.next();
                 log.debug("current mon param: "+currentMonitoringParameter);
-                for (VNFFaultManagementPolicy vnffmp : vnfr.getFault_management_policy()) {
+                if(vdu.getFault_management_policy() == null )
+                    break;
+                for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
                     log.debug("current vnffmp : "+vnffmp);
                     for (Criteria c : vnffmp.getCriteria()) {
                         log.debug("current criteria : "+c);
@@ -193,8 +195,8 @@ public class MonitoringManagerImpl implements MonitoringManager {
             return result;
         }
 
-        private int getPeriodFromThreshold(String mpwp,Set<VNFFaultManagementPolicy> fault_management_policy) throws MonitoringException {
-            for (VNFFaultManagementPolicy vnffmp : fault_management_policy) {
+        private int getPeriodFromThreshold(String mpwp,Set<VRFaultManagementPolicy> fault_management_policy) throws MonitoringException {
+            for (VRFaultManagementPolicy vnffmp : fault_management_policy) {
                 for (Criteria c : vnffmp.getCriteria()) {
                     if (c.getParameter_ref().equalsIgnoreCase(mpwp)){
                         return vnffmp.getPeriod();
@@ -218,13 +220,14 @@ public class MonitoringManagerImpl implements MonitoringManager {
             List<String> thresholdIdsToRemove= new ArrayList<>();
             List<String> pmJobIdsToRemove= new ArrayList<>();
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
-                for(VNFFaultManagementPolicy vnffmp : vnfr.getFault_management_policy()){
-                    for(Map.Entry<String,String> entry : thresholdIdFMPolicyId.entrySet()){
-                        if(entry.getValue().equalsIgnoreCase(vnffmp.getId())){
-                            thresholdIdsToRemove.add(entry.getKey());
+                for(VirtualDeploymentUnit vdu : vnfr.getVdu())
+                    for(VRFaultManagementPolicy fmp : vdu.getFault_management_policy()){
+                        for(Map.Entry<String,String> entry : thresholdIdFMPolicyId.entrySet()){
+                            if(entry.getValue().equalsIgnoreCase(fmp.getId())){
+                                thresholdIdsToRemove.add(entry.getKey());
+                            }
                         }
                     }
-                }
                 for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
                     if(vduIdPmJobIdMap.get(vdu.getId())!=null){
                         pmJobIdsToRemove.addAll(vduIdPmJobIdMap.get(vdu.getId()));

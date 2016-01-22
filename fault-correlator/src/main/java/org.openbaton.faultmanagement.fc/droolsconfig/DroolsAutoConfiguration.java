@@ -12,10 +12,19 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.KieSessionConfiguration;
 import org.kie.internal.io.ResourceFactory;
+import org.openbaton.faultmanagement.fc.NSRManagerImpl;
+import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
+import org.openbaton.faultmanagement.fc.policymanagement.MonitoringManagerImpl;
+import org.openbaton.faultmanagement.fc.policymanagement.PolicyManagerImpl;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -28,7 +37,6 @@ import java.io.IOException;
 @Configuration
 public class DroolsAutoConfiguration {
 
-    private Logger logger = LoggerFactory.getLogger(DroolsAutoConfiguration.class);
     private static final String RULES_PATH = "rules/";
 
     @Bean
@@ -56,7 +64,6 @@ public class DroolsAutoConfiguration {
         KieBase kbase = kcontainer.newKieBase(kbconf);
         KieSessionConfiguration ksconf = ks.newKieSessionConfiguration();
         KieSession ksession = kbase.newKieSession(ksconf, null);
-        ksession.setGlobal("logger", logger);
 
         return ksession;
     }

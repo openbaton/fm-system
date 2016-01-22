@@ -5,15 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import org.openbaton.catalogue.mano.common.HighAvailability;
-import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementVNFCAction;
+import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementAction;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedNotification;
-import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
+import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
-import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
-import org.openbaton.catalogue.mano.common.monitoring.AlarmType;
-import org.openbaton.catalogue.mano.common.monitoring.PerceivedSeverity;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
@@ -25,7 +21,6 @@ import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualDeploy
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualNetworkFunctionRecordShort;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
-import org.openbaton.faultmanagement.fc.repositories.AlarmRepository;
 import org.openbaton.faultmanagement.ha.HighAvailabilityManager;
 import org.openbaton.faultmanagement.ha.exceptions.HighAvailabilityException;
 import org.slf4j.Logger;
@@ -45,8 +40,7 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
     private static final Logger log = LoggerFactory.getLogger(FaultCorrelatorManager.class);
     private static final String nfvoUrl = "http://localhost:8080/api/v1/ns-records";
     private Gson mapper;
-    @Autowired
-    private AlarmRepository alarmRepository;
+
 
     @Autowired
     private MonitoringManager monitoringManager;
@@ -72,14 +66,14 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
         // FAULT CORRELATION
         //check if there are alarms in the same vm
 
-        List<Alarm> activeAlarms = alarmRepository.findByResourceIdAndAlarmStateNotAndAlarmType(vnfAlarm.getResourceId(),AlarmState.CLEARED, AlarmType.VIRTUALIZED_RESOURCE);
+        //List<Alarm> activeAlarms = alarmRepository.findByResourceIdAndAlarmStateNotAndAlarmType(vnfAlarm.getThresholdId(),AlarmState.CLEARED, AlarmType.VIRTUALIZED_RESOURCE);
 
 
 
 
-        for(Alarm activeVRAlarm : activeAlarms){
+        /*for(Alarm activeVRAlarm : activeAlarms){
             if(activeVRAlarm.getPerceivedSeverity().ordinal()>=vnfAlarm.getPerceivedSeverity().ordinal()){
-                log.info("There is an active VR alarm with "+ activeVRAlarm.getPerceivedSeverity()+" severity on the same vm of the VNFC "+vnfAlarm.getResourceId());
+                log.info("There is an active VR alarm with "+ activeVRAlarm.getPerceivedSeverity()+" severity on the same vm of the VNFC "+vnfAlarm);
                 if(activeVRAlarm.getFaultType().ordinal()==vnfAlarm.getFaultType().ordinal()){
                     log.info("The VR fault is of type "+ activeVRAlarm.getFaultType()+" the same that the VNFC, can be a correlation");
                 }
@@ -90,13 +84,13 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
 
         if(activeAlarms.isEmpty()){
             try {
-                executeVNFPolicy(vnfAlarm.getTriggerId());
+                executeVNFPolicy(vnfAlarm.getThresholdId());
             } catch (FaultCorrelatorException e) {
                 log.error(e.getMessage(),e);
             } catch (HighAvailabilityException e) {
                 log.error(e.getMessage(),e);
             }
-        }
+        }*/
         // END FAULT CORRELATION
 
     }
@@ -110,21 +104,21 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
     @Override
     public void updateStatusVRAlarm(VirtualizedResourceAlarmStateChangedNotification vrascn) {
         //log.debug("VR state changed notification: "+vrascn);
-        try {
+        /*try {
             if(vrascn.getAlarmState().ordinal() == AlarmState.UPDATED.ordinal())
 
-                executeVNFPolicy(vrascn.getTriggerId());
+                executeVNFPolicy(vrascn.getThresholdId());
 
             else if (vrascn.getAlarmState().ordinal() == AlarmState.CLEARED.ordinal()) {
                 log.debug("The alarm has been cleared");
-                Alarm clearedAlarm = alarmRepository.findFirstByTriggerId(vrascn.getTriggerId());
+                Alarm clearedAlarm = alarmRepository.findFirstByTriggerId(vrascn.getThresholdId());
                 log.debug("Details of the alarm:\n"+clearedAlarm);
             }
         } catch (FaultCorrelatorException e) {
             log.error(e.getMessage(),e);
         } catch (HighAvailabilityException e) {
             log.error(e.getMessage(),e);
-        }
+        }*/
     }
     private void executeVNFPolicy(String triggerId) throws FaultCorrelatorException, HighAvailabilityException {
         List<String> hostnames;
@@ -132,19 +126,19 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
             hostnames = monitoringManager.getHostnamesFromThresholdId(triggerId);
             if(hostnames!=null) {
                 String policyId = monitoringManager.getPolicyIdFromTrhresholdId(triggerId);
-                VNFFaultManagementPolicy vnfFaultManagementPolicy = policyManager.getVNFFaultManagementPolicy(policyId);
+                VRFaultManagementPolicy VRFaultManagementPolicy = policyManager.getVNFFaultManagementPolicy(policyId);
                 log.debug("This is a VNF alarm coming from the hostnames: " + hostnames);
-                FaultManagementVNFCAction action = vnfFaultManagementPolicy.getAction();
+                FaultManagementAction action = VRFaultManagementPolicy.getAction();
                 log.debug("this action need to be executed: " + action);
 
-                if(action.ordinal()==FaultManagementVNFCAction.HEAL.ordinal()) {
-                    OrVnfmHealVNFRequestMessage healMessage = getHealMessage(vnfFaultManagementPolicy.getName());
+                if(action.ordinal()== FaultManagementAction.HEAL.ordinal()) {
+                    OrVnfmHealVNFRequestMessage healMessage = getHealMessage(VRFaultManagementPolicy.getName());
                     VirtualNetworkFunctionRecordShort vnfrs = policyManager.getVNFRShort(policyId);
                     VirtualDeploymentUnitShort vdus = vnfrs.getVirtualDeploymentUnitShorts().iterator().next();
                     for (String vnfcInstanceId : vdus.getVNFCInstanceIdFromHostname(hostnames))
                         sendHealMessage(healMessage, vnfrs.getNsrFatherId(), vnfrs.getId(), vdus.getId(), vnfcInstanceId);
                 }
-                else if (action.ordinal()==FaultManagementVNFCAction.SWITCH_TO_STANDBY.ordinal()){
+                else if (action.ordinal()== FaultManagementAction.SWITCH_TO_STANDBY.ordinal()){
                     VirtualNetworkFunctionRecordShort vnfrs=policyManager.getVNFRShort(policyId);
                     VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecord(vnfrs.getNsrFatherId(),vnfrs.getId());
                     //find the standby VNFC instance
@@ -154,7 +148,7 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
                         for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
                             if(hostnames.contains(vnfcInstance.getHostname())){
                                 VNFCInstance vnfcInstanceStandby = getStandbyVNFCInstance(vdu);
-                                highAvailabilityManager.switchToRedundantVNFC(vnfr,vdu,vnfcInstanceStandby);
+                                //highAvailabilityManager.switchToRedundantVNFC(vnfr,vdu,vnfcInstanceStandby);
                             }
                         }
                     }
@@ -198,7 +192,7 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
 
     @Override
     public void updateStatusVnfAlarm(VNFAlarmStateChangedNotification vnfascn) {
-        log.debug("VR state changed notification: "+vnfascn);
+        /*log.debug("VR state changed notification: "+vnfascn);
         try {
             if(vnfascn.getAlarmState().ordinal() == AlarmState.UPDATED.ordinal())
 
@@ -213,7 +207,7 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
             log.error(e.getMessage(),e);
         } catch (HighAvailabilityException e) {
             log.error(e.getMessage(),e);
-        }
+        }*/
     }
 
 

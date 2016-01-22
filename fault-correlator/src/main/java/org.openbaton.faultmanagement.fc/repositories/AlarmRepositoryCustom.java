@@ -10,5 +10,5 @@ import java.util.List;
  * Created by mob on 19.11.15.
  */
 public interface AlarmRepositoryCustom  {
-    Alarm changeAlarmState(String triggerId, AlarmState alarmState);
+    Alarm changeAlarmState(String thresholdId, AlarmState alarmState);
 }

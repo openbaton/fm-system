@@ -15,11 +15,13 @@ public class AlarmRepositoryImpl implements AlarmRepositoryCustom{
 
     @Override
     @Transactional
-    public Alarm changeAlarmState(String triggerId, AlarmState alarmState) {
-        Alarm alarm=alarmRepository.findFirstByTriggerId(triggerId);
+    public Alarm changeAlarmState(String thresholdId, AlarmState alarmState) {
+        Alarm alarm=alarmRepository.findFirstByThresholdId(thresholdId);
         if(alarm!=null) {
             alarm.setAlarmState(alarmState);
         }
-        return alarm;
+        return null;
     }
+
+
 }

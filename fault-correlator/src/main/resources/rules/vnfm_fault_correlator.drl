@@ -1,0 +1,48 @@
+import org.openbaton.catalogue.mano.common.monitoring.*
+import org.openbaton.faultmanagement.fc.repositories.AlarmRepository
+import org.openbaton.catalogue.mano.record.VNFCInstance
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager
+
+global MonitoringManager monitoringManager
+global PolicyManager policyManager
+global org.slf4j.Logger logger
+global org.openbaton.faultmanagement.fc.interfaces.NSRManager nsrManager
+
+
+rule "Get a VR alarm and create a VNF alarm"
+    agenda-group "correlation"
+    when
+        a : VRAlarm( managedObject : managedObject, alarmState == AlarmState.FIRED , alarmType == AlarmType.VIRTUALIZED_RESOURCE ,
+         perceivedSeverity == PerceivedSeverity.CRITICAL)
+        vnfcInstance : VNFCInstance() from nsrManager.getVNFCInstance(managedObject)
+    then
+        logger.info("\tReceived a VR alarm regarding the managedObject" + managedObject);
+
+        logger.info("\tthe vnfcinstance is " + vnfcInstance);
+
+        //Create a VNFAlarm from the VRAlarm received
+        VNFAlarm vnfAlarm = new VNFAlarm();
+        vnfAlarm.setAlarmState(AlarmState.FIRED);
+        vnfAlarm.setPerceivedSeverity(PerceivedSeverity.CRITICAL);
+        vnfAlarm.addVnfcId(vnfcInstance.getId());
+        vnfAlarm.setVimName(vnfcInstance.getVim_id());
+
+        // Set the vnfrId
+        String policyId = policyManager.getPolicyIdByThresholdId(a.getThresholdId());
+        String vnfrId = policyManager.getVnfrIdByPolicyId(policyId);
+        vnfAlarm.setVnfrId(vnfrId);
+
+        vnfAlarm.addCorrelatedAlarmId(a.getThresholdId());
+
+        insert( vnfAlarm );
+end
+
+rule "A VNF alarm is created"
+    agenda-group "correlation"
+    when
+        vnfAlarm : VNFAlarm(  alarmState == AlarmState.FIRED )
+    then
+        logger.info("\tFired a VNFAlarm! " + vnfAlarm);
+end
+

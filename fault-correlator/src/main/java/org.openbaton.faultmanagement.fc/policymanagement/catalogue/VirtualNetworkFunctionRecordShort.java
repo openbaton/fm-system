@@ -1,6 +1,6 @@
 package org.openbaton.faultmanagement.fc.policymanagement.catalogue;
 
-import org.openbaton.catalogue.mano.common.faultmanagement.VNFFaultManagementPolicy;
+import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ public class VirtualNetworkFunctionRecordShort {
     private String id;
     private String name;
     private String nsrFatherId;
-    private List<VNFFaultManagementPolicy> vnfFaultManagementPolicies;
+    private List<VRFaultManagementPolicy> vnfFaultManagementPolicies;
     private List<VirtualDeploymentUnitShort> virtualDeploymentUnitShorts;
 
     public VirtualNetworkFunctionRecordShort(String id, String name,String nsrFatherId){
@@ -43,18 +43,18 @@ public class VirtualNetworkFunctionRecordShort {
         return id;
     }
 
-    public List<VNFFaultManagementPolicy> getVnfFaultManagementPolicies() {
+    public List<VRFaultManagementPolicy> getVnfFaultManagementPolicies() {
         return vnfFaultManagementPolicies;
     }
 
-    public void setVnfFaultManagementPolicies(List<VNFFaultManagementPolicy> vnfFaultManagementPolicies) {
+    public void setVnfFaultManagementPolicies(List<VRFaultManagementPolicy> vnfFaultManagementPolicies) {
         this.vnfFaultManagementPolicies = vnfFaultManagementPolicies;
     }
 
-    public void addVnfFaultManagementPolicy(VNFFaultManagementPolicy vnfFaultManagementPolicy){
-        if(vnfFaultManagementPolicy==null)
+    public void addVnfFaultManagementPolicy(VRFaultManagementPolicy VRFaultManagementPolicy){
+        if(VRFaultManagementPolicy ==null)
             throw new NullPointerException("vnf fault management policy is null");
-        this.vnfFaultManagementPolicies.add(vnfFaultManagementPolicy);
+        this.vnfFaultManagementPolicies.add(VRFaultManagementPolicy);
     }
 
     public List<VirtualDeploymentUnitShort> getVirtualDeploymentUnitShorts() {
