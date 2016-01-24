@@ -90,13 +90,13 @@ public class NSRManagerImpl implements NSRManager {
         Object[] nsrArray = (Object[]) mapper.fromJson(jsonResponse.getBody().toString(), aClass);
         nsrList = Arrays.asList((NetworkServiceRecord[]) nsrArray);
         for(NetworkServiceRecord nsr : nsrList){
-            log.debug("Nsr name: "+nsr.getName() +" nsr id:"+nsr.getId());
+            //log.debug("Nsr name: "+nsr.getName() +" nsr id:"+nsr.getId());
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
-                log.debug("Vnfr name: "+vnfr.getName());
+                //log.debug("Vnfr name: "+vnfr.getName());
                 for(VirtualDeploymentUnit vdu : vnfr.getVdu() )
                 if(vdu.getFault_management_policy()!=null)
                     for(VRFaultManagementPolicy fmp: vdu.getFault_management_policy()){
-                        log.debug("fmpolicy: "+fmp);
+                        //log.debug("fmpolicy: "+fmp);
                     }
             }
         }
@@ -138,6 +138,22 @@ public class NSRManagerImpl implements NSRManager {
     }
 
     @Override
+    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecordFromVNFCHostname(String hostname) {
+        List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
+        for(NetworkServiceRecord nsr : nsrs){
+            for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
+                for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
+                    for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
+                        if(vnfcInstance.getHostname().equals(hostname))
+                            return vnfr;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
     public VNFCInstance getVNFCInstanceFromVnfr(VirtualNetworkFunctionRecord vnfr, String vnfcInstaceId) {
             for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
                 for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
@@ -162,7 +178,7 @@ public class NSRManagerImpl implements NSRManager {
     public VNFCInstance getVNFCInstance(String hostname) {
 
         log.debug("getVNFCInstance called with hostname:"+hostname);
-        /*List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
+        List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
         for(NetworkServiceRecord nsr : nsrs){
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
                 for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
@@ -172,7 +188,7 @@ public class NSRManagerImpl implements NSRManager {
                     }
                 }
             }
-        }*/
+        }
         return new VNFCInstance();
     }
 }

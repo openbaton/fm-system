@@ -5,8 +5,10 @@ import com.google.gson.GsonBuilder;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import org.openbaton.catalogue.mano.common.ConnectionPoint;
 import org.openbaton.catalogue.mano.common.ResiliencyLevel;
 import org.openbaton.catalogue.mano.descriptor.VNFComponent;
+import org.openbaton.catalogue.mano.descriptor.VNFDConnectionPoint;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
@@ -19,7 +21,9 @@ import javax.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Created by mob on 11.01.16.
@@ -41,18 +45,18 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
     }
 
-    public void switchToRedundantVNFC(String nsrId, String vnfrId, String vduId,String vnfcInstanceId) throws HighAvailabilityException {
+    public void switchToRedundantVNFC(VNFCInstance failedVnfcInstance,String nsrId, String vnfrId, String vduId,String vnfcInstanceId) throws HighAvailabilityException {
         try {
-            sendSwitchToStandbyMessage(nsrId, vnfrId, vduId,vnfcInstanceId);
+            sendSwitchToStandbyMessage(failedVnfcInstance,nsrId, vnfrId, vduId,vnfcInstanceId);
         } catch (UnirestException e) {
             throw new HighAvailabilityException(e.getMessage(),e);
         }
     }
-    public void switchToRedundantVNFC(VirtualNetworkFunctionRecord vnfr,VirtualDeploymentUnit vdu) throws HighAvailabilityException {
+    public void switchToRedundantVNFC(VNFCInstance failedVnfcInstance, VirtualNetworkFunctionRecord vnfr,VirtualDeploymentUnit vdu) throws HighAvailabilityException {
 
         for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
             if(vnfcInstance.getState()!=null && vnfcInstance.getState().equals("standby"))
-                switchToRedundantVNFC(vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
+                switchToRedundantVNFC(failedVnfcInstance,vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
         }
     }
 
@@ -64,12 +68,41 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         for (VirtualDeploymentUnit vdu : vnfr.getVdu()) {
             if (vdu.getHigh_availability().getResiliencyLevel().ordinal() == ResiliencyLevel.ACTIVE_STANDBY_STATELESS.ordinal()) {
                 if (vdu.getHigh_availability().getRedundancyScheme().equals("1:N")) {
+                    // check the 1:N redundancy
+                    if(checkIfStandbyVNFCInstance(vdu))
+                        continue;
                     log.debug("VNFC COMPONENTS:\n"+vdu.getVnfc().toString());
-                    createStandByVNFC(vdu.getVnfc().iterator().next(), vnfr, vdu);
+
+                    //Get a component sample
+                    VNFComponent componentSample = vdu.getVnfc().iterator().next();
+
+                    //Creating a new component to add into the vdu
+                    VNFComponent vnfComponent_new = new VNFComponent();
+                    Set<VNFDConnectionPoint> vnfdConnectionPointSet= new HashSet<>();
+                    for (VNFDConnectionPoint vnfdConnectionPointSample: componentSample.getConnection_point()){
+                        VNFDConnectionPoint vnfdConnectionPoint = new VNFDConnectionPoint();
+                        vnfdConnectionPoint.setVirtual_link_reference(vnfdConnectionPointSample.getVirtual_link_reference());
+                        vnfdConnectionPoint.setFloatingIp(vnfdConnectionPointSample.getFloatingIp());
+                        vnfdConnectionPoint.setType(vnfdConnectionPointSample.getType());
+
+                        vnfdConnectionPointSet.add(vnfdConnectionPoint);
+                    }
+                    vnfComponent_new.setConnection_point(vnfdConnectionPointSet);
+
+                    createStandByVNFC(vnfComponent_new, vnfr, vdu);
                 }
             }
         }
     }
+
+    private boolean checkIfStandbyVNFCInstance(VirtualDeploymentUnit vdu) {
+        for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
+            if(vnfcInstance.getState()!=null && vnfcInstance.getState().equals("standby"))
+                return true;
+        }
+        return false;
+    }
+
     private boolean vnfrNeedsRedundancy(VirtualNetworkFunctionRecord vnfr) {
 
         for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
@@ -88,7 +121,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
             throw new HighAvailabilityException(e.getMessage(),e);
         }
     }
-    private void sendSwitchToStandbyMessage(String ... ids) throws UnirestException {
+    private void sendSwitchToStandbyMessage(VNFCInstance failedVnfcInstance,String ... ids) throws UnirestException {
 
         String finalUrl=nfvoUrl;
         finalUrl += "/"+ids[0];
@@ -99,8 +132,8 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
 
         HttpResponse<String> jsonResponse;
         log.debug("Posting new VNFC in standby mode: "+finalUrl);
-
-        jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").asString();
+        String jsonMessage= mapper.toJson(failedVnfcInstance,VNFCInstance.class);
+        jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
 
         log.debug("Response from nfvo: "+jsonResponse.getBody());
     }
@@ -118,7 +151,6 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         String jsonMessage= mapper.toJson(vnfComponent,VNFComponent.class);
 
         jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
-
         log.debug("Response from nfvo: "+jsonResponse.getBody());
     }
 }

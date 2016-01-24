@@ -55,8 +55,8 @@ public class MonitoringManagerImpl implements MonitoringManager {
     @Override
     public void startMonitorNS(NetworkServiceRecord nsr){
         MonitoringThreadCreator mpc = new MonitoringThreadCreator(nsr);
-        // Wait 10 seconds for the host registration in zabbix server.
-        futures.put(nsr.getId(), nsScheduler.schedule(mpc, 10, TimeUnit.SECONDS));
+        // Wait 10 seconds for the host registration in zabbix server. And then schedule the monitor creator at fixed rate
+        futures.put(nsr.getId(), nsScheduler.scheduleAtFixedRate(mpc, 10,60, TimeUnit.SECONDS));
     }
 
     @Override
@@ -98,12 +98,17 @@ public class MonitoringManagerImpl implements MonitoringManager {
 
                         ObjectSelection objectSelection = new ObjectSelection();
                         for (VNFCInstance vnfcInstance : vdu.getVnfc_instance()) {
+                            //Check if the vnfcInstance is not in standby
                             if(vnfcInstance.getState() != null && vnfcInstance.getState().equals("standby"))
                                 continue;
-                                log.debug("vnfcinstance (not in standby): " + vnfcInstance);
+                            //Check if the vnfcInstance is already monitored
+                            if(isVNFCMonitored(vnfcInstance.getHostname()))
+                                continue;
+                                log.debug("vnfcinstance to be monitored (not in standby): " + vnfcInstance);
                                 objectSelection.addObjectInstanceId(vnfcInstance.getHostname());
                         }
-
+                        if(objectSelection.getObjectInstanceIds().isEmpty())
+                            continue;
 
                         Set<String> monitoringParamentersWithoutPeriod = getMonitoringParamentersWithoutPeriod(vdu.getMonitoring_parameter(), vdu);
                         log.debug("monitoring Paramenters Without period: " + monitoringParamentersWithoutPeriod);
@@ -158,6 +163,14 @@ public class MonitoringManagerImpl implements MonitoringManager {
                 log.error(e.getMessage(),e);
             }
         }
+
+        private boolean isVNFCMonitored(String hostname){
+            for(Map.Entry<String,List<String>> entry : thresholdIdListHostname.entrySet()){
+                if(entry.getValue().contains(hostname))
+                    return true;
+            }
+            return false;
+        }
         private void savePmJobId(String vduId,String pmJobId){
             if(vduIdPmJobIdMap.get(vduId)==null){
                 List<String> pmjobIds = new ArrayList<>();
@@ -173,19 +186,19 @@ public class MonitoringManagerImpl implements MonitoringManager {
         private Set<String> getMonitoringParamentersWithoutPeriod(Set<String> monitoring_parameter, VirtualDeploymentUnit vdu) {
             Set<String> result = new HashSet<>(monitoring_parameter);
             Set<String> tmp = new HashSet<>();
-            log.debug("monitoring parameter= "+monitoring_parameter);
+            //log.debug("monitoring parameter= "+monitoring_parameter);
             Iterator<String> iterator= result.iterator();
             while(iterator.hasNext()) {
                 String currentMonitoringParameter = iterator.next();
-                log.debug("current mon param: "+currentMonitoringParameter);
+                //log.debug("current mon param: "+currentMonitoringParameter);
                 if(vdu.getFault_management_policy() == null )
                     break;
                 for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
-                    log.debug("current vnffmp : "+vnffmp);
+                    //log.debug("current vnffmp : "+vnffmp);
                     for (Criteria c : vnffmp.getCriteria()) {
-                        log.debug("current criteria : "+c);
-                        log.debug("Comparing "+c.getParameter_ref()+" with current monitor parameter "+ currentMonitoringParameter);
-                        if (c.getParameter_ref().equalsIgnoreCase(currentMonitoringParameter)){
+                        //log.debug("current criteria : "+c);
+                        //log.debug("Comparing "+c.getParameter_ref()+" with current monitor parameter "+ currentMonitoringParameter);
+                        if (c.getParameter_ref().equalsIgnoreCase(currentMonitoringParameter) && vnffmp.getPeriod()!=0){
                             tmp.add(c.getParameter_ref());
                         }
                     }

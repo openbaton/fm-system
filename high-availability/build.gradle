@@ -1,9 +1,7 @@
 group 'org.openbaton'
-version '0.2'
+version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
-
-sourceCompatibility = 1.5
 
 repositories {
     mavenCentral()

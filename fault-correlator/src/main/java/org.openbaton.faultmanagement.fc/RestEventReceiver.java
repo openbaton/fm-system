@@ -1,14 +1,11 @@
 package org.openbaton.faultmanagement.fc;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.kie.api.runtime.KieSession;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmNotification;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmNotification;
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
-import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.faultmanagement.fc.interfaces.EventReceiver;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
@@ -74,7 +71,7 @@ public class RestEventReceiver implements EventReceiver {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Alarm receiveVRStateChangedAlarm(@RequestBody @Valid VirtualizedResourceAlarmStateChangedNotification vrascn) {
         Alarm alarm = alarmRepository.changeAlarmState(vrascn.getTriggerId(), vrascn.getAlarmState());
-        if(policyManager.isVNFAlarm(vrascn.getTriggerId())){
+        if(policyManager.isAManagedAlarm(vrascn.getTriggerId())){
             String vnfrId = policyManager.getVNFRShort(vrascn.getTriggerId()).getId();
             VNFAlarmStateChangedNotification vnfAlarmStateChangedNotification = new VNFAlarmStateChangedNotification(vnfrId,vrascn.getTriggerId(),vrascn.getAlarmState());
             faultCorrelatorManager.updateStatusVnfAlarm(vnfAlarmStateChangedNotification);
@@ -96,7 +93,7 @@ public class RestEventReceiver implements EventReceiver {
                     policyManager.unManageNSR(openbatonEvent.getPayload());
             }
         }catch (Exception e){
-            log.error(e.getMessage(),e);
+            log.error("Receiving the openbaton event: "+openbatonEvent+" "+e.getMessage(),e);
         }
     }
 

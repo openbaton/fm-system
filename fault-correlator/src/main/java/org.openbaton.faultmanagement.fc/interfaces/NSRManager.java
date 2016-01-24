@@ -16,6 +16,7 @@ public interface NSRManager {
     VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId);
     VNFCInstance getVNFCInstance(String hostname);
     VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String vnfrId);
+    VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecordFromVNFCHostname(String hostname);
     VNFCInstance getVNFCInstanceFromVnfr(VirtualNetworkFunctionRecord vnfr,String vnfcInstaceId);
     VirtualDeploymentUnit getVDU(VirtualNetworkFunctionRecord vnfr, String vnfcInstaceId);
 }

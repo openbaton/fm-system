@@ -57,7 +57,7 @@ rule "Execute a switch to standby if no action is ongoing on the vim"
     VirtualDeploymentUnit vdu = nsrManager.getVDU(vnfr,vnfcInstance.getId());
 
     logger.info("Switch to a standby vnfc");
-    highAvailabilityManager.switchToRedundantVNFC(vnfr,vdu);
+    highAvailabilityManager.switchToRedundantVNFC(vnfcInstance,vnfr,vdu);
 
     //Insert a new recovery action
     DateFormat dateFormat= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

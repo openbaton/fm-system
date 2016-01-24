@@ -48,19 +48,28 @@ public class PolicyManagerImpl implements PolicyManager {
     }
 
     @Override
-    public void manageNSR(NetworkServiceRecord nsr) throws FaultManagementPolicyException, HighAvailabilityException {
+    public void manageNSR(NetworkServiceRecord nsr){
         if(!nsrNeedsMonitoring(nsr)){
             log.info("The NSR"+ nsr.getName()+" needn't fault management monitoring");
             return;
         }
         else {
             log.debug("The NSR" + nsr.getName() + " need fault management monitoring");
-            NetworkServiceRecordShort nsrs = getNSRShort(nsr);
+            NetworkServiceRecordShort nsrs = null;
+            try {
+                nsrs = getNSRShort(nsr);
+            } catch (FaultManagementPolicyException e) {
+                log.error("Getting the NSR short for the nsr: "+nsr.getName()+" "+e.getMessage(),e);
+            }
             networkServiceRecordShortList.add(nsrs);
             monitoringManager.startMonitorNS(nsr);
         }
         for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
-            highAvailabilityManager.configureRedundancy(vnfr);
+            try {
+                highAvailabilityManager.configureRedundancy(vnfr);
+            } catch (HighAvailabilityException e) {
+                log.error("Configuration of the redundancy for the vnfr: "+vnfr.getName()+" "+e.getMessage(),e);
+            }
         }
 
 
@@ -81,7 +90,7 @@ public class PolicyManagerImpl implements PolicyManager {
         return result;
     }
     @Override
-    public boolean isVNFAlarm(String triggerId){
+    public boolean isAManagedAlarm(String triggerId){
         String policyId = monitoringManager.getPolicyIdFromTrhresholdId(triggerId);
         if(policyId==null)
             return false;

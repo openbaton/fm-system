@@ -11,10 +11,10 @@ import org.openbaton.faultmanagement.ha.exceptions.HighAvailabilityException;
  * Created by mob on 30.10.15.
  */
 public interface PolicyManager {
-    void manageNSR(NetworkServiceRecord networkServiceRecord) throws FaultManagementPolicyException, HighAvailabilityException;
+    void manageNSR(NetworkServiceRecord networkServiceRecord);
     void unManageNSR(NetworkServiceRecord networkServiceRecord) throws MonitoringException;
     boolean isNSRManaged(String id);
-    boolean isVNFAlarm(String triggerId);
+    boolean isAManagedAlarm(String triggerId);
     VRFaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId);
     VirtualNetworkFunctionRecordShort getVNFRShort(String vnfFMPolicyId);
     String getPolicyIdByThresholdId(String triggerId);
