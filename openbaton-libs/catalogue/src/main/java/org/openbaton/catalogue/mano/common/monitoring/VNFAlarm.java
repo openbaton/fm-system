@@ -10,7 +10,7 @@ import java.util.List;
  * Created by mob on 21.01.16.
  */
 @Entity
-public class VNFAlarm extends Alarm{
+public class VNFAlarm extends Alarm {
 
     private String vnfrId;
     @ElementCollection(fetch = FetchType.EAGER)
@@ -18,7 +18,7 @@ public class VNFAlarm extends Alarm{
     private String vimName;
 
     public VNFAlarm(){
-        this.alarmType=AlarmType.VIRTUAL_NETWORK_FUNCTION;
+        this.alarmType= AlarmType.VIRTUAL_NETWORK_FUNCTION;
     }
 
     @Override
