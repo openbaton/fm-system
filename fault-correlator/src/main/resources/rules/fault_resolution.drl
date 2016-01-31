@@ -1,5 +1,5 @@
 import org.openbaton.catalogue.mano.common.monitoring.*
-import org.openbaton.faultmanagement.fc.repositories.AlarmRepository
+import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository
 import org.openbaton.catalogue.mano.record.VNFCInstance
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager

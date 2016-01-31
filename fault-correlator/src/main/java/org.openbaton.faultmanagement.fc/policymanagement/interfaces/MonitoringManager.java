@@ -13,4 +13,5 @@ public interface MonitoringManager {
     void stopMonitorNS(NetworkServiceRecord nsr) throws MonitoringException;
     List<String> getHostnamesFromThresholdId(String thresholdId);
     String getPolicyIdFromTrhresholdId(String thresholdId);
+    boolean isVNFThreshold(String thresholdId);
 }

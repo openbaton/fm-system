@@ -12,7 +12,7 @@ public class VRAlarm extends Alarm {
     private String managedObject;
 
     public VRAlarm(){
-        alarmType= AlarmType.VIRTUALIZED_RESOURCE;
+        alarmType = AlarmType.VIRTUALIZED_RESOURCE;
     }
 
     @Override

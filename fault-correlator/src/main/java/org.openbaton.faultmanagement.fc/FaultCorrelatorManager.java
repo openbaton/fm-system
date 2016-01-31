@@ -131,14 +131,7 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
                 FaultManagementAction action = VRFaultManagementPolicy.getAction();
                 log.debug("this action need to be executed: " + action);
 
-                if(action.ordinal()== FaultManagementAction.HEAL.ordinal()) {
-                    OrVnfmHealVNFRequestMessage healMessage = getHealMessage(VRFaultManagementPolicy.getName());
-                    VirtualNetworkFunctionRecordShort vnfrs = policyManager.getVNFRShort(policyId);
-                    VirtualDeploymentUnitShort vdus = vnfrs.getVirtualDeploymentUnitShorts().iterator().next();
-                    for (String vnfcInstanceId : vdus.getVNFCInstanceIdFromHostname(hostnames))
-                        sendHealMessage(healMessage, vnfrs.getNsrFatherId(), vnfrs.getId(), vdus.getId(), vnfcInstanceId);
-                }
-                else if (action.ordinal()== FaultManagementAction.SWITCH_TO_STANDBY.ordinal()){
+                if (action.ordinal()== FaultManagementAction.SWITCH_TO_STANDBY.ordinal()){
                     VirtualNetworkFunctionRecordShort vnfrs=policyManager.getVNFRShort(policyId);
                     VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecord(vnfrs.getNsrFatherId(),vnfrs.getId());
                     //find the standby VNFC instance
@@ -165,30 +158,9 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
         throw new FaultCorrelatorException("No VNFCInstance found in standby mode");
     }
 
-    private void sendHealMessage(OrVnfmHealVNFRequestMessage healMessage,String ... ids) {
-        HttpResponse<String> jsonResponse=null;
-        String finalUrl=nfvoUrl;
-        finalUrl += "/"+ids[0];
-        finalUrl += ids[1]==null ? "" : "/vnfrecords/"+ids[1];
-        finalUrl += ids[2]==null ? "" : "/vdunits/"+ids[2];
-        finalUrl += ids[3]==null ? "" : "/vnfcinstances/"+ids[3];
-        finalUrl+="/actions";
-        log.debug("Posting action heal at url: "+finalUrl);
-        String jsonMessage= mapper.toJson(healMessage,OrVnfmHealVNFRequestMessage.class);
-        try {
-            jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        }
-        log.debug("Response from heal function: "+jsonResponse.getBody());
-    }
 
-    private OrVnfmHealVNFRequestMessage getHealMessage(String cause) {
-        OrVnfmHealVNFRequestMessage orVnfmHealVNFRequestMessage = new OrVnfmHealVNFRequestMessage();
-        orVnfmHealVNFRequestMessage.setAction(Action.HEAL);
-        orVnfmHealVNFRequestMessage.setCause(cause);
-        return orVnfmHealVNFRequestMessage;
-    }
+
+
 
     @Override
     public void updateStatusVnfAlarm(VNFAlarmStateChangedNotification vnfascn) {

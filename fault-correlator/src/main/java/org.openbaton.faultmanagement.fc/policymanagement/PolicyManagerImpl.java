@@ -9,6 +9,7 @@ import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
+import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.NetworkServiceRecordShort;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VNFCInstanceShort;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualDeploymentUnitShort;
@@ -23,9 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Created by mob on 29.10.15.
@@ -35,6 +35,11 @@ public class PolicyManagerImpl implements PolicyManager {
 
     private static final Logger log = LoggerFactory.getLogger(PolicyManagerImpl.class);
     private List<NetworkServiceRecordShort> networkServiceRecordShortList;
+    private Map<String,ScheduledFuture<?>> futures;
+
+    private final ScheduledExecutorService nsScheduler = Executors.newScheduledThreadPool(1);
+
+    @Autowired private NSRManager nsrManager;
 
     @Autowired
     MonitoringManager monitoringManager;
@@ -44,6 +49,7 @@ public class PolicyManagerImpl implements PolicyManager {
 
     @PostConstruct
     public void init(){
+        futures = new HashMap<>();
         networkServiceRecordShortList=new ArrayList<>();
     }
 
@@ -63,15 +69,11 @@ public class PolicyManagerImpl implements PolicyManager {
             }
             networkServiceRecordShortList.add(nsrs);
             monitoringManager.startMonitorNS(nsr);
-        }
-        for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
-            try {
-                highAvailabilityManager.configureRedundancy(vnfr);
-            } catch (HighAvailabilityException e) {
-                log.error("Configuration of the redundancy for the vnfr: "+vnfr.getName()+" "+e.getMessage(),e);
-            }
-        }
 
+            HighConfigurator highConfigurator = new HighConfigurator(nsr);
+
+            futures.put(nsr.getId(),nsScheduler.scheduleAtFixedRate(highConfigurator,5,60, TimeUnit.SECONDS));
+        }
 
     }
     private boolean nsrNeedsMonitoring(NetworkServiceRecord nsr) {
@@ -145,14 +147,13 @@ public class PolicyManagerImpl implements PolicyManager {
 
     @Override
     public void unManageNSR(NetworkServiceRecord networkServiceRecord) throws MonitoringException {
-        for (NetworkServiceRecordShort nsrs : networkServiceRecordShortList) {
-            if (nsrs.getId().equals(networkServiceRecord.getId())) {
 
-                monitoringManager.stopMonitorNS(networkServiceRecord);
-                networkServiceRecordShortList.remove(nsrs);
-                break;
-            }
-        }
+        monitoringManager.stopMonitorNS(networkServiceRecord);
+
+        ScheduledFuture<?> future = futures.get(networkServiceRecord.getId());
+        if(future!=null)
+            future.cancel(true);
+        futures.remove(networkServiceRecord.getId());
     }
 
     @Override
@@ -162,6 +163,12 @@ public class PolicyManagerImpl implements PolicyManager {
                 return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean isAVNFAlarm(String id) {
+
+        return monitoringManager.isVNFThreshold(id);
     }
 
     @Override
@@ -195,5 +202,25 @@ public class PolicyManagerImpl implements PolicyManager {
     public String getPolicyIdByThresholdId(String triggerId) {
 
         return monitoringManager.getPolicyIdFromTrhresholdId(triggerId);
+    }
+
+    private class HighConfigurator implements Runnable {
+        private NetworkServiceRecord nsr;
+
+        public HighConfigurator(NetworkServiceRecord nsr) {
+            this.nsr = nsr;
+        }
+
+        @Override
+        public void run() {
+            NetworkServiceRecord nsr = nsrManager.getNetworkServiceRecord(this.nsr.getId());
+            for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
+                try {
+                    highAvailabilityManager.configureRedundancy(vnfr);
+                } catch (HighAvailabilityException e) {
+                    log.error("Configuration of the redundancy for the vnfr: "+vnfr.getName()+" "+e.getMessage(),e);
+                }
+            }
+        }
     }
 }

@@ -14,4 +14,5 @@ public interface HighAvailabilityManager {
     void configureRedundancy(VirtualNetworkFunctionRecord nsr) throws HighAvailabilityException;
     void createStandByVNFC(VNFComponent vnfComponent, VirtualNetworkFunctionRecord vnfr, VirtualDeploymentUnit vdu) throws HighAvailabilityException;
     void switchToRedundantVNFC(VNFCInstance failedVnfcInstance, VirtualNetworkFunctionRecord vnfr,VirtualDeploymentUnit vdu)throws HighAvailabilityException;
+    void executeHeal(String cause, String nsrId, String vnfrId, String vduId, String vnfcInstanceId);
 }

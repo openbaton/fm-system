@@ -1,6 +1,5 @@
 package org.openbaton.faultmanagement.fc;
 
-import java.util.Date;
 
 /**
  * Created by mob on 22.01.16.

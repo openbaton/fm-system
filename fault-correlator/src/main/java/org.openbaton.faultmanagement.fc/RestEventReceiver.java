@@ -6,10 +6,13 @@ import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedN
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmNotification;
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
+import org.openbaton.catalogue.mano.common.monitoring.AlarmType;
+import org.openbaton.catalogue.mano.common.monitoring.VNFAlarm;
+import org.openbaton.catalogue.mano.common.monitoring.VRAlarm;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.faultmanagement.fc.interfaces.EventReceiver;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
-import org.openbaton.faultmanagement.fc.repositories.AlarmRepository;
+import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +30,7 @@ public class RestEventReceiver implements EventReceiver {
 
     private static final Logger log = LoggerFactory.getLogger(RestEventReceiver.class);
     @Autowired
-    AlarmRepository alarmRepository;
+    VNFAlarmRepository alarmRepository;
     @Autowired
     PolicyManager policyManager;
     @Autowired
@@ -39,46 +42,47 @@ public class RestEventReceiver implements EventReceiver {
     @RequestMapping(value = "/alarm/vnf", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Alarm receiveVnfNewAlarm(@RequestBody @Valid VNFAlarmNotification vnfAlarm) {
-            Alarm alarm = alarmRepository.save(vnfAlarm.getAlarm());
-            faultCorrelatorManager.newVnfAlarm(alarm);
-        return alarm;
+        log.debug("Received new VNF alarm");
+        kieSession.insert(vnfAlarm);
+        kieSession.fireAllRules();
+        return null;
     }
 
     @Override
     @RequestMapping(value = "/alarm/vnf", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Alarm receiveVnfStateChangedAlarm(@RequestBody @Valid VNFAlarmStateChangedNotification vnfAlarmStateChangedNotification) {
-        if(vnfAlarmStateChangedNotification!=null && vnfAlarmStateChangedNotification.getAlarmState()!=null
-                && ! vnfAlarmStateChangedNotification.getResourceId().isEmpty()){
-            //TODO
-        }
+        log.debug("Received VNF state changed Alarm");
+        kieSession.insert(vnfAlarmStateChangedNotification);
+        kieSession.fireAllRules();
+
         return null;
     }
 
     @Override
     @RequestMapping(value = "/alarm/vr", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Alarm receiveVRNewAlarm(@RequestBody @Valid VirtualizedResourceAlarmNotification vrAlarm) {
-        log.debug("Received  new VR alarm");
-        kieSession.insert(vrAlarm.getAlarm());
+    public Alarm receiveVRNewAlarm(@RequestBody @Valid VirtualizedResourceAlarmNotification vrAlarmNot) {
+        log.debug("Received new VR alarm");
+        kieSession.getAgenda().getAgendaGroup( "correlation" ).setFocus();
+
+        kieSession.insert(vrAlarmNot.getVrAlarm());
         kieSession.fireAllRules();
 
-        return vrAlarm.getAlarm();
+        return vrAlarmNot.getVrAlarm();
     }
 
     @Override
     @RequestMapping(value = "/alarm/vr", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Alarm receiveVRStateChangedAlarm(@RequestBody @Valid VirtualizedResourceAlarmStateChangedNotification vrascn) {
-        Alarm alarm = alarmRepository.changeAlarmState(vrascn.getTriggerId(), vrascn.getAlarmState());
-        if(policyManager.isAManagedAlarm(vrascn.getTriggerId())){
-            String vnfrId = policyManager.getVNFRShort(vrascn.getTriggerId()).getId();
-            VNFAlarmStateChangedNotification vnfAlarmStateChangedNotification = new VNFAlarmStateChangedNotification(vnfrId,vrascn.getTriggerId(),vrascn.getAlarmState());
-            faultCorrelatorManager.updateStatusVnfAlarm(vnfAlarmStateChangedNotification);
-        }
-        else
-            faultCorrelatorManager.updateStatusVRAlarm(vrascn);
-        return alarm;
+        //Alarm alarm = alarmRepository.changeAlarmState(vrascn.getTriggerId(), vrascn.getAlarmState());
+        log.debug("Received VR state changed alarm");
+        kieSession.getAgenda().getAgendaGroup( "correlation" ).setFocus();
+        kieSession.insert(vrascn);
+        kieSession.fireAllRules();
+
+        return null;
     }
 
     @Override

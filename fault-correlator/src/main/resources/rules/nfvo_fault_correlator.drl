@@ -1,5 +1,5 @@
 import org.openbaton.catalogue.mano.common.monitoring.*
-import org.openbaton.faultmanagement.fc.repositories.AlarmRepository
+import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository
 import org.openbaton.catalogue.mano.record.VNFCInstance
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord
@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 global HighAvailabilityManager highAvailabilityManager
-global AlarmRepository alarmRepository
+global VNFAlarmRepository vnfAlarmRepository
 global PolicyManager policyManager
 global Logger logger
 global NSRManager nsrManager
@@ -33,7 +33,7 @@ rule "Save a VNFAlarm"
     when
         vnfAlarm : VNFAlarm()
     then
-    alarmRepository.save(vnfAlarm);
+    vnfAlarmRepository.save(vnfAlarm);
     logger.debug("Saved VnfAlarm");
 end
 
@@ -41,11 +41,11 @@ rule "Execute a switch to standby if no action is ongoing on the vim"
     agenda-group "correlation"
     when
        vnfAlarm : VNFAlarm(  alarmState == AlarmState.FIRED, perceivedSeverity == PerceivedSeverity.CRITICAL, vimName : vimName )
-       //not (RecoveryAction( vimName == vimName))
+       //not RecoveryAction( vimName == vimName)
     then
-    //RecoveryAction recoveryAction;
-    try{
+    /*try{*/
     //Get the vnfr
+    logger.debug("Received vnf alarm: "+vnfAlarm);
     VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecord(vnfAlarm.getVnfrId());
 
     //Get the vnfc failed (assuming only one vnfc is failed)
@@ -60,12 +60,10 @@ rule "Execute a switch to standby if no action is ongoing on the vim"
     highAvailabilityManager.switchToRedundantVNFC(vnfcInstance,vnfr,vdu);
 
     //Insert a new recovery action
-    DateFormat dateFormat= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+    /*DateFormat dateFormat= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
     Date date = new Date();
-    //recoveryAction= new RecoveryAction("SwitchToStandby",vnfr.getEndpoint(),dateFormat.format(date),vnfAlarm.getVimName());
-    }catch (Exception e){
-        logger.error("'Execute a switch to standby if no action is ongoing on the vim' rule "+e.getMessage(),e);
-    }
-    //insert(recoveryAction);
+    RecoveryAction recoveryAction= new RecoveryAction("SwitchToStandby",vnfr.getEndpoint(),dateFormat.format(date),vnfAlarm.getVimName());
+
+    insert(recoveryAction);*/
 end
 

@@ -12,18 +12,23 @@ import org.openbaton.catalogue.mano.descriptor.VNFDConnectionPoint;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
+import org.openbaton.catalogue.nfvo.Action;
+import org.openbaton.catalogue.nfvo.messages.OrVnfmHealVNFRequestMessage;
 import org.openbaton.faultmanagement.ha.exceptions.HighAvailabilityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by mob on 11.01.16.
@@ -60,18 +65,47 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         }
     }
 
+    public void executeHeal(String cause, String nsrId, String vnfrId, String vduId, String vnfcInstanceId){
+        OrVnfmHealVNFRequestMessage healMessage = getHealMessage(cause);
+        sendHealMessage(healMessage, nsrId, vnfrId, vduId, vnfcInstanceId);
+    }
 
-
+    private OrVnfmHealVNFRequestMessage getHealMessage(String cause) {
+        OrVnfmHealVNFRequestMessage orVnfmHealVNFRequestMessage = new OrVnfmHealVNFRequestMessage();
+        orVnfmHealVNFRequestMessage.setAction(Action.HEAL);
+        orVnfmHealVNFRequestMessage.setCause(cause);
+        return orVnfmHealVNFRequestMessage;
+    }
+    private void sendHealMessage(OrVnfmHealVNFRequestMessage healMessage,String ... ids) {
+        HttpResponse<String> jsonResponse=null;
+        String finalUrl=nfvoUrl;
+        finalUrl += "/"+ids[0];
+        finalUrl += ids[1]==null ? "" : "/vnfrecords/"+ids[1];
+        finalUrl += ids[2]==null ? "" : "/vdunits/"+ids[2];
+        finalUrl += ids[3]==null ? "" : "/vnfcinstances/"+ids[3];
+        finalUrl+="/actions";
+        log.debug("Posting action heal at url: "+finalUrl);
+        String jsonMessage= mapper.toJson(healMessage,OrVnfmHealVNFRequestMessage.class);
+        try {
+            jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+        log.debug("Response from heal function: "+jsonResponse.getBody());
+    }
     public void configureRedundancy(VirtualNetworkFunctionRecord vnfr) throws HighAvailabilityException {
         if(!vnfrNeedsRedundancy(vnfr))
             return;
+
         for (VirtualDeploymentUnit vdu : vnfr.getVdu()) {
             if (vdu.getHigh_availability().getResiliencyLevel().ordinal() == ResiliencyLevel.ACTIVE_STANDBY_STATELESS.ordinal()) {
                 if (vdu.getHigh_availability().getRedundancyScheme().equals("1:N")) {
                     // check the 1:N redundancy
-                    if(checkIfStandbyVNFCInstance(vdu))
+                    if(checkIfStandbyVNFCInstance(vdu) || checkMaxNumInstances(vdu) )
                         continue;
+
                     log.debug("VNFC COMPONENTS:\n"+vdu.getVnfc().toString());
+                    log.debug("VNFC INSTANCES:\n"+vdu.getVnfc_instance());
 
                     //Get a component sample
                     VNFComponent componentSample = vdu.getVnfc().iterator().next();
@@ -89,10 +123,22 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
                     }
                     vnfComponent_new.setConnection_point(vnfdConnectionPointSet);
 
-                    createStandByVNFC(vnfComponent_new, vnfr, vdu);
+                    try {
+                        createStandByVNFC(vnfComponent_new, vnfr, vdu);
+                    } catch (HighAvailabilityException e) {
+                        log.error(e.getMessage(),e);
+                    }
                 }
             }
         }
+    }
+
+    private boolean checkMaxNumInstances(VirtualDeploymentUnit vdu) {
+        if(vdu.getScale_in_out() == vdu.getVnfc_instance().size()){
+            log.warn("The VirtualDeploymentUnit chosen has reached the maximum number of VNFCInstance. So, no VNFC in stanby can be created");
+            return true;
+        }
+        return false;
     }
 
     private boolean checkIfStandbyVNFCInstance(VirtualDeploymentUnit vdu) {

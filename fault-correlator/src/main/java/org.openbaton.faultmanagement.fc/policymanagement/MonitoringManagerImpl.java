@@ -8,14 +8,17 @@ import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.exceptions.NotFoundException;
+import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
 import org.openbaton.monitoring.interfaces.MonitoringPluginCaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -29,9 +32,12 @@ public class MonitoringManagerImpl implements MonitoringManager {
     private static final String monitorApiUrl="localhost:8090";
     private Map<String,ScheduledFuture<?>> futures;
     private Map<String,List<String> > vduIdPmJobIdMap;
+    private ArrayList<String> vnfTriggerId;
     private Map<String,List<String> > thresholdIdListHostname;
     private Map<String, String> thresholdIdFMPolicyId;
     private MonitoringPluginCaller monitoringPluginCaller;
+    @Autowired private NSRManager nsrManager;
+
 
     @PostConstruct
     public void init() throws NotFoundException {
@@ -39,6 +45,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
         vduIdPmJobIdMap=new HashMap<>();
         thresholdIdListHostname= new HashMap<>();
         thresholdIdFMPolicyId= new HashMap<>();
+        vnfTriggerId= new ArrayList<>();
         try {
             monitoringPluginCaller = new MonitoringPluginCaller("zabbix","15672");
         } catch (TimeoutException e) {
@@ -77,6 +84,11 @@ public class MonitoringManagerImpl implements MonitoringManager {
         return thresholdIdFMPolicyId.get(thresholdId);
     }
 
+    @Override
+    public boolean isVNFThreshold(String thresholdId) {
+        return vnfTriggerId.contains(thresholdId);
+    }
+
     private class MonitoringThreadCreator implements Runnable{
         private NetworkServiceRecord nsr;
         public MonitoringThreadCreator(NetworkServiceRecord nsr) {
@@ -86,6 +98,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
         @Override
         public void run() {
             try {
+                NetworkServiceRecord nsr = nsrManager.getNetworkServiceRecord(this.nsr.getId());
                 for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
 
                     for(VirtualDeploymentUnit vdu : vnfr.getVdu()) {
@@ -133,30 +146,35 @@ public class MonitoringManagerImpl implements MonitoringManager {
                             savePmJobId(vdu.getId(), pmJobId);
                         }
                         if(vdu.getFault_management_policy()!=null)
-                        for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
-                            for (Criteria criteria : vnffmp.getCriteria()) {
-                                String performanceMetric = criteria.getParameter_ref();
-                                String function = criteria.getFunction();
-                                String hostOperator = criteria.getVnfc_selector() == VNFCSelector.all ? "&" : "|";
-                                ThresholdDetails thresholdDetails = new ThresholdDetails(function, criteria.getComparison_operator(), vnffmp.getSeverity(), criteria.getThreshold(), hostOperator);
-                                if(criteria.getVnfc_selector() == VNFCSelector.at_least_one)
-                                    for(String host: objectSelection.getObjectInstanceIds()){
-                                        ObjectSelection objs = new ObjectSelection();
-                                        objs.addObjectInstanceId(host);
-                                        String thresholdId = monitoringPluginCaller.createThreshold(objs, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
-                                        thresholdIdListHostname.put(thresholdId, objs.getObjectInstanceIds());
+                            for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
+                                String thresholdId="";
+                                for (Criteria criteria : vnffmp.getCriteria()) {
+                                    String performanceMetric = criteria.getParameter_ref();
+                                    String function = criteria.getFunction();
+                                    String hostOperator = criteria.getVnfc_selector() == VNFCSelector.all ? "&" : "|";
+                                    ThresholdDetails thresholdDetails = new ThresholdDetails(function, criteria.getComparison_operator(), vnffmp.getSeverity(), criteria.getThreshold(), hostOperator);
+
+                                    if(criteria.getVnfc_selector() == VNFCSelector.at_least_one)
+                                        for(String host: objectSelection.getObjectInstanceIds()){
+                                            ObjectSelection objs = new ObjectSelection();
+                                            objs.addObjectInstanceId(host);
+                                            thresholdId = monitoringPluginCaller.createThreshold(objs, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
+                                            thresholdIdListHostname.put(thresholdId, objs.getObjectInstanceIds());
+                                            thresholdIdFMPolicyId.put(thresholdId, vnffmp.getId());
+                                        }
+                                    else {
+                                        thresholdId = monitoringPluginCaller.createThreshold(objectSelection, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
+                                        thresholdIdListHostname.put(thresholdId, objectSelection.getObjectInstanceIds());
                                         thresholdIdFMPolicyId.put(thresholdId, vnffmp.getId());
                                     }
-                                else {
-                                    String thresholdId = monitoringPluginCaller.createThreshold(objectSelection, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
-                                    thresholdIdListHostname.put(thresholdId, objectSelection.getObjectInstanceIds());
-                                    thresholdIdFMPolicyId.put(thresholdId, vnffmp.getId());
+
+                                }
+                                if(vnffmp.getName().startsWith("VNF")){
+                                    vnfTriggerId.add(thresholdId);
                                 }
                             }
-                        }
                     }
                 }
-                log.debug("End MonitoringThreadCreator for the nsr with name: "+nsr.getName());
             } catch (MonitoringException e) {
                 log.error(e.getMessage(),e);
             } catch (Exception e){

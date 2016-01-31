@@ -36,7 +36,7 @@ public class EventDispatcher /*implements ApplicationListener<AbstractVNFAlarm>,
     private ConfigurableApplicationContext context;
 
     @Autowired
-    private AlarmRepository alarmRepository;
+    private VNFAlarmRepository alarmRepository;
     @Autowired
     private SubscriptionRegister subscriptionRegister;
 
