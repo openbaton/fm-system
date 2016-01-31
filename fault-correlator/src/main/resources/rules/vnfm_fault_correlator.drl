@@ -61,13 +61,13 @@ rule "Get an unmanaged VR alarm and create a VNF alarm"
     when
         a : VRAlarm( thresholdId : thresholdId, managedObject : managedObject,
         alarmState == AlarmState.FIRED , alarmType == AlarmType.VIRTUALIZED_RESOURCE ,
-         perceivedSeverity == PerceivedSeverity.CRITICAL)
-        /*vnfcInstance : VNFCInstance() from nsrManager.getVNFCInstance(managedObject)*/
+        perceivedSeverity == PerceivedSeverity.CRITICAL)
+        vnfcInstance : VNFCInstance() from nsrManager.getVNFCInstance(managedObject)
         eval( !policyManager.isAManagedAlarm(thresholdId) )
     then
         logger.info("\tReceived an unmanaged VR alarm regarding the managedObject: " + managedObject);
         vrAlarmRepository.save(a);
-       /* logger.info("\tthe vnfcinstance is " + vnfcInstance);
+        logger.info("\tthe vnfcinstance is " + vnfcInstance);
 
         //Create a VNFAlarm from the VRAlarm received
         VNFAlarm vnfAlarm = new VNFAlarm();
@@ -84,7 +84,7 @@ rule "Get an unmanaged VR alarm and create a VNF alarm"
         //Check..
         //vnfAlarm.addCorrelatedAlarmId(a.getThresholdId());
 
-        insert( vnfAlarm );*/
+        insert( vnfAlarm );
 end
 
 rule "A VR alarm is cleared"
