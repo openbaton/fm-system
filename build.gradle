@@ -1,5 +1,5 @@
 group 'org.openbaton'
-version '0.2'
+version '0.16-SNAPSHOT'
 
 apply plugin: 'java'
 apply from: 'openbaton-libs/gradle/gradle/application.java.gradle'

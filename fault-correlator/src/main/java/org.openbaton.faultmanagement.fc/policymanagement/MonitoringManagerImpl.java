@@ -1,7 +1,11 @@
 package org.openbaton.faultmanagement.fc.policymanagement;
 
-import org.openbaton.catalogue.mano.common.faultmanagement.*;
-import org.openbaton.catalogue.mano.common.monitoring.*;
+import org.openbaton.catalogue.mano.common.faultmanagement.Criteria;
+import org.openbaton.catalogue.mano.common.faultmanagement.VNFCSelector;
+import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
+import org.openbaton.catalogue.mano.common.monitoring.ObjectSelection;
+import org.openbaton.catalogue.mano.common.monitoring.ThresholdDetails;
+import org.openbaton.catalogue.mano.common.monitoring.ThresholdType;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
@@ -18,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -47,7 +50,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
         thresholdIdFMPolicyId= new HashMap<>();
         vnfTriggerId= new ArrayList<>();
         try {
-            monitoringPluginCaller = new MonitoringPluginCaller("zabbix","15672");
+            monitoringPluginCaller = new MonitoringPluginCaller("zabbix","zabbix-plugin");
         } catch (TimeoutException e) {
             log.error(e.getMessage(),e);
         } catch (NotFoundException e) {
