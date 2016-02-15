@@ -10,5 +10,6 @@ public interface VNFAlarmRepository extends CrudRepository<VNFAlarm, String>,VNF
     //List<Alarm> findByThresholdIdAndPerceivedSeverity(String thresholdId, PerceivedSeverity perceivedSeverity);
     //List<Alarm> findByThresholdIdAndAlarmStateNot(String threshold, AlarmState alarmState);
     VNFAlarm findFirstByThresholdId(String threshold);
+    VNFAlarm findFirstByVnfrId(String vnfrId);
     //List<Alarm> findByResourceIdAndAlarmStateNotAndAlarmType(String resourceId, AlarmState alarmState, AlarmType alarmType);
 }

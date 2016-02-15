@@ -12,11 +12,14 @@ import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
+import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -53,7 +56,6 @@ public class NSRManagerImpl implements NSRManager {
         /*Properties properties=new Properties();
         properties.load(new FileInputStream("fm.properties"));*/
         nsrSet=new HashSet<>();
-        log.debug("NSRManager started");
 
         this.mapper = new GsonBuilder().setPrettyPrinting().create();
         InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
@@ -62,15 +64,6 @@ public class NSRManagerImpl implements NSRManager {
         nfvoIp = properties.getProperty("nfvo.publicIp");
         nfvoPort = properties.getProperty("server.port","8080");
         nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
-
-        /*VirtualNetworkFunctionRecord vnfr = getVirtualNetworkFunctionRecord("60a52def-ae27-4927-932a-a78cf6130a1a","00be8f38-f721-463b-bf7b-3cc39222e3d9");
-        log.debug("------------The vnfr is: "+vnfr.toString());
-        for(VirtualDeploymentUnit vdu: vnfr.getVdu()){
-            for(VNFCInstance vnfcInstance : vdu.getVnfc_instance())
-                    log.debug("....."+vnfcInstance);
-        }*/
-
-
     }
 
     private HttpResponse<JsonNode> executeGet(String url){
@@ -105,12 +98,14 @@ public class NSRManagerImpl implements NSRManager {
     }
 
     @Override
-    public NetworkServiceRecord getNetworkServiceRecord(String nsrId) {
+    public NetworkServiceRecord getNetworkServiceRecord(String nsrId) throws NotFoundException {
         return this.getNetworkServiceRecordFromNfvo(nfvoUrl+"/"+nsrId);
     }
 
-    private NetworkServiceRecord getNetworkServiceRecordFromNfvo(String url) {
+    private NetworkServiceRecord getNetworkServiceRecordFromNfvo(String url) throws NotFoundException {
         HttpResponse<JsonNode> jsonResponse = executeGet(url);
+        if(jsonResponse.getBody()==null)
+            throw new NotFoundException("Not possibile to retrieve the NSR from the orchestrator");
         return mapper.fromJson(jsonResponse.getBody().toString(), NetworkServiceRecord.class);
     }
     @Override
@@ -121,13 +116,18 @@ public class NSRManagerImpl implements NSRManager {
 
 
     @Override
-    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId) {
+    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId) throws NotFoundException {
         HttpResponse<JsonNode> jsonResponse = executeGet(nfvoUrl+"/"+nsrId+"/vnfrecords/"+vnfrId);
+        if(jsonResponse.getBody()==null)
+            throw new NotFoundException("Not possibile to retrieve the VNFR from the orchestrator");
         return mapper.fromJson(jsonResponse.getBody().toString(), VirtualNetworkFunctionRecord.class);
     }
 
     @Override
     public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String vnfrId) {
+        /*VirtualNetworkFunctionRecord virtualNetworkFunctionRecord = new VirtualNetworkFunctionRecord();
+        virtualNetworkFunctionRecord.setEndpoint("generic");
+        return virtualNetworkFunctionRecord;*/
         for(NetworkServiceRecord nsr : getNetworkServiceRecords()){
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
                 if(vnfr.getId().equals(vnfrId))
@@ -139,6 +139,9 @@ public class NSRManagerImpl implements NSRManager {
 
     @Override
     public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecordFromVNFCHostname(String hostname) {
+        /*VirtualNetworkFunctionRecord virtualNetworkFunctionRecord = new VirtualNetworkFunctionRecord();
+        virtualNetworkFunctionRecord.setId("vnfrid");
+        return virtualNetworkFunctionRecord;*/
         List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
         for(NetworkServiceRecord nsr : nsrs){
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
@@ -165,7 +168,10 @@ public class NSRManagerImpl implements NSRManager {
     }
 
     public VirtualDeploymentUnit getVDU(VirtualNetworkFunctionRecord vnfr,String vnfcInstaceId) {
-        for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
+       /*VirtualDeploymentUnit vdu = new VirtualDeploymentUnit();
+        vdu.setVimInstanceName("vim-50");
+        return vdu;*/
+         for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
             for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
                 if(vnfcInstance.getId().equals(vnfcInstaceId))
                     return vdu;
@@ -176,8 +182,13 @@ public class NSRManagerImpl implements NSRManager {
 
     @Override
     public VNFCInstance getVNFCInstance(String hostname) {
-
-        log.debug("getVNFCInstance called with hostname:"+hostname);
+        /*//test
+        VNFCInstance vnfcInstance = new VNFCInstance();
+        vnfcInstance.setId("id1");
+        vnfcInstance.setVim_id("vim id");
+        vnfcInstance.setHostname("iperf 1");
+        return vnfcInstance;
+*/
         List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
         for(NetworkServiceRecord nsr : nsrs){
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
@@ -189,6 +200,27 @@ public class NSRManagerImpl implements NSRManager {
                 }
             }
         }
-        return new VNFCInstance();
+        return null;
+    }
+
+    @Override
+    public VNFCInstance getVNFCInstanceById(String VnfcId) {
+        /*VNFCInstance vnfcInstance = new VNFCInstance();
+        vnfcInstance.setId("id1");
+        vnfcInstance.setVim_id("vim id");
+        vnfcInstance.setHostname("iperf 1");
+        return vnfcInstance;*/
+        List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
+        for(NetworkServiceRecord nsr : nsrs){
+            for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
+                for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
+                    for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
+                        if(vnfcInstance.getId().equals(VnfcId))
+                            return vnfcInstance;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }

@@ -23,9 +23,9 @@ import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 public class VNFAlarmNotification extends AbstractVNFAlarm {
     private Alarm alarm;
 
-    public VNFAlarmNotification(String vnfrId, String faultManagementPolicyId,Alarm alarm) {
+    public VNFAlarmNotification(String vnfrId, String faultManagementPolicyId,Alarm alarm,String thresholdId) {
 
-        super(vnfrId,faultManagementPolicyId);
+        super(vnfrId,faultManagementPolicyId,thresholdId);
         this.alarm=alarm;
     }
 

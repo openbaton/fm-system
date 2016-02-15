@@ -14,4 +14,5 @@ public interface VRAlarmRepository extends CrudRepository<VRAlarm, String>,VRAla
     List<VRAlarm> findByManagedObject(String managedObject);
     List<VRAlarm> findByManagedObjectAndAlarmStateNot(String managedObject, AlarmState alarmState);
     VRAlarm findFirstByThresholdId(String thresholdId);
+    String deleteFirstByManagedObject(String managedObject);
 }

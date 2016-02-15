@@ -23,10 +23,9 @@ import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
 public class VNFAlarmStateChangedNotification extends AbstractVNFAlarm {
     private AlarmState alarmState;
 
-    public VNFAlarmStateChangedNotification(String vnfrId, String faultManagementPolicyId,AlarmState alarmState) {
-        super(vnfrId,faultManagementPolicyId);
+    public VNFAlarmStateChangedNotification(String vnfrId, String faultManagementPolicyId,AlarmState alarmState,String thresholdId) {
+        super(vnfrId,faultManagementPolicyId,thresholdId);
         this.alarmState=alarmState;
-
     }
 
     public AlarmState getAlarmState() {

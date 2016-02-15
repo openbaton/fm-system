@@ -15,6 +15,7 @@ import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.messages.OrVnfmHealVNFRequestMessage;
+import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.fc.exceptions.FaultCorrelatorException;
 import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualDeploymentUnitShort;
@@ -120,7 +121,7 @@ public class FaultCorrelatorManager implements org.openbaton.faultmanagement.fc.
             log.error(e.getMessage(),e);
         }*/
     }
-    private void executeVNFPolicy(String triggerId) throws FaultCorrelatorException, HighAvailabilityException {
+    private void executeVNFPolicy(String triggerId) throws FaultCorrelatorException, HighAvailabilityException, NotFoundException {
         List<String> hostnames;
         if(triggerId!=null) {
             hostnames = monitoringManager.getHostnamesFromThresholdId(triggerId);

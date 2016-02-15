@@ -1,13 +1,16 @@
 package org.openbaton.faultmanagement.fc.policymanagement;
 
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
 import org.openbaton.catalogue.mano.common.faultmanagement.NSFaultManagementPolicy;
 import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
+import org.openbaton.catalogue.mano.record.Status;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.exceptions.MonitoringException;
+import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.NetworkServiceRecordShort;
@@ -68,6 +71,7 @@ public class PolicyManagerImpl implements PolicyManager {
                 log.error("Getting the NSR short for the nsr: "+nsr.getName()+" "+e.getMessage(),e);
             }
             networkServiceRecordShortList.add(nsrs);
+
             monitoringManager.startMonitorNS(nsr);
 
             HighConfigurator highConfigurator = new HighConfigurator(nsr);
@@ -167,7 +171,6 @@ public class PolicyManagerImpl implements PolicyManager {
 
     @Override
     public boolean isAVNFAlarm(String id) {
-
         return monitoringManager.isVNFThreshold(id);
     }
 
@@ -213,12 +216,30 @@ public class PolicyManagerImpl implements PolicyManager {
 
         @Override
         public void run() {
-            NetworkServiceRecord nsr = nsrManager.getNetworkServiceRecord(this.nsr.getId());
+            NetworkServiceRecord nsr = null;
+            try {
+                nsr = nsrManager.getNetworkServiceRecord(this.nsr.getId());
+            } catch (NotFoundException e) {
+                log.error(e.getMessage(),e);
+            }
+            if(nsr.getStatus().ordinal() != Status.ACTIVE.ordinal()) {
+                //log.debug("the nsr to check redundancy is not in ACTIVE state");
+                return;
+            }
             for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
                 try {
-                    highAvailabilityManager.configureRedundancy(vnfr);
+                    // If there are instance to be removed
+                    String failedVNFCInstance = highAvailabilityManager.cleanFailedInstances(vnfr);
+                    if (failedVNFCInstance!=null){
+                        log.debug("Cleaning procedure start for: "+failedVNFCInstance);
+                        monitoringManager.removeMonitoredVnfcInstance(failedVNFCInstance);
+                    }
+                    else
+                        highAvailabilityManager.configureRedundancy(vnfr);
                 } catch (HighAvailabilityException e) {
                     log.error("Configuration of the redundancy for the vnfr: "+vnfr.getName()+" "+e.getMessage(),e);
+                }catch (UnirestException e) {
+                    e.printStackTrace();
                 }
             }
         }

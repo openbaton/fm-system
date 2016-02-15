@@ -7,11 +7,15 @@ import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
+import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -39,6 +43,8 @@ public class SystemStartup implements CommandLineRunner {
     @Value("${server.port:}")
     @NotEmpty
     private String fmsPort;
+    @Autowired private NSRManager nsrManager;
+    @Autowired private PolicyManager policyManager;
 
     @Override
     public void run(String... args) throws Exception {
@@ -77,8 +83,13 @@ public class SystemStartup implements CommandLineRunner {
             e.printStackTrace();
         }
         response= mapper.fromJson(jsonResponse.getBody().toString(),EventEndpoint.class);
-        unsubscriptionIdRELEASE_RESOURCES_FINISH = response.getId();
-        log.info("Correctly registered to the NFVO");*/
+        unsubscriptionIdRELEASE_RESOURCES_FINISH = response.getId();*/
+        log.info("Correctly registered to the NFVO");
+
+
+
+        /*NetworkServiceRecord nsr = nsrManager.getNetworkServiceRecord("fc04ecc8-a4fd-4c42-81f9-9f6735cb43bb");
+        policyManager.manageNSR(nsr);*/
     }
     private EventEndpoint createEventEndpoint(String name, EndpointType type, Action action,String url){
         EventEndpoint eventEndpoint = new EventEndpoint();

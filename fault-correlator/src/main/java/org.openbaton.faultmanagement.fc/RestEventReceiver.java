@@ -9,8 +9,10 @@ import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 import org.openbaton.catalogue.mano.common.monitoring.AlarmType;
 import org.openbaton.catalogue.mano.common.monitoring.VNFAlarm;
 import org.openbaton.catalogue.mano.common.monitoring.VRAlarm;
+import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.faultmanagement.fc.interfaces.EventReceiver;
+import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository;
 import org.slf4j.Logger;
@@ -36,6 +38,8 @@ public class RestEventReceiver implements EventReceiver {
     @Autowired
     private KieSession kieSession;
     @Autowired
+    NSRManager nsrManager;
+    @Autowired
     org.openbaton.faultmanagement.fc.interfaces.FaultCorrelatorManager faultCorrelatorManager;
 
     @Override
@@ -53,6 +57,7 @@ public class RestEventReceiver implements EventReceiver {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Alarm receiveVnfStateChangedAlarm(@RequestBody @Valid VNFAlarmStateChangedNotification vnfAlarmStateChangedNotification) {
         log.debug("Received VNF state changed Alarm");
+
         kieSession.insert(vnfAlarmStateChangedNotification);
         kieSession.fireAllRules();
 
@@ -64,9 +69,12 @@ public class RestEventReceiver implements EventReceiver {
     @ResponseStatus(HttpStatus.CREATED)
     public Alarm receiveVRNewAlarm(@RequestBody @Valid VirtualizedResourceAlarmNotification vrAlarmNot) {
         log.debug("Received new VR alarm");
-        kieSession.getAgenda().getAgendaGroup( "correlation" ).setFocus();
 
+        kieSession.getAgenda().getAgendaGroup("pre-rules").setFocus();
         kieSession.insert(vrAlarmNot.getVrAlarm());
+        kieSession.fireAllRules();
+
+        kieSession.getAgenda().getAgendaGroup("correlation").setFocus();
         kieSession.fireAllRules();
 
         return vrAlarmNot.getVrAlarm();
@@ -78,8 +86,11 @@ public class RestEventReceiver implements EventReceiver {
     public Alarm receiveVRStateChangedAlarm(@RequestBody @Valid VirtualizedResourceAlarmStateChangedNotification vrascn) {
         //Alarm alarm = alarmRepository.changeAlarmState(vrascn.getTriggerId(), vrascn.getAlarmState());
         log.debug("Received VR state changed alarm");
-        kieSession.getAgenda().getAgendaGroup( "correlation" ).setFocus();
+        kieSession.getAgenda().getAgendaGroup("pre-rules").setFocus();
         kieSession.insert(vrascn);
+        kieSession.fireAllRules();
+
+        kieSession.getAgenda().getAgendaGroup("correlation").setFocus();
         kieSession.fireAllRules();
 
         return null;
@@ -91,6 +102,9 @@ public class RestEventReceiver implements EventReceiver {
         log.info("Received nfvo event with action: " + openbatonEvent.getAction());
         try {
             boolean isNSRManaged = policyManager.isNSRManaged(openbatonEvent.getPayload().getId());
+            if(openbatonEvent.getAction().ordinal() == Action.INSTANTIATE_FINISH.ordinal()){
+                recoveryActionFinished();
+            }
             if (openbatonEvent.getAction().ordinal() == Action.INSTANTIATE_FINISH.ordinal() && !isNSRManaged) {
                     policyManager.manageNSR(openbatonEvent.getPayload());
             } else if (openbatonEvent.getAction().ordinal() == Action.RELEASE_RESOURCES_FINISH.ordinal() && isNSRManaged) {
@@ -99,6 +113,14 @@ public class RestEventReceiver implements EventReceiver {
         }catch (Exception e){
             log.error("Receiving the openbaton event: "+openbatonEvent+" "+e.getMessage(),e);
         }
+    }
+
+    private void recoveryActionFinished() {
+        RecoveryAction recoveryAction = new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,"raer","awd");
+        recoveryAction.setStatus(RecoveryActionStatus.FINISHED);
+        kieSession.getAgenda().getAgendaGroup( "resolution" ).setFocus();
+        kieSession.insert(recoveryAction);
+        kieSession.fireAllRules();
     }
 
 }

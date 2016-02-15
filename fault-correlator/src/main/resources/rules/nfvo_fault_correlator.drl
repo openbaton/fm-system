@@ -19,51 +19,8 @@ global Logger logger
 global NSRManager nsrManager
 
 
-rule "Get a VNF Alarm from a VNFM"
-    agenda-group "correlation"
-    when
-        vnfAlarm : VNFAlarm()
-    then
-        VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecord(vnfAlarm.getVnfrId());
-        logger.debug("The NFVO got a VNFAlarm from the manager: "+vnfr.getEndpoint());
-end
+/// Whether we whant to correlate alarm from different VNF manager
 
-rule "Save a VNFAlarm"
-    agenda-group "correlation"
-    when
-        vnfAlarm : VNFAlarm()
-    then
-    vnfAlarmRepository.save(vnfAlarm);
-    logger.debug("Saved VnfAlarm");
-end
 
-rule "Execute a switch to standby if no action is ongoing on the vim"
-    agenda-group "correlation"
-    when
-       vnfAlarm : VNFAlarm(  alarmState == AlarmState.FIRED, perceivedSeverity == PerceivedSeverity.CRITICAL, vimName : vimName )
-       //not RecoveryAction( vimName == vimName)
-    then
-    /*try{*/
-    //Get the vnfr
-    logger.debug("Received vnf alarm: "+vnfAlarm);
-    VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecord(vnfAlarm.getVnfrId());
 
-    //Get the vnfc failed (assuming only one vnfc is failed)
-    VNFCInstance vnfcInstance = nsrManager.getVNFCInstanceFromVnfr(vnfr,vnfAlarm.getVnfcIds().iterator().next());
-
-    logger.info("A CRITICAL alarm is received by the vnfc: "+vnfcInstance.getHostname());
-
-    //Get the vdu of the failed VNFC
-    VirtualDeploymentUnit vdu = nsrManager.getVDU(vnfr,vnfcInstance.getId());
-
-    logger.info("Switch to a standby vnfc");
-    highAvailabilityManager.switchToRedundantVNFC(vnfcInstance,vnfr,vdu);
-
-    //Insert a new recovery action
-    /*DateFormat dateFormat= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-    Date date = new Date();
-    RecoveryAction recoveryAction= new RecoveryAction("SwitchToStandby",vnfr.getEndpoint(),dateFormat.format(date),vnfAlarm.getVimName());
-
-    insert(recoveryAction);*/
-end
 

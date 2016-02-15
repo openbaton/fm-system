@@ -20,9 +20,9 @@ public class FaultMonitoringTest {
 
     @Before
     public void init() {
-        String json = Utils.getFile("json_file/NetworkServiceDescriptor-iperf.json");
-        assertNotNull(json);
-        nsd = Mapper.getMapper().fromJson(json, NetworkServiceDescriptor.class);
+        //String json = Utils.getFile("json_file/NetworkServiceDescriptor-iperf.json");
+        //assertNotNull(json);
+        //nsd = Mapper.getMapper().fromJson(json, NetworkServiceDescriptor.class);
 
     }
 

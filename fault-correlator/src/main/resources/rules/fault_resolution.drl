@@ -1,22 +1,15 @@
-import org.openbaton.catalogue.mano.common.monitoring.*
-import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository
-import org.openbaton.catalogue.mano.record.VNFCInstance
-import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager
-import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager
 import org.openbaton.faultmanagement.fc.RecoveryAction
-
-global MonitoringManager monitoringManager
-global PolicyManager policyManager
+import org.openbaton.faultmanagement.fc.RecoveryActionStatus
+import org.openbaton.faultmanagement.fc.RecoveryActionTerminated
 global org.slf4j.Logger logger
-global org.openbaton.faultmanagement.fc.interfaces.NSRManager nsrManager
-
 
 rule "Recovery action finished"
     agenda-group "resolution"
     when
-       recoveryAction : RecoveryAction()
+       recoveryActionEnd : RecoveryAction(status == RecoveryActionStatus.FINISHED)
+       recoveryActionActual : RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
     then
-        logger.info("\tThe following recovery action is finished " + recoveryAction);
-        retract(recoveryAction)
-
+        logger.info("The following recovery action is finished " + recoveryActionActual);
+        retract(recoveryActionActual);
+        retract(recoveryActionEnd);
 end

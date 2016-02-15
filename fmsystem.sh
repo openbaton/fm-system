@@ -8,6 +8,9 @@ _fmsystem_config_file=/etc/openbaton/fms.properties
 function compile {
     ./gradlew build -x test 
 }
+function tests {
+    ./gradlew test
+}
 
 function clean {
     ./gradlew clean
@@ -58,7 +61,7 @@ function check_mysql {
 function check_zabbix_plugin_up {
         result=$(ps au | grep -v grep | grep zabbix-plugin | wc -l);
         if [ "${result}" -eq "0" ]; then
-                echo "The zabbix-plugin is not running..."
+                echo "The zabbix-plugin is not running. The fault management system cannot start"
 		exit;
         fi
 }

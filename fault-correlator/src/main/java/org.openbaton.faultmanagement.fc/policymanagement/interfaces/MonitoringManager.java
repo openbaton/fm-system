@@ -14,4 +14,5 @@ public interface MonitoringManager {
     List<String> getHostnamesFromThresholdId(String thresholdId);
     String getPolicyIdFromTrhresholdId(String thresholdId);
     boolean isVNFThreshold(String thresholdId);
+    void removeMonitoredVnfcInstance(String vnfcInstanceHostname);
 }

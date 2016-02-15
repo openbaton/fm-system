@@ -19,11 +19,20 @@ package org.openbaton.catalogue.mano.common.faultmanagement;
  * Created by mob on 27.10.15.
  */
 public abstract class AbstractVNFAlarm {
-    private String resourceId, fmPolicyId;
+    private String resourceId, fmPolicyId,thresholdId;
 
-    public AbstractVNFAlarm(String vnfrId, String faultManagementPolicyId) {
+    public AbstractVNFAlarm(String vnfrId, String faultManagementPolicyId,String thresholdId) {
         this.resourceId =vnfrId;
         this.fmPolicyId =faultManagementPolicyId;
+        this.thresholdId=thresholdId;
+    }
+
+    public String getThresholdId() {
+        return thresholdId;
+    }
+
+    public void setThresholdId(String thresholdId) {
+        this.thresholdId = thresholdId;
     }
 
     public String getResourceId() {

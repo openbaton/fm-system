@@ -8,6 +8,7 @@ import org.openbaton.catalogue.mano.common.monitoring.ThresholdDetails;
 import org.openbaton.catalogue.mano.common.monitoring.ThresholdType;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
+import org.openbaton.catalogue.mano.record.Status;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.exceptions.MonitoringException;
@@ -18,6 +19,7 @@ import org.openbaton.monitoring.interfaces.MonitoringPluginCaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.parsing.ParseState;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -35,7 +37,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
     private static final String monitorApiUrl="localhost:8090";
     private Map<String,ScheduledFuture<?>> futures;
     private Map<String,List<String> > vduIdPmJobIdMap;
-    private ArrayList<String> vnfTriggerId;
+    private Set<String> vnfTriggerId;
     private Map<String,List<String> > thresholdIdListHostname;
     private Map<String, String> thresholdIdFMPolicyId;
     private MonitoringPluginCaller monitoringPluginCaller;
@@ -48,7 +50,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
         vduIdPmJobIdMap=new HashMap<>();
         thresholdIdListHostname= new HashMap<>();
         thresholdIdFMPolicyId= new HashMap<>();
-        vnfTriggerId= new ArrayList<>();
+        vnfTriggerId= new HashSet<>();
         try {
             monitoringPluginCaller = new MonitoringPluginCaller("zabbix","zabbix-plugin");
         } catch (TimeoutException e) {
@@ -64,11 +66,37 @@ public class MonitoringManagerImpl implements MonitoringManager {
 
     @Override
     public void startMonitorNS(NetworkServiceRecord nsr){
-        MonitoringThreadCreator mpc = new MonitoringThreadCreator(nsr);
+        MonitoringThreadCreator mpc = new MonitoringThreadCreator(nsr.getId());
         // Wait 10 seconds for the host registration in zabbix server. And then schedule the monitor creator at fixed rate
         futures.put(nsr.getId(), nsScheduler.scheduleAtFixedRate(mpc, 10,60, TimeUnit.SECONDS));
     }
+    public void removeMonitoredVnfcInstance(String vnfcInstanceHostname){
+        if(vnfcInstanceHostname==null)
+            throw new NullPointerException("The vnfcInstanceHostname is null");
+        if(!isVNFCMonitored(vnfcInstanceHostname)) {
+            log.warn("The vnfc of name: "+vnfcInstanceHostname+" is not monitored");
+            return;
+        }
+        log.debug("Cleaning for: "+vnfcInstanceHostname);
+        Iterator<Map.Entry<String,List<String>>> it = thresholdIdListHostname.entrySet().iterator();
+        List<String> triggerIdsToRemove=new ArrayList<>();
+        while (it.hasNext()) {
+            Map.Entry<String,List<String>> pair = it.next();
+            //We are assuming that there is a threshold for each vnfcinstance
+            if(pair.getValue().contains(vnfcInstanceHostname)) {
+                String triggerIdToRemove = pair.getKey();
+                triggerIdsToRemove.add(triggerIdToRemove);
+                log.debug("Removing entry : "+pair);
+                it.remove();
+            }
+        }
 
+        for(String tid: triggerIdsToRemove){
+            log.debug("Removing trigger id : "+tid);
+            thresholdIdFMPolicyId.remove(tid);
+            vnfTriggerId.remove(tid);
+        }
+    }
     @Override
     public void stopMonitorNS(NetworkServiceRecord nsr)  {
         ScheduledFuture<?> future = futures.get(nsr.getId());
@@ -87,21 +115,38 @@ public class MonitoringManagerImpl implements MonitoringManager {
         return thresholdIdFMPolicyId.get(thresholdId);
     }
 
+    private boolean isVNFCMonitored(String hostname){
+        boolean found=false;
+        for(Map.Entry<String,List<String>> entry : thresholdIdListHostname.entrySet()){
+            //log.debug("entry di thresholdIdListHostname:  "+entry);
+            if(entry.getValue().contains(hostname))
+                found = true;
+        }
+        //log.debug("\n");
+        return found;
+    }
+
     @Override
     public boolean isVNFThreshold(String thresholdId) {
+        //log.debug("vnfTriggerId list: "+vnfTriggerId);
         return vnfTriggerId.contains(thresholdId);
     }
 
     private class MonitoringThreadCreator implements Runnable{
-        private NetworkServiceRecord nsr;
-        public MonitoringThreadCreator(NetworkServiceRecord nsr) {
-            this.nsr=nsr;
+        private String nsrId;
+        public MonitoringThreadCreator(String nsrId) {
+            this.nsrId=nsrId;
         }
 
         @Override
         public void run() {
             try {
-                NetworkServiceRecord nsr = nsrManager.getNetworkServiceRecord(this.nsr.getId());
+                NetworkServiceRecord nsr = nsrManager.getNetworkServiceRecord(this.nsrId);
+                if(nsr.getStatus().ordinal() != Status.ACTIVE.ordinal()) {
+                    log.debug("the nsr to be monitored is not in ACTIVE state");
+                    return;
+                }
+
                 for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
 
                     for(VirtualDeploymentUnit vdu : vnfr.getVdu()) {
@@ -116,18 +161,26 @@ public class MonitoringManagerImpl implements MonitoringManager {
                         for (VNFCInstance vnfcInstance : vdu.getVnfc_instance()) {
                             //Check if the vnfcInstance is not in standby
                             if(vnfcInstance.getState() != null && vnfcInstance.getState().equals("standby"))
+                            {
+                                //log.debug("the vnfc : "+vnfcInstance.getHostname()+" is in standby (no need monitoring right now)");
                                 continue;
+                            }
                             //Check if the vnfcInstance is already monitored
-                            if(isVNFCMonitored(vnfcInstance.getHostname()))
+                            if(isVNFCMonitored(vnfcInstance.getHostname())){
+                                //log.debug("the vnfcInstance: "+vnfcInstance.getHostname()+ " is already monitored");
                                 continue;
-                                log.debug("vnfcinstance to be monitored (not in standby): " + vnfcInstance);
-                                objectSelection.addObjectInstanceId(vnfcInstance.getHostname());
+                            }
+                            //log.debug("vnfcinstance to be monitored (not in standby): " + vnfcInstance.getHostname());
+                            objectSelection.addObjectInstanceId(vnfcInstance.getHostname());
                         }
+
+
                         if(objectSelection.getObjectInstanceIds().isEmpty())
                             continue;
+                        log.debug("the vnfc instances to be monitored are: " + objectSelection.getObjectInstanceIds());
 
                         Set<String> monitoringParamentersWithoutPeriod = getMonitoringParamentersWithoutPeriod(vdu.getMonitoring_parameter(), vdu);
-                        log.debug("monitoring Paramenters Without period: " + monitoringParamentersWithoutPeriod);
+                        //log.debug("monitoring Paramenters Without period: " + monitoringParamentersWithoutPeriod);
                         List<String> monitoringParamentersLIst = new ArrayList<>();
                         monitoringParamentersLIst.addAll(monitoringParamentersWithoutPeriod);
                         //One pmJob per vdu (Actually)
@@ -144,7 +197,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
                             int period = getPeriodFromThreshold(mpwp, vdu.getFault_management_policy());
                             monitoringParamentersLIst.clear();
                             monitoringParamentersLIst.add(mpwp);
-                            log.debug("This monitoringParameter: " + mpwp + " has custom period of: " + period + " seconds");
+                            //log.debug("This monitoringParameter: " + mpwp + " has custom period of: " + period + " seconds");
                             pmJobId = monitoringPluginCaller.createPMJob(objectSelection, monitoringParamentersLIst, new ArrayList<String>(), period, 0);
                             savePmJobId(vdu.getId(), pmJobId);
                         }
@@ -164,16 +217,21 @@ public class MonitoringManagerImpl implements MonitoringManager {
                                             thresholdId = monitoringPluginCaller.createThreshold(objs, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
                                             thresholdIdListHostname.put(thresholdId, objs.getObjectInstanceIds());
                                             thresholdIdFMPolicyId.put(thresholdId, vnffmp.getId());
+                                            if(vnffmp.getName().startsWith("VNF")){
+                                                log.debug("VNF threshold id: "+thresholdId);
+                                                vnfTriggerId.add(thresholdId);
+                                            }
                                         }
                                     else {
                                         thresholdId = monitoringPluginCaller.createThreshold(objectSelection, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
                                         thresholdIdListHostname.put(thresholdId, objectSelection.getObjectInstanceIds());
                                         thresholdIdFMPolicyId.put(thresholdId, vnffmp.getId());
+                                        if(vnffmp.getName().startsWith("VNF")){
+                                            log.debug("VNF threshold id: "+thresholdId);
+                                            vnfTriggerId.add(thresholdId);
+                                        }
                                     }
 
-                                }
-                                if(vnffmp.getName().startsWith("VNF")){
-                                    vnfTriggerId.add(thresholdId);
                                 }
                             }
                     }
@@ -185,13 +243,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
             }
         }
 
-        private boolean isVNFCMonitored(String hostname){
-            for(Map.Entry<String,List<String>> entry : thresholdIdListHostname.entrySet()){
-                if(entry.getValue().contains(hostname))
-                    return true;
-            }
-            return false;
-        }
+
         private void savePmJobId(String vduId,String pmJobId){
             if(vduIdPmJobIdMap.get(vduId)==null){
                 List<String> pmjobIds = new ArrayList<>();
@@ -287,14 +339,14 @@ public class MonitoringManagerImpl implements MonitoringManager {
             }
             // removing pmJobs
             idsRemoved.clear();
-            try {
+            /*try {
                 idsRemoved=monitoringPluginCaller.deletePMJob(pmJobIdsToRemove);
             } catch (MonitoringException e) {
                 log.error(e.getMessage(),e);
-            }
+            }*/
             if(idsRemoved.size()!=pmJobIdsToRemove.size()){
                 pmJobIdsToRemove.removeAll(idsRemoved);
-                log.warn("Removed less pmJobs.. These pmjobs have not been deleted: "+pmJobIdsToRemove);
+                //log.warn("Removed less pmJobs.. These pmjobs have not been deleted: "+pmJobIdsToRemove);
             }else log.debug("Removed all the pmjobs: "+ pmJobIdsToRemove);
             // clean local state
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
