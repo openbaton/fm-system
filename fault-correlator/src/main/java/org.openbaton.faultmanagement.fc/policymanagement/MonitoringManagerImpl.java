@@ -323,7 +323,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
             // removing thresholds
 
             List<String> idsRemoved= new ArrayList<>();
-            try {
+            /*try {
                 idsRemoved = monitoringPluginCaller.deleteThreshold(thresholdIdsToRemove);
             } catch (MonitoringException e) {
                 log.error(e.getMessage(),e);
@@ -331,7 +331,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
             if(idsRemoved.size()!=thresholdIdsToRemove.size()){
                 thresholdIdsToRemove.removeAll(idsRemoved);
                 log.warn("Removed less thresholds.. These thresholds have not been deleted: "+thresholdIdsToRemove);
-            }else log.debug("Removed all the thresholds: "+ idsRemoved);
+            }else log.debug("Removed all the thresholds: "+ idsRemoved);*/
             // clean local state
             for (String thresholdIdRemoved : thresholdIdsToRemove){
                 thresholdIdFMPolicyId.remove(thresholdIdRemoved);
