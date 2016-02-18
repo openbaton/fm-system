@@ -141,7 +141,8 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
             for(VNFCInstance vnfcInstance: vdu.getVnfc_instance()){
                 if(vnfcInstance.getState()!=null && vnfcInstance.getState().equals("failed")){
-                    log.debug("The vnfcInstance: "+ vnfcInstance.getHostname() +" of the vnfr: "+ vnfr.getName()+" is in "+vnfcInstance.getState()+" state");
+                    log.info("The vnfcInstance: "+ vnfcInstance.getHostname() +" of the vnfr: "+ vnfr.getName()+" is in "+vnfcInstance.getState()+" state");
+                    log.info("DELETING VNFCInstance:"+vnfcInstance.getHostname());
                     sendScaleInMessage(vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
                     return vnfcInstance.getHostname();
                 }

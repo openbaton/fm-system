@@ -99,7 +99,7 @@ public class RestEventReceiver implements EventReceiver {
     @Override
     @RequestMapping(value = "/nfvo/events", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public void eventFromNfvo(@RequestBody @Valid OpenbatonEvent openbatonEvent) {
-        log.info("Received nfvo event with action: " + openbatonEvent.getAction());
+        log.debug("Received nfvo event with action: " + openbatonEvent.getAction());
         try {
             boolean isNSRManaged = policyManager.isNSRManaged(openbatonEvent.getPayload().getId());
             if(openbatonEvent.getAction().ordinal() == Action.INSTANTIATE_FINISH.ordinal()){

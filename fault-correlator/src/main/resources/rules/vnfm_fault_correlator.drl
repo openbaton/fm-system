@@ -60,7 +60,7 @@ rule "A VR alarm is cleared"
         VirtualizedResourceAlarmStateChangedNotification( currentThresholdId : triggerId, alarmState == AlarmState.CLEARED )
     then
         VRAlarm vrAlarm = vrAlarmRepository.changeAlarmState(currentThresholdId,AlarmState.CLEARED);
-        logger.info("\tThis vr alarm is cleared :" + vrAlarm);
+        logger.debug("\tThis vr alarm is cleared :" + vrAlarm);
         Iterable<VRAlarm> alarms = vrAlarmRepository.findAll();
         logger.debug("Current VR alarms:"+alarms);
 end

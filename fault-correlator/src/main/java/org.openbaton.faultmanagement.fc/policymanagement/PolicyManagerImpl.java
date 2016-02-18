@@ -231,7 +231,7 @@ public class PolicyManagerImpl implements PolicyManager {
                     // If there are instance to be removed
                     String failedVNFCInstance = highAvailabilityManager.cleanFailedInstances(vnfr);
                     if (failedVNFCInstance!=null){
-                        log.debug("Cleaning procedure start for: "+failedVNFCInstance);
+                        log.info("Cleaning procedure start for: "+failedVNFCInstance);
                         monitoringManager.removeMonitoredVnfcInstance(failedVNFCInstance);
                     }
                     else

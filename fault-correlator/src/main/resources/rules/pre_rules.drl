@@ -82,14 +82,27 @@ rule "Ignore VR alarms of null VNFC Instances and delete alarms in database"
         not VNFCInstance() from nsrManager.getVNFCInstance(managedObject)
     then
         logger.debug("Ignored an alarm from a null instance: "+managedObject);
-        vrAlarmRepository.deleteFirstByManagedObject(managedObject);
+        vrAlarmRepository.removeByManagedObject(managedObject);
         //TODO delete vnf alarms
         retract(a);
 end
 
+rule "Ignore  VirtualizedResourceAlarmStateChangedNotification of failed or null VNFCInstances"
+    agenda-group "pre-rules"
+    salience 24
+    when
+        notification : VirtualizedResourceAlarmStateChangedNotification( thresholdId : triggerId, alarmState : alarmState)
+        vnfAlarmUpdated : VRAlarm( hostname : managedObject ) from vrAlarmRepository.findFirstByThresholdId(thresholdId)
+        not VNFCInstance() from nsrManager.getVNFCInstance(hostname)
+    then
+        logger.debug("Ignored a VRalarm state changed from a null instance: "+hostname);
+        vrAlarmRepository.removeByManagedObject(hostname);
+        retract(notification);
+end
 
 rule "Create a VNF AlarmStateChangedNotification"
     agenda-group "pre-rules"
+    salience 12
     when
         notification : VirtualizedResourceAlarmStateChangedNotification( currentThresholdId : triggerId, alarmState : alarmState)
         eval( policyManager.isAVNFAlarm(currentThresholdId) == true)
