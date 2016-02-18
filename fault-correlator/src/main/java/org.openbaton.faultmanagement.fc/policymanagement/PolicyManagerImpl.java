@@ -106,8 +106,10 @@ public class PolicyManagerImpl implements PolicyManager {
 
         NetworkServiceRecordShort nsrs = new NetworkServiceRecordShort(nsr.getId(),nsr.getName());
         Set<? extends FaultManagementPolicy> fmpolicies=nsr.getFaultManagementPolicy();
-        if(fmpolicies.isEmpty())
-            log.warn("No NS fault management policies found for the NS: "+nsr.getName()+" with id: "+nsr.getId());
+        if(fmpolicies.isEmpty()){
+            //log.warn("No NS fault management policies found for the NS: "+nsr.getName()+" with id: "+nsr.getId());
+        }
+
         else{
             log.debug("Found the following NS fault management policies: "+nsr.getFaultManagementPolicy());
             for(FaultManagementPolicy fmp: fmpolicies){
@@ -125,8 +127,10 @@ public class PolicyManagerImpl implements PolicyManager {
                 fmpolicies = vdu.getFault_management_policy();
                 VirtualDeploymentUnitShort vdus= new VirtualDeploymentUnitShort(vdu.getId(),vdu.getName());
                 vdus.setMonitoringParameters(vdu.getMonitoring_parameter());
-                if(fmpolicies==null || fmpolicies.isEmpty())
-                    log.warn("No VR fault management policies found for the VNF: "+vnfr.getName()+" with id: "+vnfr.getId());
+                if(fmpolicies==null || fmpolicies.isEmpty()){
+                    //log.warn("No VR fault management policies found for the VNF: "+vnfr.getName()+" with id: "+vnfr.getId());
+                }
+
                 else{
                     log.debug("Found the following VR fault management policies: "+vdu.getFault_management_policy());
                     for(FaultManagementPolicy fmp: fmpolicies){
