@@ -180,6 +180,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
     public void createStandByVNFC(VNFComponent vnfComponent, VirtualNetworkFunctionRecord vnfr, VirtualDeploymentUnit vdu) throws HighAvailabilityException {
 
         try {
+            log.info("Creating a new VNFC STANDBY instance");
             sendAddVNFCMessage(vnfComponent, vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId());
         } catch (UnirestException e) {
             throw new HighAvailabilityException(e.getMessage(),e);
