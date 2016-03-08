@@ -12,28 +12,35 @@ import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
-import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
+import org.openbaton.faultmanagement.fc.exceptions.NFVORequestorException;
+import org.openbaton.faultmanagement.fc.interfaces.NFVORequestor;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.NetworkServiceRecordShort;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VNFCInstanceShort;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualDeploymentUnitShort;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualNetworkFunctionRecordShort;
-import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
+import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.ha.HighAvailabilityManager;
 import org.openbaton.faultmanagement.ha.exceptions.HighAvailabilityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by mob on 29.10.15.
  */
 @Service
+@ConfigurationProperties
 public class PolicyManagerImpl implements PolicyManager {
 
     private static final Logger log = LoggerFactory.getLogger(PolicyManagerImpl.class);
@@ -42,13 +49,13 @@ public class PolicyManagerImpl implements PolicyManager {
 
     private final ScheduledExecutorService nsScheduler = Executors.newScheduledThreadPool(1);
 
-    @Autowired private NSRManager nsrManager;
+    @Autowired private NFVORequestor NFVORequestor;
 
-    @Autowired
-    MonitoringManager monitoringManager;
+    @Autowired private MonitoringManager monitoringManager;
 
-    @Autowired
-    HighAvailabilityManager highAvailabilityManager;
+    @Autowired private HighAvailabilityManager highAvailabilityManager;
+    @Value("${fms.redundancycheck:60}")
+    private String reduncancyCheck;
 
     @PostConstruct
     public void init(){
@@ -75,8 +82,8 @@ public class PolicyManagerImpl implements PolicyManager {
             monitoringManager.startMonitorNS(nsr);
 
             HighConfigurator highConfigurator = new HighConfigurator(nsr);
-
-            futures.put(nsr.getId(),nsScheduler.scheduleAtFixedRate(highConfigurator,5,60, TimeUnit.SECONDS));
+            int interval = Integer.parseInt(reduncancyCheck);
+            futures.put(nsr.getId(),nsScheduler.scheduleAtFixedRate(highConfigurator,5,interval, TimeUnit.SECONDS));
         }
 
     }
@@ -222,8 +229,10 @@ public class PolicyManagerImpl implements PolicyManager {
         public void run() {
             NetworkServiceRecord nsr = null;
             try {
-                nsr = nsrManager.getNetworkServiceRecord(this.nsr.getId());
+                nsr = NFVORequestor.getNetworkServiceRecord(this.nsr.getId());
             } catch (NotFoundException e) {
+                log.error(e.getMessage(),e);
+            } catch (NFVORequestorException e) {
                 log.error(e.getMessage(),e);
             }
             if(nsr.getStatus().ordinal() != Status.ACTIVE.ordinal()) {

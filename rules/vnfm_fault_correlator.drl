@@ -3,8 +3,7 @@ import org.openbaton.faultmanagement.fc.repositories.VRAlarmRepository
 import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository
 import org.openbaton.catalogue.mano.record.VNFCInstance
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager
-import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager
-import org.openbaton.faultmanagement.fc.interfaces.NSRManager
+import org.openbaton.faultmanagement.fc.interfaces.NFVORequestor
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedNotification
@@ -19,43 +18,51 @@ import java.util.List
 import java.util.Iterator
 import org.openbaton.faultmanagement.fc.RecoveryActionType
 
-global MonitoringManager monitoringManager
 global PolicyManager policyManager
 global org.slf4j.Logger logger
-global NSRManager nsrManager
+global NFVORequestor nfvoRequestor
 global HighAvailabilityManager highAvailabilityManager
 global VRAlarmRepository vrAlarmRepository
 global VNFAlarmRepository vnfAlarmRepository
 
+declare VRAlarm
+ @role(event)
+ @expires(2m)
+end
+
+declare VNFAlarm
+ @role(event)
+ @expires(2m)
+end
+
+
+
 //----------------------------------------------- VirtualizedResource ALARMS -----------------------------------------------------
 
 rule "Get a CRITICAL Virtualized Resource Alarm and switch to standby"
-    agenda-group "correlation"
+
     when
         a : VRAlarm( thresholdId : thresholdId, hostname : managedObject, alarmState == AlarmState.FIRED,
         perceivedSeverity == PerceivedSeverity.CRITICAL)
         not RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
     then
         logger.info("(VIRTUALIZATION LAYER) A CRITICAL alarm is received regarding the managedObject: " + hostname);
-        VNFCInstance failedVnfcInstance = nsrManager.getVNFCInstance(hostname);
+        VNFCInstance failedVnfcInstance = nfvoRequestor.getVNFCInstance(hostname);
 
-        VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecordFromVNFCHostname(hostname);
+        VirtualNetworkFunctionRecord vnfr = nfvoRequestor.getVirtualNetworkFunctionRecordFromVNFCHostname(hostname);
 
-        VirtualDeploymentUnit vdu = nsrManager.getVDU(vnfr,failedVnfcInstance.getId());
+        VirtualDeploymentUnit vdu = nfvoRequestor.getVDU(vnfr,failedVnfcInstance.getId());
 
         logger.info("Switch to standby fired!");
         highAvailabilityManager.switchToRedundantVNFC(failedVnfcInstance,vnfr,vdu);
-        //add recovery action
 
-        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,"generic", "vimname" );
+        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(), vdu.getVimInstanceName() );
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
         logger.debug("Recovery action in progress! :"+recoveryAction);
-        retract(a);
         insert(recoveryAction);
 end
 
 rule "A VR alarm is cleared"
-    agenda-group "correlation"
     when
         VirtualizedResourceAlarmStateChangedNotification( currentThresholdId : triggerId, alarmState == AlarmState.CLEARED )
     then
@@ -66,7 +73,6 @@ rule "A VR alarm is cleared"
 end
 
 rule "Save a VR Alarm"
-    agenda-group "correlation"
     when
         a : VRAlarm()
     then
@@ -83,16 +89,15 @@ end
 
 
 rule "Get a VNF Alarm from a VNFM"
-    agenda-group "correlation"
     when
         vnfAlarm : VNFAlarm( vnfrId : vnfrId )
     then
-        VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecord(vnfrId);
-        //logger.debug("Got a VNFAlarm from the VNF manager: "+vnfr.getEndpoint());
+        VirtualNetworkFunctionRecord vnfr = nfvoRequestor.getVirtualNetworkFunctionRecord(vnfrId);
+        logger.debug("Got a VNFAlarm from the VNF manager: "+vnfr.getEndpoint());
 end
 
+
 rule "Save a VNFAlarm"
-    agenda-group "correlation"
     when
         vnfAlarm : VNFAlarm()
     then
@@ -101,7 +106,7 @@ rule "Save a VNFAlarm"
 end
 
 rule "A VNF alarm is cleared"
-    agenda-group "correlation"
+
     when
         VNFAlarmStateChangedNotification( thresholdId : thresholdId, alarmState == AlarmState.CLEARED )
     then
@@ -112,7 +117,7 @@ rule "A VNF alarm is cleared"
 end
 
 rule "A VNF alarm is updated"
-    agenda-group "correlation"
+
     when
         vascn : VNFAlarmStateChangedNotification( thresholdId : thresholdId, alarmState == AlarmState.UPDATED )
         vnfAlarmUpdated : VNFAlarm( perceivedSeverity == PerceivedSeverity.CRITICAL, vnfcIds : vnfcIds ) from vnfAlarmRepository.findFirstByThresholdId(thresholdId)
@@ -120,9 +125,9 @@ rule "A VNF alarm is updated"
     then
         logger.info("\tThis VNF alarm is updated :" + vnfAlarmRepository.changeAlarmState(thresholdId,AlarmState.UPDATED));
 
-        VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecord(vnfAlarmUpdated.getVnfrId());
-        VNFCInstance vnfcInstance = nsrManager.getVNFCInstanceById(vnfcId);
-        VirtualDeploymentUnit vdu = nsrManager.getVDU(vnfr,vnfcInstance.getId());
+        VirtualNetworkFunctionRecord vnfr = nfvoRequestor.getVirtualNetworkFunctionRecord(vnfAlarmUpdated.getVnfrId());
+        VNFCInstance vnfcInstance = nfvoRequestor.getVNFCInstanceById(vnfcId);
+        VirtualDeploymentUnit vdu = nfvoRequestor.getVDU(vnfr,vnfcInstance.getId());
 
         logger.info("Switch to standby fired!");
         highAvailabilityManager.switchToRedundantVNFC(vnfcInstance,vnfr,vdu);
@@ -130,23 +135,24 @@ rule "A VNF alarm is updated"
         RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,"generic", "vimname" );
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
         logger.debug("Recovery action in progress! :"+recoveryAction);
-        retract(vascn);
 end
 
 
+
 rule "Got a critical VNF Alarm and execute a switch to standby if no action is ongoing on the vim"
-    agenda-group "correlation"
+
     when
-       vnfAlarm : VNFAlarm(  alarmState == AlarmState.FIRED, perceivedSeverity == PerceivedSeverity.CRITICAL, vimName : vimName, vnfcIds : vnfcIds )
+       vnfAlarm : VNFAlarm(  alarmState == AlarmState.FIRED, perceivedSeverity == PerceivedSeverity.CRITICAL, $vimName : vimName, vnfcIds : vnfcIds )
        vnfcId : String() from vnfcIds
-       vnfcInstance : VNFCInstance( hostname : hostname) from nsrManager.getVNFCInstanceById(vnfcId)
+       vnfcInstance : VNFCInstance( hostname : hostname) from nfvoRequestor.getVNFCInstanceById(vnfcId)
        activeVRAlarm : List( size == 0) from collect ( VRAlarm( alarmState != AlarmState.CLEARED ) from vrAlarmRepository.findByManagedObject(hostname))
-       not RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
+       not ( VRAlarm(this after [0s,30s] vnfAlarm))
+       not RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS, vimName == $vimName)
     then
 
     //Get the vnfr
     logger.debug("Received vnf alarm: "+vnfAlarm);
-    VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecord(vnfAlarm.getVnfrId());
+    VirtualNetworkFunctionRecord vnfr = nfvoRequestor.getVirtualNetworkFunctionRecord(vnfAlarm.getVnfrId());
 
     //Get the vnfc failed (assuming only one vnfc is failed)
     //VNFCInstance vnfcInstance = nsrManager.getVNFCInstanceFromVnfr(vnfr,vnfAlarm.getVnfcIds().iterator().next());
@@ -154,7 +160,7 @@ rule "Got a critical VNF Alarm and execute a switch to standby if no action is o
     logger.info("(VNF LAYER) A CRITICAL alarm is received by the vnfc: "+vnfcInstance.getHostname());
 
     //Get the vdu of the failed VNFC
-    VirtualDeploymentUnit vdu = nsrManager.getVDU(vnfr,vnfcInstance.getId());
+    VirtualDeploymentUnit vdu = nfvoRequestor.getVDU(vnfr,vnfcInstance.getId());
 
     logger.info("Heal fired!");
     highAvailabilityManager.executeHeal("serviceDown",vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
@@ -163,6 +169,5 @@ rule "Got a critical VNF Alarm and execute a switch to standby if no action is o
     RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.HEAL,vnfr.getEndpoint(),vnfAlarm.getVimName());
     recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
     logger.debug("Recovery action in progress! :"+recoveryAction);
-    retract(vnfAlarm);
     insert(recoveryAction);
 end

@@ -6,20 +6,14 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import com.sun.net.httpserver.HttpServer;
-import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.exceptions.NotFoundException;
-import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
-import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
+import org.openbaton.faultmanagement.fc.exceptions.NFVORequestorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -36,25 +30,17 @@ import org.openbaton.sdk.api.exceptions.SDKException;*/
  * Created by mob on 26.10.15.
  */
 @Service
-public class NSRManagerImpl implements NSRManager {
-    private HttpServer server;
+public class NFVORequestor implements org.openbaton.faultmanagement.fc.interfaces.NFVORequestor {
     private Set<NetworkServiceRecord> nsrSet;
     private static final String name = "FaultManagement";
     private Gson mapper;
-    private String fmsIp,fmsPort;
-    private static final Logger log = LoggerFactory.getLogger(NSRManagerImpl.class);
-    private String unsubscriptionIdINSTANTIATE_FINISH;
-    private String unsubscriptionIdRELEASE_RESOURCES_FINISH;
+    private static final Logger log = LoggerFactory.getLogger(NFVORequestor.class);
     private List<NetworkServiceRecord> nsrList;
     private String nfvoIp,nfvoPort,nfvoUrl;
     //private NFVORequestor nfvoRequestor;
-    @Autowired
-    private PolicyManager policyManager;
 
     @PostConstruct
     public void init() throws IOException {
-        /*Properties properties=new Properties();
-        properties.load(new FileInputStream("fm.properties"));*/
         nsrSet=new HashSet<>();
 
         this.mapper = new GsonBuilder().setPrettyPrinting().create();
@@ -66,57 +52,45 @@ public class NSRManagerImpl implements NSRManager {
         nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
     }
 
-    private HttpResponse<JsonNode> executeGet(String url){
+    private HttpResponse<JsonNode> executeGet(String url) throws NFVORequestorException {
         HttpResponse<JsonNode> jsonResponse=null;
         try {
             jsonResponse = Unirest.get(url).asJson();
         } catch (UnirestException e) {
-            e.printStackTrace();
+            throw new NFVORequestorException("Is not possible to retrieve data from NFVO");
         }
         return jsonResponse;
     }
 
-    private List<NetworkServiceRecord> getNetworkServiceRecordsFromNfvo(String url){
+    private List<NetworkServiceRecord> getNetworkServiceRecordsFromNfvo(String url) throws NFVORequestorException {
 
         HttpResponse<JsonNode> jsonResponse = executeGet(url);
         Class<?> aClass = Array.newInstance(NetworkServiceRecord.class, 3).getClass();
         Object[] nsrArray = (Object[]) mapper.fromJson(jsonResponse.getBody().toString(), aClass);
         nsrList = Arrays.asList((NetworkServiceRecord[]) nsrArray);
-        for(NetworkServiceRecord nsr : nsrList){
-            //log.debug("Nsr name: "+nsr.getName() +" nsr id:"+nsr.getId());
-            for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
-                //log.debug("Vnfr name: "+vnfr.getName());
-                for(VirtualDeploymentUnit vdu : vnfr.getVdu() )
-                if(vdu.getFault_management_policy()!=null)
-                    for(VRFaultManagementPolicy fmp: vdu.getFault_management_policy()){
-                        //log.debug("fmpolicy: "+fmp);
-                    }
-            }
-        }
-
         return nsrList;
     }
 
     @Override
-    public NetworkServiceRecord getNetworkServiceRecord(String nsrId) throws NotFoundException {
+    public NetworkServiceRecord getNetworkServiceRecord(String nsrId) throws NotFoundException, NFVORequestorException {
         return this.getNetworkServiceRecordFromNfvo(nfvoUrl+"/"+nsrId);
     }
 
-    private NetworkServiceRecord getNetworkServiceRecordFromNfvo(String url) throws NotFoundException {
+    private NetworkServiceRecord getNetworkServiceRecordFromNfvo(String url) throws NotFoundException, NFVORequestorException {
         HttpResponse<JsonNode> jsonResponse = executeGet(url);
         if(jsonResponse.getBody()==null)
             throw new NotFoundException("Not possibile to retrieve the NSR from the orchestrator");
         return mapper.fromJson(jsonResponse.getBody().toString(), NetworkServiceRecord.class);
     }
     @Override
-    public List<NetworkServiceRecord> getNetworkServiceRecords() {
+    public List<NetworkServiceRecord> getNetworkServiceRecords() throws NFVORequestorException {
         return this.getNetworkServiceRecordsFromNfvo(nfvoUrl);
     }
 
 
 
     @Override
-    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId) throws NotFoundException {
+    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId) throws NotFoundException, NFVORequestorException {
         HttpResponse<JsonNode> jsonResponse = executeGet(nfvoUrl+"/"+nsrId+"/vnfrecords/"+vnfrId);
         if(jsonResponse.getBody()==null)
             throw new NotFoundException("Not possibile to retrieve the VNFR from the orchestrator");
@@ -124,10 +98,7 @@ public class NSRManagerImpl implements NSRManager {
     }
 
     @Override
-    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String vnfrId) {
-        /*VirtualNetworkFunctionRecord virtualNetworkFunctionRecord = new VirtualNetworkFunctionRecord();
-        virtualNetworkFunctionRecord.setEndpoint("generic");
-        return virtualNetworkFunctionRecord;*/
+    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String vnfrId) throws NFVORequestorException {
         for(NetworkServiceRecord nsr : getNetworkServiceRecords()){
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
                 if(vnfr.getId().equals(vnfrId))
@@ -138,10 +109,7 @@ public class NSRManagerImpl implements NSRManager {
     }
 
     @Override
-    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecordFromVNFCHostname(String hostname) {
-        /*VirtualNetworkFunctionRecord virtualNetworkFunctionRecord = new VirtualNetworkFunctionRecord();
-        virtualNetworkFunctionRecord.setId("vnfrid");
-        return virtualNetworkFunctionRecord;*/
+    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecordFromVNFCHostname(String hostname) throws NFVORequestorException {
         List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
         for(NetworkServiceRecord nsr : nsrs){
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
@@ -168,9 +136,7 @@ public class NSRManagerImpl implements NSRManager {
     }
 
     public VirtualDeploymentUnit getVDU(VirtualNetworkFunctionRecord vnfr,String vnfcInstaceId) {
-       /*VirtualDeploymentUnit vdu = new VirtualDeploymentUnit();
-        vdu.setVimInstanceName("vim-50");
-        return vdu;*/
+
          for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
             for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
                 if(vnfcInstance.getId().equals(vnfcInstaceId))
@@ -181,14 +147,8 @@ public class NSRManagerImpl implements NSRManager {
     }
 
     @Override
-    public VNFCInstance getVNFCInstance(String hostname) {
-        /*//test
-        VNFCInstance vnfcInstance = new VNFCInstance();
-        vnfcInstance.setId("id1");
-        vnfcInstance.setVim_id("vim id");
-        vnfcInstance.setHostname("iperf 1");
-        return vnfcInstance;
-*/
+    public VNFCInstance getVNFCInstance(String hostname) throws NFVORequestorException {
+
         List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
         for(NetworkServiceRecord nsr : nsrs){
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
@@ -204,12 +164,8 @@ public class NSRManagerImpl implements NSRManager {
     }
 
     @Override
-    public VNFCInstance getVNFCInstanceById(String VnfcId) {
-        /*VNFCInstance vnfcInstance = new VNFCInstance();
-        vnfcInstance.setId("id1");
-        vnfcInstance.setVim_id("vim id");
-        vnfcInstance.setHostname("iperf 1");
-        return vnfcInstance;*/
+    public VNFCInstance getVNFCInstanceById(String VnfcId) throws NFVORequestorException {
+
         List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
         for(NetworkServiceRecord nsr : nsrs){
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){

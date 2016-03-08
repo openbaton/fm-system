@@ -13,13 +13,14 @@ import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.exceptions.NotFoundException;
-import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
+import org.openbaton.faultmanagement.fc.interfaces.NFVORequestor;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
 import org.openbaton.monitoring.interfaces.MonitoringPluginCaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.parsing.ParseState;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -31,6 +32,7 @@ import java.util.concurrent.*;
  * Created by mob on 04.11.15.
  */
 @Service
+@ConfigurationProperties
 public class MonitoringManagerImpl implements MonitoringManager {
     private static final Logger log = LoggerFactory.getLogger(MonitoringManagerImpl.class);
     private final ScheduledExecutorService nsScheduler = Executors.newScheduledThreadPool(1);
@@ -41,8 +43,9 @@ public class MonitoringManagerImpl implements MonitoringManager {
     private Map<String,List<String> > thresholdIdListHostname;
     private Map<String, String> thresholdIdFMPolicyId;
     private MonitoringPluginCaller monitoringPluginCaller;
-    @Autowired private NSRManager nsrManager;
-
+    @Autowired private NFVORequestor NFVORequestor;
+    @Value("${fms.monitoringcheck:60}")
+    private String monitoringCheck;
 
     @PostConstruct
     public void init() throws NotFoundException {
@@ -67,8 +70,9 @@ public class MonitoringManagerImpl implements MonitoringManager {
     @Override
     public void startMonitorNS(NetworkServiceRecord nsr){
         MonitoringThreadCreator mpc = new MonitoringThreadCreator(nsr.getId());
+        int interval = Integer.parseInt(monitoringCheck);
         // Wait 10 seconds for the host registration in zabbix server. And then schedule the monitor creator at fixed rate
-        futures.put(nsr.getId(), nsScheduler.scheduleAtFixedRate(mpc, 10,60, TimeUnit.SECONDS));
+        futures.put(nsr.getId(), nsScheduler.scheduleAtFixedRate(mpc, 10,interval, TimeUnit.SECONDS));
     }
     public void removeMonitoredVnfcInstance(String vnfcInstanceHostname){
         if(vnfcInstanceHostname==null)
@@ -118,17 +122,14 @@ public class MonitoringManagerImpl implements MonitoringManager {
     private boolean isVNFCMonitored(String hostname){
         boolean found=false;
         for(Map.Entry<String,List<String>> entry : thresholdIdListHostname.entrySet()){
-            //log.debug("entry di thresholdIdListHostname:  "+entry);
             if(entry.getValue().contains(hostname))
                 found = true;
         }
-        //log.debug("\n");
         return found;
     }
 
     @Override
     public boolean isVNFThreshold(String thresholdId) {
-        //log.debug("vnfTriggerId list: "+vnfTriggerId);
         return vnfTriggerId.contains(thresholdId);
     }
 
@@ -141,7 +142,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
         @Override
         public void run() {
             try {
-                NetworkServiceRecord nsr = nsrManager.getNetworkServiceRecord(this.nsrId);
+                NetworkServiceRecord nsr = NFVORequestor.getNetworkServiceRecord(this.nsrId);
                 if(nsr.getStatus().ordinal() != Status.ACTIVE.ordinal()) {
                     log.debug("the nsr to be monitored is not in ACTIVE state");
                     return;
@@ -162,15 +163,12 @@ public class MonitoringManagerImpl implements MonitoringManager {
                             //Check if the vnfcInstance is not in standby
                             if(vnfcInstance.getState() != null && vnfcInstance.getState().equals("standby"))
                             {
-                                //log.debug("the vnfc : "+vnfcInstance.getHostname()+" is in standby (no need monitoring right now)");
                                 continue;
                             }
                             //Check if the vnfcInstance is already monitored
                             if(isVNFCMonitored(vnfcInstance.getHostname())){
-                                //log.debug("the vnfcInstance: "+vnfcInstance.getHostname()+ " is already monitored");
                                 continue;
                             }
-                            //log.debug("vnfcinstance to be monitored (not in standby): " + vnfcInstance.getHostname());
                             objectSelection.addObjectInstanceId(vnfcInstance.getHostname());
                         }
 
@@ -259,18 +257,13 @@ public class MonitoringManagerImpl implements MonitoringManager {
         private Set<String> getMonitoringParamentersWithoutPeriod(Set<String> monitoring_parameter, VirtualDeploymentUnit vdu) {
             Set<String> result = new HashSet<>(monitoring_parameter);
             Set<String> tmp = new HashSet<>();
-            //log.debug("monitoring parameter= "+monitoring_parameter);
             Iterator<String> iterator= result.iterator();
             while(iterator.hasNext()) {
                 String currentMonitoringParameter = iterator.next();
-                //log.debug("current mon param: "+currentMonitoringParameter);
                 if(vdu.getFault_management_policy() == null )
                     break;
                 for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
-                    //log.debug("current vnffmp : "+vnffmp);
                     for (Criteria c : vnffmp.getCriteria()) {
-                        //log.debug("current criteria : "+c);
-                        //log.debug("Comparing "+c.getParameter_ref()+" with current monitor parameter "+ currentMonitoringParameter);
                         if (c.getParameter_ref().equalsIgnoreCase(currentMonitoringParameter) && vnffmp.getPeriod()!=0){
                             tmp.add(c.getParameter_ref());
                         }

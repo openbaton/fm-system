@@ -12,19 +12,10 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.KieSessionConfiguration;
 import org.kie.internal.io.ResourceFactory;
-import org.openbaton.faultmanagement.fc.NSRManagerImpl;
-import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
-import org.openbaton.faultmanagement.fc.policymanagement.MonitoringManagerImpl;
-import org.openbaton.faultmanagement.fc.policymanagement.PolicyManagerImpl;
-import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
-import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -38,14 +29,21 @@ import java.io.IOException;
 public class DroolsAutoConfiguration {
 
     private static final String RULES_PATH = "rules/";
+    private static final Logger log = LoggerFactory.getLogger(DroolsAutoConfiguration.class);
 
     @Bean
     KieSession kieSession() throws IOException {
         KieServices ks = KieServices.Factory.get();
         KieFileSystem kfs = ks.newKieFileSystem();
 
-        for (Resource file : getRuleFiles()) {
-            kfs.write(ResourceFactory.newClassPathResource(RULES_PATH + file.getFilename(), "UTF-8"));
+        try {
+            for (Resource file : getRuleFiles()) {
+                log.debug("Rule: "+file.getFilename());
+                kfs.write(ResourceFactory.newClassPathResource(RULES_PATH + file.getFilename(), "UTF-8"));
+            }
+        } catch (IOException e) {
+            log.error("Problem accessing rules in "+RULES_PATH);
+            throw e;
         }
 
         KieBuilder kbuilder = ks.newKieBuilder(kfs);
@@ -59,7 +57,6 @@ public class DroolsAutoConfiguration {
         KieContainer kcontainer = ks.newKieContainer(relId);
         KieBaseConfiguration kbconf = ks.newKieBaseConfiguration();
         kbconf.setOption(EventProcessingOption.STREAM);
-        // kbconf.setOption(EqualityBehaviorOption.EQUALITY);
 
         KieBase kbase = kcontainer.newKieBase(kbconf);
         KieSessionConfiguration ksconf = ks.newKieSessionConfiguration();

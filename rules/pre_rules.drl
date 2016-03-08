@@ -4,7 +4,7 @@ import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository
 import org.openbaton.catalogue.mano.record.VNFCInstance
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager
-import org.openbaton.faultmanagement.fc.interfaces.NSRManager
+import org.openbaton.faultmanagement.fc.interfaces.NFVORequestor
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedNotification
@@ -20,19 +20,18 @@ import java.util.Iterator
 global MonitoringManager monitoringManager
 global PolicyManager policyManager
 global org.slf4j.Logger logger
-global NSRManager nsrManager
+global NFVORequestor nfvoRequestor
 global HighAvailabilityManager highAvailabilityManager
 global VRAlarmRepository vrAlarmRepository
 global VNFAlarmRepository vnfAlarmRepository
 
 rule "Get a managed VR alarm and create a VNF alarm"
-    agenda-group "pre-rules"
     salience 10
     when
         a : VRAlarm( thresholdId : thresholdId, hostname : managedObject, alarmState == AlarmState.FIRED,perceivedSeverity:perceivedSeverity,
         alarmRaisedTime:alarmRaisedTime,eventTime:eventTime,faultType:faultType)
 
-        vnfcInstance : VNFCInstance() from nsrManager.getVNFCInstance(hostname)
+        vnfcInstance : VNFCInstance() from nfvoRequestor.getVNFCInstance(hostname)
 
         eval( policyManager.isAVNFAlarm(thresholdId) == true)
     then
@@ -48,52 +47,45 @@ rule "Get a managed VR alarm and create a VNF alarm"
         vnfAlarm.setFaultType(faultType);
         vnfAlarm.setPerceivedSeverity(perceivedSeverity);
         vnfAlarm.addVnfcId(vnfcInstance.getId());
-        VirtualNetworkFunctionRecord vnfr = nsrManager.getVirtualNetworkFunctionRecordFromVNFCHostname(vnfcInstance.getHostname());
+        VirtualNetworkFunctionRecord vnfr = nfvoRequestor.getVirtualNetworkFunctionRecordFromVNFCHostname(vnfcInstance.getHostname());
 
-        VirtualDeploymentUnit vdu = nsrManager.getVDU(vnfr,vnfcInstance.getId());
+        VirtualDeploymentUnit vdu = nfvoRequestor.getVDU(vnfr,vnfcInstance.getId());
 
         vnfAlarm.setVimName(vdu.getVimInstanceName());
         vnfAlarm.setVnfrId(vnfr.getId());
-        // Set the vnfrId
-        //String policyId = policyManager.getPolicyIdByThresholdId(a.getThresholdId());
-        //String vnfrId = policyManager.getVnfrIdByPolicyId(policyId);
-        //vnfAlarm.setVnfrId(vnfrId);
+
         retract(a);
         insert(vnfAlarm);
         logger.debug("VNF alarm!");
 end
 
 rule "Ignore VR alarms of failed VNFC Instances"
-    agenda-group "pre-rules"
     salience 20
     when
         a : VRAlarm(managedObject : managedObject, alarmState == AlarmState.FIRED)
-        vnfcInstance : VNFCInstance(state == "failed") from nsrManager.getVNFCInstance(managedObject)
+        vnfcInstance : VNFCInstance(state == "failed") from nfvoRequestor.getVNFCInstance(managedObject)
     then
         logger.debug("Ignored an alarm from a failed instance: "+managedObject);
         retract(a);
 end
 
 rule "Ignore VR alarms of null VNFC Instances and delete alarms in database"
-    agenda-group "pre-rules"
     salience 25
     when
         a : VRAlarm(managedObject : managedObject, alarmState == AlarmState.FIRED)
-        not VNFCInstance() from nsrManager.getVNFCInstance(managedObject)
+        not VNFCInstance() from nfvoRequestor.getVNFCInstance(managedObject)
     then
         logger.debug("Ignored an alarm from a null instance: "+managedObject);
         vrAlarmRepository.removeByManagedObject(managedObject);
-        //TODO delete vnf alarms
         retract(a);
 end
 
 rule "Ignore  VirtualizedResourceAlarmStateChangedNotification of failed or null VNFCInstances"
-    agenda-group "pre-rules"
     salience 24
     when
         notification : VirtualizedResourceAlarmStateChangedNotification( thresholdId : triggerId, alarmState : alarmState)
         vnfAlarmUpdated : VRAlarm( hostname : managedObject ) from vrAlarmRepository.findFirstByThresholdId(thresholdId)
-        not VNFCInstance() from nsrManager.getVNFCInstance(hostname)
+        not VNFCInstance() from nfvoRequestor.getVNFCInstance(hostname)
     then
         logger.debug("Ignored a VRalarm state changed from a null instance: "+hostname);
         vrAlarmRepository.removeByManagedObject(hostname);
@@ -101,7 +93,6 @@ rule "Ignore  VirtualizedResourceAlarmStateChangedNotification of failed or null
 end
 
 rule "Create a VNF AlarmStateChangedNotification"
-    agenda-group "pre-rules"
     salience 12
     when
         notification : VirtualizedResourceAlarmStateChangedNotification( currentThresholdId : triggerId, alarmState : alarmState)

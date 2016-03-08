@@ -19,6 +19,7 @@ import org.openbaton.faultmanagement.ha.exceptions.HighAvailabilityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -39,7 +40,6 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
     private Gson mapper;
     private static final Logger log = LoggerFactory.getLogger(HighAvailabilityManagerImpl.class);
     private String nfvoIp,nfvoPort,nfvoUrl;
-
     @PostConstruct
     public void init() throws IOException {
         mapper = new GsonBuilder().setPrettyPrinting().create();
@@ -58,8 +58,8 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
             throw new HighAvailabilityException(e.getMessage(),e);
         }
     }
-    public void switchToRedundantVNFC(VNFCInstance failedVnfcInstance, VirtualNetworkFunctionRecord vnfr,VirtualDeploymentUnit vdu) throws HighAvailabilityException {
 
+    public void switchToRedundantVNFC(VNFCInstance failedVnfcInstance, VirtualNetworkFunctionRecord vnfr,VirtualDeploymentUnit vdu) throws HighAvailabilityException {
         for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
             if(vnfcInstance.getState()!=null && vnfcInstance.getState().equals("standby"))
                 switchToRedundantVNFC(failedVnfcInstance,vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
@@ -107,9 +107,6 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
 
                     if( checkMaxNumInstances(vdu) )
                         continue;
-
-                    //log.debug("VNFC COMPONENTS:\n"+vdu.getVnfc().toString());
-                    //log.debug("VNFC INSTANCES:\n"+vdu.getVnfc_instance());
 
                     //Get a component sample
                     VNFComponent componentSample = vdu.getVnfc().iterator().next();

@@ -1,15 +1,13 @@
 import org.openbaton.faultmanagement.fc.RecoveryAction
 import org.openbaton.faultmanagement.fc.RecoveryActionStatus
-import org.openbaton.faultmanagement.fc.RecoveryActionTerminated
 global org.slf4j.Logger logger
 
 rule "Recovery action finished"
-    agenda-group "resolution"
     when
        recoveryActionEnd : RecoveryAction(status == RecoveryActionStatus.FINISHED)
        recoveryActionActual : RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
     then
         logger.info("The following recovery action is finished " + recoveryActionActual);
-        retract(recoveryActionActual);
-        retract(recoveryActionEnd);
+        delete(recoveryActionActual);
+        delete(recoveryActionEnd);
 end

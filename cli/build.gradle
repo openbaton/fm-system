@@ -1,0 +1,19 @@
+group 'org.openbaton'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':fault-correlator')
+
+    compile 'org.springframework.boot:spring-boot:' + springBootVersion
+    compile 'commons-io:commons-io:2.4'
+    compile "org.springframework.shell:spring-shell:1.1.0.RELEASE"
+
+
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}

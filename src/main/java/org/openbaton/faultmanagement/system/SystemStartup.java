@@ -7,11 +7,11 @@ import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
+import org.kie.api.runtime.KieSession;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
-import org.openbaton.faultmanagement.fc.interfaces.NSRManager;
+import org.openbaton.faultmanagement.fc.interfaces.NFVORequestor;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -33,7 +35,7 @@ import java.util.Properties;
 @Service
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 @ConfigurationProperties
-public class SystemStartup implements CommandLineRunner {
+public class SystemStartup implements CommandLineRunner,ApplicationListener<ContextClosedEvent> {
 
     private static final String name = "FaultManagementSystem";
     private Gson mapper;
@@ -43,8 +45,10 @@ public class SystemStartup implements CommandLineRunner {
     @Value("${server.port:}")
     @NotEmpty
     private String fmsPort;
-    @Autowired private NSRManager nsrManager;
+    private String nfvoUrlEvent;
+    @Autowired private NFVORequestor NFVORequestor;
     @Autowired private PolicyManager policyManager;
+    @Autowired private KieSession kieSession;
 
     @Override
     public void run(String... args) throws Exception {
@@ -61,7 +65,7 @@ public class SystemStartup implements CommandLineRunner {
         log.info("FMS port: "+ fmsPort);
 
 
-        String nfvoUrlEvent = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/events";
+        nfvoUrlEvent = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/events";
         String fmsIp=nfvoIp;
         EventEndpoint eventEndpointInstantiateFinish = createEventEndpoint(name, EndpointType.REST, Action.INSTANTIATE_FINISH,"http://"+fmsIp+":"+ fmsPort +"/nfvo/events");
         EventEndpoint eventEndpointReleaseResourcesFinish = createEventEndpoint(name,EndpointType.REST,Action.RELEASE_RESOURCES_FINISH,"http://"+fmsIp+":"+ fmsPort +"/nfvo/events");
@@ -73,7 +77,7 @@ public class SystemStartup implements CommandLineRunner {
         } catch (UnirestException e) {
             e.printStackTrace();
         }
-        EventEndpoint response= mapper.fromJson(jsonResponse.getBody().toString(),EventEndpoint.class);
+        EventEndpoint response = mapper.fromJson(jsonResponse.getBody().toString(),EventEndpoint.class);
         unsubscriptionIdINSTANTIATE_FINISH = response.getId();
 
         eventEndpointJson=mapper.toJson(eventEndpointReleaseResourcesFinish);
@@ -82,14 +86,10 @@ public class SystemStartup implements CommandLineRunner {
         } catch (UnirestException e) {
             e.printStackTrace();
         }
-        response= mapper.fromJson(jsonResponse.getBody().toString(),EventEndpoint.class);
+        response = mapper.fromJson(jsonResponse.getBody().toString(),EventEndpoint.class);
         unsubscriptionIdRELEASE_RESOURCES_FINISH = response.getId();
         log.info("Correctly registered to the NFVO");
 
-
-
-        /*NetworkServiceRecord nsr = nsrManager.getNetworkServiceRecord("fc04ecc8-a4fd-4c42-81f9-9f6735cb43bb");
-        policyManager.manageNSR(nsr);*/
     }
     private EventEndpoint createEventEndpoint(String name, EndpointType type, Action action,String url){
         EventEndpoint eventEndpoint = new EventEndpoint();
@@ -98,5 +98,19 @@ public class SystemStartup implements CommandLineRunner {
         eventEndpoint.setType(type);
         eventEndpoint.setEndpoint(url);
         return eventEndpoint;
+    }
+
+    @Override
+    public void onApplicationEvent(ContextClosedEvent event) {
+        HttpResponse<JsonNode> jsonResponse=null;
+        try {
+            jsonResponse = Unirest.delete(nfvoUrlEvent+"/"+unsubscriptionIdINSTANTIATE_FINISH).asJson();
+            jsonResponse = Unirest.delete(nfvoUrlEvent+"/"+unsubscriptionIdRELEASE_RESOURCES_FINISH).asJson();
+        } catch (UnirestException e) {
+           log.error("The NFVO is not available for unsubscription: "+e.getMessage(),e);
+        }
+
+        kieSession.halt();
+        kieSession.dispose();
     }
 }
