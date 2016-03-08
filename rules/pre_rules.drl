@@ -54,7 +54,7 @@ rule "Get a managed VR alarm and create a VNF alarm"
         vnfAlarm.setVimName(vdu.getVimInstanceName());
         vnfAlarm.setVnfrId(vnfr.getId());
 
-        retract(a);
+        delete(a);
         insert(vnfAlarm);
         logger.debug("VNF alarm!");
 end
@@ -66,7 +66,7 @@ rule "Ignore VR alarms of failed VNFC Instances"
         vnfcInstance : VNFCInstance(state == "failed") from nfvoRequestor.getVNFCInstance(managedObject)
     then
         logger.debug("Ignored an alarm from a failed instance: "+managedObject);
-        retract(a);
+        delete(a);
 end
 
 rule "Ignore VR alarms of null VNFC Instances and delete alarms in database"
@@ -76,23 +76,23 @@ rule "Ignore VR alarms of null VNFC Instances and delete alarms in database"
         not VNFCInstance() from nfvoRequestor.getVNFCInstance(managedObject)
     then
         logger.debug("Ignored an alarm from a null instance: "+managedObject);
-        vrAlarmRepository.removeByManagedObject(managedObject);
-        retract(a);
+        //vrAlarmRepository.removeByManagedObject(managedObject);
+        delete(a);
 end
 
 rule "Ignore  VirtualizedResourceAlarmStateChangedNotification of failed or null VNFCInstances"
     salience 24
     when
         notification : VirtualizedResourceAlarmStateChangedNotification( thresholdId : triggerId, alarmState : alarmState)
-        vnfAlarmUpdated : VRAlarm( hostname : managedObject ) from vrAlarmRepository.findFirstByThresholdId(thresholdId)
+        vrAlarmUpdated : VRAlarm( hostname : managedObject ) from vrAlarmRepository.findFirstByThresholdId(thresholdId)
         not VNFCInstance() from nfvoRequestor.getVNFCInstance(hostname)
     then
         logger.debug("Ignored a VRalarm state changed from a null instance: "+hostname);
-        vrAlarmRepository.removeByManagedObject(hostname);
-        retract(notification);
+        //vrAlarmRepository.removeByManagedObject(hostname);
+        delete(notification);
 end
 
-rule "Create a VNF AlarmStateChangedNotification"
+rule "Create a VNFAlarmStateChangedNotification"
     salience 12
     when
         notification : VirtualizedResourceAlarmStateChangedNotification( currentThresholdId : triggerId, alarmState : alarmState)
@@ -101,6 +101,6 @@ rule "Create a VNF AlarmStateChangedNotification"
         String policyId=policyManager.getPolicyIdByThresholdId(currentThresholdId);
         String vnfrId = policyManager.getVnfrIdByPolicyId(policyId);
         VNFAlarmStateChangedNotification vnfAlarmStateChangedNotification = new VNFAlarmStateChangedNotification(vnfrId,policyId,alarmState,currentThresholdId);
-        retract(notification);
+        delete(notification);
         insert(vnfAlarmStateChangedNotification);
 end

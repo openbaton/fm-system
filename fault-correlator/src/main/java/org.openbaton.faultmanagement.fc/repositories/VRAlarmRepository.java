@@ -4,6 +4,7 @@ package org.openbaton.faultmanagement.fc.repositories;
 import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
 import org.openbaton.catalogue.mano.common.monitoring.VRAlarm;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -14,5 +15,6 @@ public interface VRAlarmRepository extends CrudRepository<VRAlarm, String>,VRAla
     List<VRAlarm> findByManagedObject(String managedObject);
     List<VRAlarm> findByManagedObjectAndAlarmStateNot(String managedObject, AlarmState alarmState);
     VRAlarm findFirstByThresholdId(String thresholdId);
+    @Transactional
     List<VRAlarm> removeByManagedObject(String managedObject);
 }

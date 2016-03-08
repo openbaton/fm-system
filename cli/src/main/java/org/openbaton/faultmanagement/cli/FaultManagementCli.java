@@ -81,23 +81,27 @@ public class FaultManagementCli implements CommandLineRunner{
         reader.addCompleter(new ArgumentCompleter(completors));
         reader.setPrompt("\u001B[135m" + System.getProperty("user.name") + "@[\u001B[32mFM-System\u001B[0m]~> ");
         while ((line = reader.readLine()) != null) {
-            out.flush();
-            line = line.trim();
-            if (line.equalsIgnoreCase("quit") || line.equalsIgnoreCase("exit")) {
-                exit(0);
-            } else if (line.equalsIgnoreCase("clear")) {
-                reader.clearScreen();
-            } else if (line.equalsIgnoreCase("help")) {
-                usage();
-            } else if (line.startsWith("vrAlarms")) {
-                listVRAlarms(line);
-            } else if (line.startsWith("vnfAlarms")) {
-                listVnfAlarms(line);
-            } else if (line.startsWith("updateRules")) {
-                updateDroolsRules();
-            } else if (line.equalsIgnoreCase("")) {
-                continue;
-            } else usage();
+            try {
+                out.flush();
+                line = line.trim();
+                if (line.equalsIgnoreCase("quit") || line.equalsIgnoreCase("exit")) {
+                    exit(0);
+                } else if (line.equalsIgnoreCase("clear")) {
+                    reader.clearScreen();
+                } else if (line.equalsIgnoreCase("help")) {
+                    usage();
+                } else if (line.startsWith("vrAlarms")) {
+                    listVRAlarms(line);
+                } else if (line.startsWith("vnfAlarms")) {
+                    listVnfAlarms(line);
+                } else if (line.startsWith("updateRules")) {
+                    updateDroolsRules();
+                } else if (line.equalsIgnoreCase("")) {
+                    continue;
+                } else usage();
+            }catch (Exception e){
+                log.error(e.getMessage(),e);
+            }
         }
     }
 
@@ -111,24 +115,41 @@ public class FaultManagementCli implements CommandLineRunner{
     }
 
     private void listVnfAlarms(String line) {
-        Iterable<VRAlarm> alarms = vrAlarmRepository.findAll();
+        Iterable<VNFAlarm> alarms = vnfAlarmRepository.findAll();
         if(!alarms.iterator().hasNext()) {
             System.out.println("No vnfAlarms in the history");
             return;
         }
-        for(VRAlarm vrAlarm : alarms){
-            System.out.println(vrAlarm);
+        for(VNFAlarm vnfAlarm : alarms){
+            String alarmId=vnfAlarm.getAlarmId();
+            String vimInstanceName=vnfAlarm.getVimName();
+            String alarmRaisedTime=vnfAlarm.getAlarmRaisedTime();
+            String eventTime=vnfAlarm.getEventTime();
+            String faultType=vnfAlarm.getFaultType()==null ? null:vnfAlarm.getFaultType().toString();
+            String alarmState=vnfAlarm.getAlarmState()==null ? null:vnfAlarm.getAlarmState().toString();
+            String perceivedSeverity = vnfAlarm.getPerceivedSeverity()==null ? null:vnfAlarm.getPerceivedSeverity().toString();
+
+            System.out.println("AlarmId:'"+alarmId +"' vimInstanceName:'"+vimInstanceName+"' alarmRaisedTime:'"+alarmRaisedTime+"' faultDetectedTime:'"+eventTime+"' faultType:'"+faultType+"' alarmState:"+alarmState
+                    +"' perceivedSeverity: "+perceivedSeverity);
         }
     }
 
     private void listVRAlarms(String line) {
-        Iterable<VNFAlarm> alarms = vnfAlarmRepository.findAll();
+        Iterable<VRAlarm> alarms = vrAlarmRepository.findAll();
         if(!alarms.iterator().hasNext()) {
             System.out.println("No vrAlarms in the history");
             return;
         }
-        for(VNFAlarm vnfAlarm : alarms){
-            System.out.println(vnfAlarm);
+        for(VRAlarm vrAlarm : alarms){
+            String alarmId=vrAlarm.getAlarmId();
+            String managedObject = vrAlarm.getManagedObject();
+            String alarmRaisedTime=vrAlarm.getAlarmRaisedTime();
+            String eventTime=vrAlarm.getEventTime();
+            String faultType=vrAlarm.getFaultType()==null ? null : vrAlarm.getFaultType().toString();
+            String alarmState = vrAlarm.getAlarmState()==null ?  null : vrAlarm.getAlarmState().toString();
+            String perceivedSeverity = vrAlarm.getPerceivedSeverity() == null ? null : vrAlarm.getPerceivedSeverity().toString() ;
+            System.out.println("AlarmId:'"+alarmId +"' managedObject:'"+managedObject+"' alarmRaisedTime:'"+alarmRaisedTime+"' faultDetectedTime:'"+eventTime+"' faultType:'"+faultType+"' alarmState:"+alarmState
+                    +"' perceivedSeverity:"+perceivedSeverity);
         }
     }
 
