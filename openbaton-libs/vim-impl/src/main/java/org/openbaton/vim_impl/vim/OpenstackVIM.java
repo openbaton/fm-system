@@ -445,6 +445,8 @@ public class OpenstackVIM extends Vim {
         String hostname = vdu.getHostname() + "-" + ((int) (Math.random() * 1000));
         log.debug("Generated Hostname: " + hostname);
 
+        userdata = userdata.replace("#Hostname=","Hostname="+hostname);
+
         log.debug("Using SecurityGroups: " + vimInstance.getSecurityGroups());
 
         log.debug("Launching VM with params: " + hostname + " - " + image + " - " + flavorExtId + " - " + vimInstance.getKeyPair() + " - " + networks + " - " + vimInstance.getSecurityGroups());
@@ -481,9 +483,6 @@ public class OpenstackVIM extends Vim {
                 vnfcInstance = getVnfcInstanceFromServer(vimInstance, vnfComponent, hostname, server, vdu, floatingIps, vnfr);
             }
             throw new VimException("Not launched VM with hostname " + hostname + " successfully on VimInstance " + vimInstance.getName() + ". Caused by: " + e.getMessage(), e, vnfcInstance);
-        } catch (RemoteException e) {
-            log.error("Not launched VM with hostname " + hostname + " successfully on VimInstance " + vimInstance.getName() + ". Caused by: " + e.getMessage());
-            throw new VimException(e);
         }
 
         log.debug("Creating VNFCInstance based on the VM launched previously -> VM: " + server);
@@ -597,12 +596,12 @@ public class OpenstackVIM extends Vim {
     public List<NFVImage> queryImages(VimInstance vimInstance) throws VimException {
         log.debug("Listing all Images of VimInstance " + vimInstance.getName());
         try {
-            log.debug("Client is: " + client);
+            log.trace("Client is: " + client);
 
             List<NFVImage> images = client.listImages(vimInstance);
 
             log.info("Listed Images of VimInstance " + vimInstance.getName() + " -> Images: " + images);
-            log.debug(images.get(0).getClass().toString());
+            log.trace(images.get(0).getClass().toString());
             return images;
         } catch (Exception e) {
             if (log.isDebugEnabled()) {

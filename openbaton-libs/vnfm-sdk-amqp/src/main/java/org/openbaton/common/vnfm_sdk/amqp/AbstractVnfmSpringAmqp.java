@@ -16,7 +16,7 @@
 package org.openbaton.common.vnfm_sdk.amqp;
 
 import com.google.gson.Gson;
-import org.openbaton.catalogue.nfvo.Action;
+import com.rabbitmq.client.*;
 import org.openbaton.catalogue.nfvo.messages.Interfaces.NFVMessage;
 import org.openbaton.common.vnfm_sdk.AbstractVnfm;
 import org.openbaton.common.vnfm_sdk.VnfmHelper;
@@ -25,8 +25,12 @@ import org.openbaton.common.vnfm_sdk.exception.BadFormatException;
 import org.openbaton.common.vnfm_sdk.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.event.ContextClosedEvent;
+
+import java.io.IOException;
 
 /**
  * Created by lto on 28/05/15.
@@ -34,7 +38,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "org.openbaton")
-public abstract class AbstractVnfmSpringAmqp extends AbstractVnfm {
+public abstract class AbstractVnfmSpringAmqp extends AbstractVnfm implements ApplicationListener<ContextClosedEvent> {
 
     @Autowired
     private Gson gson;
@@ -58,12 +62,38 @@ public abstract class AbstractVnfmSpringAmqp extends AbstractVnfm {
 
     @Override
     protected void unregister() {
-        ((VnfmSpringHelperRabbit) vnfmHelper).sendMessageToQueue(RabbitConfiguration.queueName_vnfmUnregister, vnfmManagerEndpoint);
+        try {
+            ((VnfmSpringHelperRabbit) vnfmHelper).sendMessageToQueue(RabbitConfiguration.queueName_vnfmUnregister, vnfmManagerEndpoint);
+        } catch (IllegalStateException e) {
+            log.warn("Got exception while unregistering trying to do it manually");
+            ConnectionFactory factory = new ConnectionFactory();
+            factory.setHost("localhost");
+            Connection connection = null;
+            try {
+                connection = factory.newConnection();
+
+                Channel channel = connection.createChannel();
+
+                String message = gson.toJson(vnfmManagerEndpoint);
+                channel.basicPublish("openbaton-exchange", RabbitConfiguration.queueName_vnfmUnregister, MessageProperties.TEXT_PLAIN, message.getBytes("UTF-8"));
+                log.debug("Sent '" + message + "'");
+
+                channel.close();
+                connection.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
     }
 
     @Override
     protected void register() {
         ((VnfmSpringHelperRabbit) vnfmHelper).sendMessageToQueue(RabbitConfiguration.queueName_vnfmRegister, vnfmManagerEndpoint);
+    }
+
+    @Override
+    public void onApplicationEvent(ContextClosedEvent event) {
+        unregister();
     }
 }
 

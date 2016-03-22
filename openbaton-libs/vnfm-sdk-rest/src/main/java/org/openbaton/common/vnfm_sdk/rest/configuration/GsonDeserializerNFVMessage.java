@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openbaton.common.vnfm_sdk.amqp.configuration;
+package org.openbaton.common.vnfm_sdk.rest.configuration;
 
 import com.google.gson.*;
 import org.openbaton.catalogue.nfvo.Action;
-import org.openbaton.catalogue.nfvo.messages.*;
 import org.openbaton.catalogue.nfvo.messages.Interfaces.NFVMessage;
+import org.openbaton.catalogue.nfvo.messages.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
