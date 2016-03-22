@@ -56,7 +56,7 @@ rule "Get a CRITICAL Virtualized Resource Alarm and switch to standby"
         logger.info("Switch to standby fired!");
         highAvailabilityManager.switchToRedundantVNFC(failedVnfcInstance,vnfr,vdu);
 
-        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(), vdu.getVimInstanceName() );
+        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(), vdu.getVimInstanceName().iterator().next() );
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
         logger.debug("Recovery action in progress! :"+recoveryAction);
         insert(recoveryAction);

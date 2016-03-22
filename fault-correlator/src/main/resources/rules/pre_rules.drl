@@ -51,7 +51,7 @@ rule "Get a managed VR alarm and create a VNF alarm"
 
         VirtualDeploymentUnit vdu = nfvoRequestor.getVDU(vnfr,vnfcInstance.getId());
 
-        vnfAlarm.setVimName(vdu.getVimInstanceName());
+        vnfAlarm.setVimName(vdu.getVimInstanceName().iterator().next());
         vnfAlarm.setVnfrId(vnfr.getId());
 
         delete(a);

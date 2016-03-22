@@ -56,13 +56,11 @@ public class MonitoringManagerImpl implements MonitoringManager {
         vnfTriggerId= new HashSet<>();
         try {
             monitoringPluginCaller = new MonitoringPluginCaller("zabbix","zabbix-plugin");
-        } catch (TimeoutException e) {
+        } catch (TimeoutException|IOException e) {
             log.error(e.getMessage(),e);
         } catch (NotFoundException e) {
             log.error(e.getMessage(), e);
             throw e;
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
         }
         log.debug("monitoringplugincaller obtained");
     }
@@ -201,7 +199,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
                         }
                         if(vdu.getFault_management_policy()!=null)
                             for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
-                                String thresholdId="";
+                                String thresholdId;
                                 for (Criteria criteria : vnffmp.getCriteria()) {
                                     String performanceMetric = criteria.getParameter_ref();
                                     String function = criteria.getFunction();
@@ -234,9 +232,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
                             }
                     }
                 }
-            } catch (MonitoringException e) {
-                log.error(e.getMessage(),e);
-            } catch (Exception e){
+            } catch (Exception e) {
                 log.error(e.getMessage(),e);
             }
         }
@@ -324,9 +320,8 @@ public class MonitoringManagerImpl implements MonitoringManager {
                 log.error(e.getMessage(),e);
             }
             if(idsRemoved.size()!=thresholdIdsToRemove.size()){
-                //thresholdIdsToRemove.removeAll(idsRemoved);
                 log.warn("Removed less thresholds..");
-            }else log.debug("Removed all the thresholds: "+ idsRemoved);
+            }else log.info("Removed all the thresholds: "+ idsRemoved);
 
             // clean local state
             for (String thresholdIdRemoved : thresholdIdsToRemove){
