@@ -11,10 +11,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @SpringBootApplication
 @EnableJpaRepositories("org.openbaton.faultmanagement.fc")
-@EntityScan(basePackages ={"org.openbaton.catalogue.mano.common.faultmanagement","org.openbaton.catalogue.mano.common.monitoring"})
+@EntityScan(basePackages = {"org.openbaton.catalogue.mano.common.faultmanagement", "org.openbaton.catalogue.mano.common.monitoring"})
 @ComponentScan(basePackages = "org.openbaton.faultmanagement")
 public class Application {
     public static void main(String[] args) {
-        SpringApplication.run(Application.class,args);
+        SpringApplication.run(Application.class, args);
     }
 }

@@ -296,8 +296,9 @@ public class MonitoringManagerImpl implements MonitoringManager {
 
         @Override
         public void run() {
-            List<String> thresholdIdsToRemove= new ArrayList<>();
-            List<String> pmJobIdsToRemove= new ArrayList<>();
+            List<String> thresholdIdsToRemove = new ArrayList<>();
+            List<String> pmJobIdsToRemove = new ArrayList<>();
+
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
                 for(VirtualDeploymentUnit vdu : vnfr.getVdu())
                     for(VRFaultManagementPolicy fmp : vdu.getFault_management_policy()){
@@ -313,18 +314,20 @@ public class MonitoringManagerImpl implements MonitoringManager {
                     }
                 }
             }
+
             // removing thresholds
 
             List<String> idsRemoved= new ArrayList<>();
-            /*try {
+            try {
                 idsRemoved = monitoringPluginCaller.deleteThreshold(thresholdIdsToRemove);
             } catch (MonitoringException e) {
                 log.error(e.getMessage(),e);
             }
             if(idsRemoved.size()!=thresholdIdsToRemove.size()){
-                thresholdIdsToRemove.removeAll(idsRemoved);
-                log.warn("Removed less thresholds.. These thresholds have not been deleted: "+thresholdIdsToRemove);
-            }else log.debug("Removed all the thresholds: "+ idsRemoved);*/
+                //thresholdIdsToRemove.removeAll(idsRemoved);
+                log.warn("Removed less thresholds..");
+            }else log.debug("Removed all the thresholds: "+ idsRemoved);
+
             // clean local state
             for (String thresholdIdRemoved : thresholdIdsToRemove){
                 thresholdIdFMPolicyId.remove(thresholdIdRemoved);
@@ -332,14 +335,14 @@ public class MonitoringManagerImpl implements MonitoringManager {
             }
             // removing pmJobs
             idsRemoved.clear();
-            /*try {
+            try {
                 idsRemoved=monitoringPluginCaller.deletePMJob(pmJobIdsToRemove);
             } catch (MonitoringException e) {
                 log.error(e.getMessage(),e);
-            }*/
+            }
             if(idsRemoved.size()!=pmJobIdsToRemove.size()){
-                pmJobIdsToRemove.removeAll(idsRemoved);
-                //log.warn("Removed less pmJobs.. These pmjobs have not been deleted: "+pmJobIdsToRemove);
+                //pmJobIdsToRemove.removeAll(idsRemoved);
+                log.warn("Removed less pmJobs..");
             }else log.debug("Removed all the pmjobs: "+ pmJobIdsToRemove);
             // clean local state
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){

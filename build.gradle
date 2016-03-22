@@ -1,5 +1,3 @@
-group 'org.openbaton'
-version '0.16-SNAPSHOT'
 
 apply plugin: 'java'
 apply from: 'openbaton-libs/gradle/gradle/application.java.gradle'
@@ -22,8 +20,8 @@ project.ext{
     /**
      * Spring Related Variables
      */
-    springVersion = '4.2.0.RELEASE'
-    springBootVersion = '1.2.5.RELEASE'
+    springVersion = '4.2.2.RELEASE'
+    springBootVersion = '1.3.3.RELEASE'
     //------------------------------------------------//
     //------------------------------------------------//
     /**
@@ -45,13 +43,12 @@ dependencies {
     /**
      * Spring dependencies
     */
-    compile 'org.springframework.boot:spring-boot:'
-    compile 'org.springframework.boot:spring-boot-starter-logging:'
-    compile 'org.springframework:spring-jms:'
+    compile 'org.springframework.boot:spring-boot:'+ springBootVersion
+    compile 'org.springframework.boot:spring-boot-starter-logging:'+ springBootVersion
 
 
     //EnableJPA annotation
-    compile 'org.springframework.data:spring-data-jpa:1.8.2.RELEASE'
+    compile 'org.springframework.data:spring-data-jpa:1.9.4.RELEASE'
 
     //Rest Annotation in RestRegister
     compile "org.springframework.boot:spring-boot-starter-web:" + springBootVersion
@@ -65,7 +62,6 @@ dependencies {
 }
 
 allprojects{
-
     dependencies {
         //Unirest
         compile 'com.mashape.unirest:unirest-java:1.3.0'
