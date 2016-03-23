@@ -71,30 +71,4 @@ public class RestEventReceiver implements EventReceiver {
         return vrAlarmRepository.findFirstByThresholdId(vrascn.getTriggerId());
     }
 
-    @Override
-    @RequestMapping(value = "/nfvo/events", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void eventFromNfvo(@RequestBody @Valid OpenbatonEvent openbatonEvent) {
-        log.debug("Received nfvo event with action: " + openbatonEvent.getAction());
-        try {
-            boolean isNSRManaged = policyManager.isNSRManaged(openbatonEvent.getPayload().getId());
-            //Here we consider every instantiatie finish as recovery action finished
-            if(openbatonEvent.getAction().ordinal() == Action.INSTANTIATE_FINISH.ordinal()){
-                recoveryActionFinished();
-            }
-            if (openbatonEvent.getAction().ordinal() == Action.INSTANTIATE_FINISH.ordinal() && !isNSRManaged) {
-                    policyManager.manageNSR(openbatonEvent.getPayload());
-            } else if (openbatonEvent.getAction().ordinal() == Action.RELEASE_RESOURCES_FINISH.ordinal() && isNSRManaged) {
-                    policyManager.unManageNSR(openbatonEvent.getPayload());
-            }
-        }catch (Exception e){
-            log.error("Receiving the openbaton event: "+openbatonEvent+" "+e.getMessage(),e);
-        }
-    }
-
-    private void recoveryActionFinished() {
-        RecoveryAction recoveryAction = new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,"","");
-        recoveryAction.setStatus(RecoveryActionStatus.FINISHED);
-        kieSession.insert(recoveryAction);
-    }
-
 }

@@ -34,6 +34,9 @@ dependencies {
     compile 'org.springframework:spring-jdbc'
     compile 'org.springframework.boot:spring-boot-starter-jdbc:1.3.3.RELEASE'
 
+    //RABBIT
+    compile 'org.springframework.boot:spring-boot-starter-amqp:1.3.3.RELEASE'
+
     //Drools
     compile 'org.kie:kie-spring:6.3.0.Final'
 

@@ -16,5 +16,4 @@ public interface EventReceiver {
 
     Alarm receiveVRNewAlarm(VirtualizedResourceAlarmNotification vrAlarm);
     Alarm receiveVRStateChangedAlarm(VirtualizedResourceAlarmStateChangedNotification abstractVNFAlarm);
-    void eventFromNfvo(OpenbatonEvent openbatonEvent);
 }

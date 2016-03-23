@@ -11,6 +11,7 @@ import org.kie.api.runtime.KieSession;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
+import org.openbaton.faultmanagement.fc.ConfigurationBeans;
 import org.openbaton.faultmanagement.fc.interfaces.NFVORequestor;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.slf4j.Logger;
@@ -47,7 +48,6 @@ public class SystemStartup implements CommandLineRunner,ApplicationListener<Cont
     private String fmsPort;
     private String nfvoUrlEvent;
     @Autowired private NFVORequestor NFVORequestor;
-    @Autowired private PolicyManager policyManager;
     @Autowired private KieSession kieSession;
 
     @Override
@@ -67,8 +67,8 @@ public class SystemStartup implements CommandLineRunner,ApplicationListener<Cont
 
         nfvoUrlEvent = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/events";
         String fmsIp=nfvoIp;
-        EventEndpoint eventEndpointInstantiateFinish = createEventEndpoint(name, EndpointType.REST, Action.INSTANTIATE_FINISH,"http://"+fmsIp+":"+ fmsPort +"/nfvo/events");
-        EventEndpoint eventEndpointReleaseResourcesFinish = createEventEndpoint(name,EndpointType.REST,Action.RELEASE_RESOURCES_FINISH,"http://"+fmsIp+":"+ fmsPort +"/nfvo/events");
+        EventEndpoint eventEndpointInstantiateFinish = createEventEndpoint(name, EndpointType.RABBIT, Action.INSTANTIATE_FINISH, ConfigurationBeans.queueName_eventInstatiateFinish);
+        EventEndpoint eventEndpointReleaseResourcesFinish = createEventEndpoint(name,EndpointType.RABBIT,Action.RELEASE_RESOURCES_FINISH,ConfigurationBeans.queueName_eventResourcesReleaseFinish);
 
         String eventEndpointJson=mapper.toJson(eventEndpointInstantiateFinish);
         HttpResponse<JsonNode> jsonResponse=null;
