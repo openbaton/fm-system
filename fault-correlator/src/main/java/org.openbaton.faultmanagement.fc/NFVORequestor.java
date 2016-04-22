@@ -47,7 +47,7 @@ public class NFVORequestor implements org.openbaton.faultmanagement.fc.interface
         InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
         Properties properties = new Properties();
         properties.load(is);
-        nfvoIp = properties.getProperty("nfvo.publicIp");
+        nfvoIp = properties.getProperty("nfvo.rabbit.brokerIp");
         nfvoPort = properties.getProperty("server.port","8080");
         nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
     }
