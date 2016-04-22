@@ -58,7 +58,7 @@ public class SystemStartup implements CommandLineRunner,ApplicationListener<Cont
         InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
         Properties properties = new Properties();
         properties.load(is);
-        String nfvoIp = properties.getProperty("nfvo.publicIp");
+        String nfvoIp = properties.getProperty("nfvo.rabbit.brokerIp");
         String nfvoPort = properties.getProperty("server.port","8080");
         log.info("NFVO ip: "+nfvoIp);
         log.info("NFVO port: "+nfvoPort);
