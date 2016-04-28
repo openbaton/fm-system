@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by mob on 11.01.16.
  */
-public interface NFVORequestor {
+public interface NFVORequestorWrapper {
     NetworkServiceRecord getNetworkServiceRecord(String nsrId) throws NotFoundException, NFVORequestorException;
     List<NetworkServiceRecord> getNetworkServiceRecords() throws NFVORequestorException;
     VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId) throws NotFoundException, NFVORequestorException;

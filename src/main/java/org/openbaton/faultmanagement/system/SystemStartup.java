@@ -12,8 +12,7 @@ import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
 import org.openbaton.faultmanagement.fc.ConfigurationBeans;
-import org.openbaton.faultmanagement.fc.interfaces.NFVORequestor;
-import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
+import org.openbaton.faultmanagement.fc.interfaces.NFVORequestorWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +46,7 @@ public class SystemStartup implements CommandLineRunner,ApplicationListener<Cont
     @NotEmpty
     private String fmsPort;
     private String nfvoUrlEvent;
-    @Autowired private NFVORequestor NFVORequestor;
+    @Autowired private NFVORequestorWrapper NFVORequestorWrapper;
     @Autowired private KieSession kieSession;
 
     @Override

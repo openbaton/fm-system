@@ -23,18 +23,18 @@ import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.util.*;
 
-/*import org.openbaton.sdk.NFVORequestor;
+/*import org.openbaton.sdk.NFVORequestorWrapper;
 import org.openbaton.sdk.api.exceptions.SDKException;*/
 
 /**
  * Created by mob on 26.10.15.
  */
 @Service
-public class NFVORequestor implements org.openbaton.faultmanagement.fc.interfaces.NFVORequestor {
+public class NFVORequestorWrapperWrapper implements org.openbaton.faultmanagement.fc.interfaces.NFVORequestorWrapper {
     private Set<NetworkServiceRecord> nsrSet;
     private static final String name = "FaultManagement";
     private Gson mapper;
-    private static final Logger log = LoggerFactory.getLogger(NFVORequestor.class);
+    private static final Logger log = LoggerFactory.getLogger(NFVORequestorWrapperWrapper.class);
     private List<NetworkServiceRecord> nsrList;
     private String nfvoIp,nfvoPort,nfvoUrl;
     //private NFVORequestor nfvoRequestor;

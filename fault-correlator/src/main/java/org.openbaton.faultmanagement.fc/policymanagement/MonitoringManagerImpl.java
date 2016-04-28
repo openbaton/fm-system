@@ -13,7 +13,7 @@ import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.exceptions.NotFoundException;
-import org.openbaton.faultmanagement.fc.interfaces.NFVORequestor;
+import org.openbaton.faultmanagement.fc.interfaces.NFVORequestorWrapper;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.MonitoringManager;
 import org.openbaton.monitoring.interfaces.MonitoringPluginCaller;
 import org.slf4j.Logger;
@@ -43,7 +43,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
     private Map<String,List<String> > thresholdIdListHostname;
     private Map<String, String> thresholdIdFMPolicyId;
     private MonitoringPluginCaller monitoringPluginCaller;
-    @Autowired private NFVORequestor NFVORequestor;
+    @Autowired private NFVORequestorWrapper NFVORequestorWrapper;
     @Value("${fms.monitoringcheck:60}")
     private String monitoringCheck;
 
@@ -140,7 +140,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
         @Override
         public void run() {
             try {
-                NetworkServiceRecord nsr = NFVORequestor.getNetworkServiceRecord(this.nsrId);
+                NetworkServiceRecord nsr = NFVORequestorWrapper.getNetworkServiceRecord(this.nsrId);
                 if(nsr.getStatus().ordinal() != Status.ACTIVE.ordinal()) {
                     log.debug("the nsr to be monitored is not in ACTIVE state");
                     return;

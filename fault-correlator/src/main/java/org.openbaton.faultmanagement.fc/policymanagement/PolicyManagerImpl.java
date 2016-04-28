@@ -13,7 +13,7 @@ import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.fc.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.fc.exceptions.NFVORequestorException;
-import org.openbaton.faultmanagement.fc.interfaces.NFVORequestor;
+import org.openbaton.faultmanagement.fc.interfaces.NFVORequestorWrapper;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.NetworkServiceRecordShort;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VNFCInstanceShort;
 import org.openbaton.faultmanagement.fc.policymanagement.catalogue.VirtualDeploymentUnitShort;
@@ -49,7 +49,7 @@ public class PolicyManagerImpl implements PolicyManager {
 
     private final ScheduledExecutorService nsScheduler = Executors.newScheduledThreadPool(1);
 
-    @Autowired private NFVORequestor NFVORequestor;
+    @Autowired private NFVORequestorWrapper NFVORequestorWrapper;
 
     @Autowired private MonitoringManager monitoringManager;
 
@@ -229,7 +229,7 @@ public class PolicyManagerImpl implements PolicyManager {
         public void run() {
             NetworkServiceRecord nsr = null;
             try {
-                nsr = NFVORequestor.getNetworkServiceRecord(this.nsr.getId());
+                nsr = NFVORequestorWrapper.getNetworkServiceRecord(this.nsr.getId());
             } catch (NotFoundException e) {
                 log.error(e.getMessage(),e);
             } catch (NFVORequestorException e) {

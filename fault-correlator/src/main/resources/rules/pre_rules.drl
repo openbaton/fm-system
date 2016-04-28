@@ -20,7 +20,7 @@ import java.util.Iterator
 global MonitoringManager monitoringManager
 global PolicyManager policyManager
 global org.slf4j.Logger logger
-global NFVORequestor nfvoRequestor
+global NFVORequestorWrapper nfvoRequestor
 global HighAvailabilityManager highAvailabilityManager
 global VRAlarmRepository vrAlarmRepository
 global VNFAlarmRepository vnfAlarmRepository
