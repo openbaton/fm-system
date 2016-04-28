@@ -3,12 +3,10 @@ import org.openbaton.faultmanagement.fc.repositories.VRAlarmRepository
 import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository
 import org.openbaton.catalogue.mano.record.VNFCInstance
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager
-import org.openbaton.faultmanagement.fc.interfaces.NFVORequestor
+import org.openbaton.faultmanagement.fc.interfaces.NFVORequestorWrapper
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedNotification
-import org.openbaton.faultmanagement.fc.RecoveryAction
-import org.openbaton.faultmanagement.fc.RecoveryActionStatus
 import java.util.Date
 import java.text.SimpleDateFormat
 import java.text.DateFormat
@@ -16,11 +14,13 @@ import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.faultmanagement.ha.HighAvailabilityManager
 import java.util.List
 import java.util.Iterator
+import org.openbaton.faultmanagement.fc.RecoveryAction
 import org.openbaton.faultmanagement.fc.RecoveryActionType
+import org.openbaton.faultmanagement.fc.RecoveryActionStatus
 
 global PolicyManager policyManager
 global org.slf4j.Logger logger
-global NFVORequestorWrapper nfvoRequestor
+global NFVORequestorWrapper nfvoRequestorWrapper
 global HighAvailabilityManager highAvailabilityManager
 global VRAlarmRepository vrAlarmRepository
 global VNFAlarmRepository vnfAlarmRepository
@@ -47,16 +47,16 @@ rule "Get a CRITICAL Virtualized Resource Alarm and switch to standby"
         not RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
     then
         logger.info("(VIRTUALIZATION LAYER) A CRITICAL alarm is received regarding the managedObject: " + hostname);
-        VNFCInstance failedVnfcInstance = nfvoRequestor.getVNFCInstance(hostname);
+        VNFCInstance failedVnfcInstance = nfvoRequestorWrapper.getVNFCInstance(hostname);
 
-        VirtualNetworkFunctionRecord vnfr = nfvoRequestor.getVirtualNetworkFunctionRecordFromVNFCHostname(hostname);
+        VirtualNetworkFunctionRecord vnfr = nfvoRequestorWrapper.getVirtualNetworkFunctionRecordFromVNFCHostname(hostname);
 
-        VirtualDeploymentUnit vdu = nfvoRequestor.getVDU(vnfr,failedVnfcInstance.getId());
+        VirtualDeploymentUnit vdu = nfvoRequestorWrapper.getVDU(vnfr,failedVnfcInstance.getId());
 
         logger.info("Switch to standby fired!");
         highAvailabilityManager.switchToRedundantVNFC(failedVnfcInstance,vnfr,vdu);
 
-        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(), vdu.getVimInstanceName().iterator().next() );
+        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(), "" );
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
         logger.debug("Recovery action in progress! :"+recoveryAction);
         insert(recoveryAction);
@@ -92,7 +92,7 @@ rule "Get a VNF Alarm from a VNFM"
     when
         vnfAlarm : VNFAlarm( vnfrId : vnfrId )
     then
-        VirtualNetworkFunctionRecord vnfr = nfvoRequestor.getVirtualNetworkFunctionRecord(vnfrId);
+        VirtualNetworkFunctionRecord vnfr = nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfrId);
         logger.debug("Got a VNFAlarm from the VNF manager: "+vnfr.getEndpoint());
 end
 
@@ -108,9 +108,9 @@ end
 rule "A VNF alarm is cleared"
 
     when
-        VNFAlarmStateChangedNotification( thresholdId : thresholdId, alarmState == AlarmState.CLEARED )
+        VNFAlarmStateChangedNotification( resourceId : resourceId, alarmState == AlarmState.CLEARED )
     then
-        VNFAlarm vnfAlarm = vnfAlarmRepository.changeAlarmState(thresholdId,AlarmState.CLEARED);
+        VNFAlarm vnfAlarm = vnfAlarmRepository.changeAlarmState(resourceId,AlarmState.CLEARED);
         logger.info("\tThis VNF alarm is cleared :" + vnfAlarm);
         Iterable<VNFAlarm> alarms = vnfAlarmRepository.findAll();
         logger.debug("Current VNF alarms:"+alarms);
@@ -119,15 +119,15 @@ end
 rule "A VNF alarm is updated"
 
     when
-        vascn : VNFAlarmStateChangedNotification( thresholdId : thresholdId, alarmState == AlarmState.UPDATED )
-        vnfAlarmUpdated : VNFAlarm( perceivedSeverity == PerceivedSeverity.CRITICAL, vnfcIds : vnfcIds ) from vnfAlarmRepository.findFirstByThresholdId(thresholdId)
+        vascn : VNFAlarmStateChangedNotification(  resourceId :resourceId, alarmState == AlarmState.UPDATED )
+        vnfAlarmUpdated : VNFAlarm( perceivedSeverity == PerceivedSeverity.CRITICAL, vnfcIds : vnfcIds ) from vnfAlarmRepository.findFirstByThresholdId(resourceId)
         vnfcId : String() from vnfcIds
     then
-        logger.info("\tThis VNF alarm is updated :" + vnfAlarmRepository.changeAlarmState(thresholdId,AlarmState.UPDATED));
+        logger.info("\tThis VNF alarm is updated :" + vnfAlarmRepository.changeAlarmState(resourceId,AlarmState.UPDATED));
 
-        VirtualNetworkFunctionRecord vnfr = nfvoRequestor.getVirtualNetworkFunctionRecord(vnfAlarmUpdated.getVnfrId());
-        VNFCInstance vnfcInstance = nfvoRequestor.getVNFCInstanceById(vnfcId);
-        VirtualDeploymentUnit vdu = nfvoRequestor.getVDU(vnfr,vnfcInstance.getId());
+        VirtualNetworkFunctionRecord vnfr = nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfAlarmUpdated.getVnfrId());
+        VNFCInstance vnfcInstance = nfvoRequestorWrapper.getVNFCInstanceById(vnfcId);
+        VirtualDeploymentUnit vdu = nfvoRequestorWrapper.getVDU(vnfr,vnfcInstance.getId());
 
         logger.info("Switch to standby fired!");
         highAvailabilityManager.switchToRedundantVNFC(vnfcInstance,vnfr,vdu);
@@ -144,7 +144,7 @@ rule "Got a critical VNF Alarm and execute a switch to standby if no action is o
     when
        vnfAlarm : VNFAlarm(  alarmState == AlarmState.FIRED, perceivedSeverity == PerceivedSeverity.CRITICAL, $vimName : vimName, vnfcIds : vnfcIds )
        vnfcId : String() from vnfcIds
-       vnfcInstance : VNFCInstance( hostname : hostname) from nfvoRequestor.getVNFCInstanceById(vnfcId)
+       vnfcInstance : VNFCInstance( hostname : hostname) from nfvoRequestorWrapper.getVNFCInstanceById(vnfcId)
        activeVRAlarm : List( size == 0) from collect ( VRAlarm( alarmState != AlarmState.CLEARED ) from vrAlarmRepository.findByManagedObject(hostname))
        not ( VRAlarm(this after [0s,30s] vnfAlarm))
        not RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS, vimName == $vimName)
@@ -152,7 +152,7 @@ rule "Got a critical VNF Alarm and execute a switch to standby if no action is o
 
     //Get the vnfr
     logger.debug("Received vnf alarm: "+vnfAlarm);
-    VirtualNetworkFunctionRecord vnfr = nfvoRequestor.getVirtualNetworkFunctionRecord(vnfAlarm.getVnfrId());
+    VirtualNetworkFunctionRecord vnfr = nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfAlarm.getVnfrId());
 
     //Get the vnfc failed (assuming only one vnfc is failed)
     //VNFCInstance vnfcInstance = nsrManager.getVNFCInstanceFromVnfr(vnfr,vnfAlarm.getVnfcIds().iterator().next());
@@ -160,13 +160,14 @@ rule "Got a critical VNF Alarm and execute a switch to standby if no action is o
     logger.info("(VNF LAYER) A CRITICAL alarm is received by the vnfc: "+vnfcInstance.getHostname());
 
     //Get the vdu of the failed VNFC
-    VirtualDeploymentUnit vdu = nfvoRequestor.getVDU(vnfr,vnfcInstance.getId());
+    VirtualDeploymentUnit vdu = nfvoRequestorWrapper.getVDU(vnfr,vnfcInstance.getId());
 
     logger.info("Heal fired!");
     highAvailabilityManager.executeHeal("serviceDown",vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
 
     //Insert a new recovery action
-    RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.HEAL,vnfr.getEndpoint(),vnfAlarm.getVimName());
+
+    RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.HEAL,vnfr.getEndpoint(),"");
     recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
     logger.debug("Recovery action in progress! :"+recoveryAction);
     insert(recoveryAction);

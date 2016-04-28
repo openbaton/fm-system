@@ -1,11 +1,11 @@
 package org.openbaton.faultmanagement.fc.droolsconfig;
 
 import org.kie.api.runtime.KieSession;
+
 import org.openbaton.faultmanagement.fc.interfaces.KieSessionGlobalConfiguration;
 import org.openbaton.faultmanagement.fc.interfaces.NFVORequestorWrapper;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository;
-import org.openbaton.faultmanagement.fc.repositories.VRAlarmRepository;
 import org.openbaton.faultmanagement.ha.HighAvailabilityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ import javax.annotation.PostConstruct;
 public class KieSessionGlobalConfigurationImpl implements KieSessionGlobalConfiguration {
 
     @Autowired
-    private VRAlarmRepository vrAlarmRepository;
+    private org.openbaton.faultmanagement.fc.repositories.VRAlarmRepository vrAlarmRepository;
 
     @Autowired
     private VNFAlarmRepository vnfAlarmRepository;
@@ -33,7 +33,7 @@ public class KieSessionGlobalConfigurationImpl implements KieSessionGlobalConfig
     private KieSession kieSession;
 
     @Autowired
-    private NFVORequestorWrapper NFVORequestorWrapper;
+    private NFVORequestorWrapper nfvoRequestorWrapper;
 
     @Autowired
     private PolicyManager policyManager;
@@ -48,7 +48,7 @@ public class KieSessionGlobalConfigurationImpl implements KieSessionGlobalConfig
         kieSession.setGlobal("vrAlarmRepository", vrAlarmRepository);
         kieSession.setGlobal("vnfAlarmRepository", vnfAlarmRepository);
         kieSession.setGlobal("highAvailabilityManager", highAvailabilityManager);
-        kieSession.setGlobal("nfvoRequestor", NFVORequestorWrapper);
+        kieSession.setGlobal("nfvoRequestorWrapper", nfvoRequestorWrapper);
 
         new Thread(new Runnable() {
             public void run() {

@@ -78,7 +78,7 @@ function start {
     check_zabbix_plugin_up
     if [ 0 -eq $? ]
         then
-	    java -jar "build/libs/fault-management-system-$_version.jar" --spring.config.location=file:${_fmsystem_config_file}
+	    java -jar "build/libs/openbaton-fm-$_version.jar" --spring.config.location=file:${_fmsystem_config_file}
     fi
 }
 
