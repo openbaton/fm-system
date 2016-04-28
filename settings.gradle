@@ -1,4 +1,4 @@
-rootProject.name = 'fault-management-system'
+rootProject.name = 'openbaton-fm'
 
 include 'catalogue'
 include 'plugin'
