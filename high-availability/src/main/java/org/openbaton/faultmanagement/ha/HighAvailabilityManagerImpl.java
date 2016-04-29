@@ -46,7 +46,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
         Properties properties = new Properties();
         properties.load(is);
-        nfvoIp = properties.getProperty("nfvo.publicIp");
+        nfvoIp = properties.getProperty("nfvo.rabbit.brokerIp");
         nfvoPort = properties.getProperty("server.port","8080");
         nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
     }
@@ -92,7 +92,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         } catch (UnirestException e) {
             e.printStackTrace();
         }
-        log.debug("Response status from nfvo: "+jsonResponse.getStatus());
+        log.debug("Response status from nfvo: "+jsonResponse.getCode());
     }
     public void configureRedundancy(VirtualNetworkFunctionRecord vnfr) throws HighAvailabilityException, UnirestException {
         if(!vnfrNeedsRedundancy(vnfr))
@@ -195,7 +195,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         log.debug("Delete message to this url: "+finalUrl);
         jsonResponse = Unirest.delete(finalUrl).header("KeepAliveTimeout","5000").asString();
 
-        log.debug("Response status from nfvo: "+jsonResponse.getStatus());
+        log.debug("Response status from nfvo: "+jsonResponse.getCode());
     }
     private void sendSwitchToStandbyMessage(VNFCInstance failedVnfcInstance,String ... ids) throws UnirestException {
 
@@ -211,7 +211,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         String jsonMessage= mapper.toJson(failedVnfcInstance,VNFCInstance.class);
         jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
 
-        log.debug("Response status from nfvo: "+jsonResponse.getStatus());
+        log.debug("Response status from nfvo: "+jsonResponse.getCode());
     }
 
     private void sendAddVNFCMessage(VNFComponent vnfComponent, String ... ids) throws UnirestException {
@@ -227,6 +227,6 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         String jsonMessage= mapper.toJson(vnfComponent,VNFComponent.class);
 
         jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
-        log.debug("Response status from nfvo: "+jsonResponse.getStatus());
+        log.debug("Response status from nfvo: "+jsonResponse.getCode());
     }
 }

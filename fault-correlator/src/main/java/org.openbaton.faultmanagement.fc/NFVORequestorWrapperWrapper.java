@@ -12,7 +12,6 @@ import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.fc.exceptions.NFVORequestorException;
-import org.openbaton.sdk.NFVORequestor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -38,7 +37,7 @@ public class NFVORequestorWrapperWrapper implements org.openbaton.faultmanagemen
     private static final Logger log = LoggerFactory.getLogger(NFVORequestorWrapperWrapper.class);
     private List<NetworkServiceRecord> nsrList;
     private String nfvoIp,nfvoPort,nfvoUrl;
-    private NFVORequestor nfvoRequestor;
+    //private NFVORequestor nfvoRequestor;
 
     @PostConstruct
     public void init() throws IOException {
@@ -51,7 +50,7 @@ public class NFVORequestorWrapperWrapper implements org.openbaton.faultmanagemen
         nfvoIp = properties.getProperty("nfvo.rabbit.brokerIp");
         nfvoPort = properties.getProperty("server.port","8080");
         nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
-        nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), nfvoIp,nfvoPort,"1");
+        //nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), nfvoIp,nfvoPort,"1");
     }
 
     private HttpResponse<JsonNode> executeGet(String url) throws NFVORequestorException {

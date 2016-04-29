@@ -2,6 +2,9 @@ package org.openbaton.faultmanagement.fc.droolsconfig;
 
 import org.kie.api.runtime.KieSession;
 
+import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
+import org.openbaton.catalogue.mano.common.monitoring.PerceivedSeverity;
+import org.openbaton.catalogue.mano.common.monitoring.VRAlarm;
 import org.openbaton.faultmanagement.fc.interfaces.KieSessionGlobalConfiguration;
 import org.openbaton.faultmanagement.fc.interfaces.NFVORequestorWrapper;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
@@ -55,5 +58,11 @@ public class KieSessionGlobalConfigurationImpl implements KieSessionGlobalConfig
                 kieSession.fireUntilHalt();
             }
         }).start();
+
+        /*VRAlarm vrAlarm = new VRAlarm();
+        vrAlarm.setManagedObject("elasticapp-300");
+        vrAlarm.setAlarmState(AlarmState.FIRED);
+        vrAlarm.setPerceivedSeverity(PerceivedSeverity.CRITICAL);
+        kieSession.insert(vrAlarm);*/
     }
 }

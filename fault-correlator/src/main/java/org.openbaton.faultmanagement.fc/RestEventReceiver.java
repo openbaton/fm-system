@@ -6,6 +6,7 @@ import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedN
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmNotification;
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
+import org.openbaton.catalogue.mano.common.monitoring.VRAlarm;
 import org.openbaton.faultmanagement.fc.interfaces.EventReceiver;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository;
@@ -57,7 +58,8 @@ public class RestEventReceiver implements EventReceiver {
     @ResponseStatus(HttpStatus.CREATED)
     public Alarm receiveVRNewAlarm(@RequestBody @Valid VirtualizedResourceAlarmNotification vrAlarmNot) {
         log.debug("Received new VR alarm");
-        kieSession.insert(vrAlarmNot.getAlarm());
+        VRAlarm vrAlarm = (VRAlarm) vrAlarmNot.getAlarm();
+        kieSession.insert(vrAlarm);
         return vrAlarmNot.getAlarm();
     }
 
