@@ -15,8 +15,8 @@ public class VNFAlarmRepositoryImpl implements VNFAlarmRepositoryCustom{
 
     @Override
     @Transactional
-    public VNFAlarm changeAlarmState(String thresholdId, AlarmState alarmState) {
-        VNFAlarm vnfAlarm = vnfAlarmRepository.findFirstByThresholdId(thresholdId);
+    public VNFAlarm changeAlarmState(String vnfrId, AlarmState alarmState) {
+        VNFAlarm vnfAlarm = vnfAlarmRepository.findFirstByVnfrId(vnfrId);
         if(vnfAlarm!=null){
             vnfAlarm.setAlarmState(alarmState);
         }
