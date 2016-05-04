@@ -48,7 +48,7 @@ public class OpenbatonEventReceiver {
         logger.debug("Received nfvo event with action: " + openbatonEvent.getAction());
 
         boolean isNSRManaged = policyManager.isNSRManaged(openbatonEvent.getPayload().getId());
-        //Here we consider every instantiatie finish as recovery action finished
+        //Here we consider every instantiate finish as recovery action finished
         recoveryActionFinished();
 
         if (!isNSRManaged)
@@ -85,7 +85,7 @@ public class OpenbatonEventReceiver {
     }
 
     private void recoveryActionFinished() {
-        RecoveryAction recoveryAction = new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,"","");
+        RecoveryAction recoveryAction = new RecoveryAction();
         recoveryAction.setStatus(RecoveryActionStatus.FINISHED);
         kieSession.insert(recoveryAction);
     }

@@ -70,7 +70,7 @@ rule "Get a CRITICAL Virtualized Resource Alarm and switch to standby"
         logger.info("Switch to standby fired!");
         highAvailabilityManager.switchToRedundantVNFC(failedVnfcInstance,vnfr,vdu);
 
-        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(), "" );
+        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(),"");
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
         logger.debug("Recovery action in progress! :"+recoveryAction);
         insert(recoveryAction);
@@ -79,9 +79,9 @@ end
 rule "A VR alarm is cleared"
     when
         VirtualizedResourceAlarmStateChangedNotification( currentThresholdId : triggerId, alarmState == AlarmState.CLEARED )
+        updatedVrAlarm : VRAlarm() from vrAlarmRepository.changeAlarmState( currentThresholdId , AlarmState.CLEARED )
     then
-        VRAlarm vrAlarm = vrAlarmRepository.changeAlarmState(currentThresholdId,AlarmState.CLEARED);
-        logger.debug("\tThis vr alarm is cleared :" + vrAlarm);
+        logger.debug("\tThis vr alarm is cleared :" + updatedVrAlarm);
         Iterable<VRAlarm> alarms = vrAlarmRepository.findAll();
         logger.debug("Current VR alarms:"+alarms);
 end
@@ -122,9 +122,9 @@ end
 rule "A VNF alarm is cleared"
 
     when
-        VNFAlarmStateChangedNotification( resourceId : resourceId, alarmState == AlarmState.CLEARED )
+        VNFAlarmStateChangedNotification( $vnfrId : resourceId, alarmState == AlarmState.CLEARED )
     then
-        VNFAlarm vnfAlarm = vnfAlarmRepository.changeAlarmState(resourceId,AlarmState.CLEARED);
+        VNFAlarm vnfAlarm = vnfAlarmRepository.changeAlarmState($vnfrId,AlarmState.CLEARED);
         logger.info("\tThis VNF alarm is cleared :" + vnfAlarm);
         Iterable<VNFAlarm> alarms = vnfAlarmRepository.findAll();
         logger.debug("Current VNF alarms:"+alarms);
@@ -133,11 +133,11 @@ end
 rule "A VNF alarm is updated"
 
     when
-        vascn : VNFAlarmStateChangedNotification(  resourceId :resourceId, alarmState == AlarmState.UPDATED )
-        vnfAlarmUpdated : VNFAlarm( perceivedSeverity == PerceivedSeverity.CRITICAL, vnfcIds : vnfcIds ) from vnfAlarmRepository.findFirstByThresholdId(resourceId)
+        vascn : VNFAlarmStateChangedNotification(  $vnfrId : resourceId, alarmState == AlarmState.UPDATED )
+        vnfAlarmUpdated : VNFAlarm( perceivedSeverity == PerceivedSeverity.CRITICAL, vnfcIds : vnfcIds ) from vnfAlarmRepository.findFirstByVnfrId($vnfrId)
         vnfcId : String() from vnfcIds
     then
-        logger.info("\tThis VNF alarm is updated :" + vnfAlarmRepository.changeAlarmState(resourceId,AlarmState.UPDATED));
+        logger.info("\tThis VNF alarm is updated :" + vnfAlarmRepository.changeAlarmState( $vnfrId, AlarmState.UPDATED));
 
         VirtualNetworkFunctionRecord vnfr = nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfAlarmUpdated.getVnfrId());
         VNFCInstance vnfcInstance = nfvoRequestorWrapper.getVNFCInstanceById(vnfcId);

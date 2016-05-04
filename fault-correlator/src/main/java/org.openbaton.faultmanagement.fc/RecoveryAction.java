@@ -35,6 +35,7 @@ public class RecoveryAction {
         this.vimName = vimName;
         this.startingTime="";
     }
+    public RecoveryAction(){}
 
     public RecoveryActionStatus getStatus() {
         return status;
