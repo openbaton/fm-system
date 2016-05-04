@@ -99,6 +99,7 @@ rule "Create a VNFAlarmStateChangedNotification"
     then
         String policyId=policyManager.getPolicyIdByThresholdId(currentThresholdId);
         String vnfrId = policyManager.getVnfrIdByPolicyId(policyId);
+        logger.debug("vnfrId : "+vnfrId + " policyId:"+policyId+" alarmState:"+alarmState);
         VNFAlarmStateChangedNotification vnfAlarmStateChangedNotification = new VNFAlarmStateChangedNotification(vnfrId,policyId,alarmState);
         delete(notification);
         insert(vnfAlarmStateChangedNotification);
