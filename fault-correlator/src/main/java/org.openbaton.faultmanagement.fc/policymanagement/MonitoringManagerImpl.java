@@ -182,8 +182,11 @@ public class MonitoringManagerImpl implements MonitoringManager {
                         //One pmJob per vdu (Actually)
                         //create a pm job with all the items without a custom period in the criteria
                         //default period is 30 seconds
-                        String pmJobId = monitoringPluginCaller.createPMJob(objectSelection, monitoringParamentersLIst, new ArrayList<String>(), 30, 0);
-                        savePmJobId(vdu.getId(), pmJobId);
+                        String pmJobId;
+                        if(!monitoringParamentersLIst.isEmpty()) {
+                            pmJobId = monitoringPluginCaller.createPMJob(objectSelection, monitoringParamentersLIst, new ArrayList<String>(), 30, 0);
+                            savePmJobId(vdu.getId(), pmJobId);
+                        }
 
                         //create all pm job with a custom period in the criteria
                         Set<String> monitoringParameterWithPeriod = vdu.getMonitoring_parameter();
