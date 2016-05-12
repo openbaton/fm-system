@@ -46,6 +46,10 @@ public class SystemStartup implements CommandLineRunner,ApplicationListener<Cont
     @NotEmpty
     private String fmsPort;
     private String nfvoUrlEvent;
+    @Value("${nfvo.ip:}")
+    private String nfvoIp;
+    @Value("${nfvo.port:8080}")
+    private String nfvoPort;
     @Autowired private NFVORequestorWrapper NFVORequestorWrapper;
     @Autowired private KieSession kieSession;
 
@@ -54,18 +58,13 @@ public class SystemStartup implements CommandLineRunner,ApplicationListener<Cont
         GsonBuilder builder = new GsonBuilder();
 
         this.mapper = builder.setPrettyPrinting().create();
-        InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
-        Properties properties = new Properties();
-        properties.load(is);
-        String nfvoIp = properties.getProperty("nfvo.rabbit.brokerIp");
-        String nfvoPort = properties.getProperty("server.port","8080");
+        if(nfvoIp==null || nfvoIp.isEmpty())
+            throw new NullPointerException("The nfvoIp is not present. Please set the 'nfvo.ip' property in the fms.properties");
         log.info("NFVO ip: "+nfvoIp);
         log.info("NFVO port: "+nfvoPort);
         log.info("FMS port: "+ fmsPort);
 
-
         nfvoUrlEvent = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/events";
-        String fmsIp=nfvoIp;
         EventEndpoint eventEndpointInstantiateFinish = createEventEndpoint(name, EndpointType.RABBIT, Action.INSTANTIATE_FINISH, ConfigurationBeans.queueName_eventInstatiateFinish);
         EventEndpoint eventEndpointReleaseResourcesFinish = createEventEndpoint(name,EndpointType.RABBIT,Action.RELEASE_RESOURCES_FINISH,ConfigurationBeans.queueName_eventResourcesReleaseFinish);
 

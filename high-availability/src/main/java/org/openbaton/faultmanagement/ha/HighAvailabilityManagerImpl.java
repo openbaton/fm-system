@@ -39,16 +39,20 @@ import java.util.concurrent.TimeUnit;
 public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
     private Gson mapper;
     private static final Logger log = LoggerFactory.getLogger(HighAvailabilityManagerImpl.class);
-    private String nfvoIp,nfvoPort,nfvoUrl;
+    private String nfvoUrl;
+    @Value("${nfvo.ip:}")
+    private String nfvoIp;
+    @Value("${nfvo.port:8080}")
+    private String nfvoPort;
+
     @PostConstruct
     public void init() throws IOException {
         mapper = new GsonBuilder().setPrettyPrinting().create();
-        InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
-        Properties properties = new Properties();
-        properties.load(is);
-        nfvoIp = properties.getProperty("nfvo.rabbit.brokerIp");
-        nfvoPort = properties.getProperty("server.port","8080");
+        if(nfvoIp==null || nfvoIp.isEmpty())
+            throw new NullPointerException("The nfvoIp is not present. Please set the 'nfvo.ip' property in the fms.properties");
         nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
+        log.debug("NFVO url:"+nfvoUrl);
+
     }
 
     public void switchToRedundantVNFC(VNFCInstance failedVnfcInstance,String nsrId, String vnfrId, String vduId,String vnfcInstanceId) throws HighAvailabilityException {
@@ -108,21 +112,8 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
                     if( checkMaxNumInstances(vdu) )
                         continue;
 
-                    //Get a component sample
-                    VNFComponent componentSample = vdu.getVnfc().iterator().next();
-
                     //Creating a new component to add into the vdu
-                    VNFComponent vnfComponent_new = new VNFComponent();
-                    Set<VNFDConnectionPoint> vnfdConnectionPointSet= new HashSet<>();
-                    for (VNFDConnectionPoint vnfdConnectionPointSample: componentSample.getConnection_point()){
-                        VNFDConnectionPoint vnfdConnectionPoint = new VNFDConnectionPoint();
-                        vnfdConnectionPoint.setVirtual_link_reference(vnfdConnectionPointSample.getVirtual_link_reference());
-                        vnfdConnectionPoint.setFloatingIp(vnfdConnectionPointSample.getFloatingIp());
-                        vnfdConnectionPoint.setType(vnfdConnectionPointSample.getType());
-
-                        vnfdConnectionPointSet.add(vnfdConnectionPoint);
-                    }
-                    vnfComponent_new.setConnection_point(vnfdConnectionPointSet);
+                    VNFComponent vnfComponent_new = getVNFComponent(vdu);
 
                     try {
                         createStandByVNFC(vnfComponent_new, vnfr, vdu);
@@ -132,6 +123,26 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
                 }
             }
         }
+    }
+
+    private VNFComponent getVNFComponent(VirtualDeploymentUnit vdu){
+
+        VNFComponent componentSample = vdu.getVnfc().iterator().next();
+
+        VNFComponent vnfComponent_new = new VNFComponent();
+        Set<VNFDConnectionPoint> vnfdConnectionPointSet= new HashSet<>();
+        for (VNFDConnectionPoint vnfdConnectionPointSample : componentSample.getConnection_point()){
+            VNFDConnectionPoint vnfdConnectionPoint = new VNFDConnectionPoint();
+            vnfdConnectionPoint.setVirtual_link_reference(vnfdConnectionPointSample.getVirtual_link_reference());
+            vnfdConnectionPoint.setFloatingIp(vnfdConnectionPointSample.getFloatingIp());
+            vnfdConnectionPoint.setType(vnfdConnectionPointSample.getType());
+
+            vnfdConnectionPointSet.add(vnfdConnectionPoint);
+        }
+
+        vnfComponent_new.setConnection_point(vnfdConnectionPointSet);
+
+        return vnfComponent_new;
     }
 
     public String cleanFailedInstances(VirtualNetworkFunctionRecord vnfr) throws UnirestException {

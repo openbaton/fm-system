@@ -36,7 +36,6 @@ import java.util.concurrent.*;
 public class MonitoringManagerImpl implements MonitoringManager {
     private static final Logger log = LoggerFactory.getLogger(MonitoringManagerImpl.class);
     private final ScheduledExecutorService nsScheduler = Executors.newScheduledThreadPool(1);
-    private static final String monitorApiUrl="localhost:8090";
     private Map<String,ScheduledFuture<?>> futures;
     private Map<String,List<String> > vduIdPmJobIdMap;
     private Set<String> vnfTriggerId;
@@ -62,7 +61,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
             log.error(e.getMessage(), e);
             throw e;
         }
-        log.debug("monitoringplugincaller obtained");
+        log.debug("MonitoringPluginCaller obtained");
     }
 
     @Override
@@ -161,6 +160,9 @@ public class MonitoringManagerImpl implements MonitoringManager {
                             //Check if the vnfcInstance is not in standby
                             if(vnfcInstance.getState() != null && vnfcInstance.getState().equals("standby"))
                             {
+                                continue;
+                            }
+                            else if (vnfcInstance.getState() != null && vnfcInstance.getState().equals("failed")){
                                 continue;
                             }
                             //Check if the vnfcInstance is already monitored

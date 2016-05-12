@@ -59,10 +59,5 @@ public class KieSessionGlobalConfigurationImpl implements KieSessionGlobalConfig
             }
         }).start();
 
-        /*VRAlarm vrAlarm = new VRAlarm();
-        vrAlarm.setManagedObject("elasticapp-300");
-        vrAlarm.setAlarmState(AlarmState.FIRED);
-        vrAlarm.setPerceivedSeverity(PerceivedSeverity.CRITICAL);
-        kieSession.insert(vrAlarm);*/
     }
 }
