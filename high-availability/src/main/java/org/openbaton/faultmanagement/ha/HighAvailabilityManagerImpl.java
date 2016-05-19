@@ -1,3 +1,18 @@
+/*
+* Copyright (c) 2015-2016 Fraunhofer FOKUS
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 package org.openbaton.faultmanagement.ha;
 
 import com.google.gson.Gson;
@@ -96,22 +111,20 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         } catch (UnirestException e) {
             e.printStackTrace();
         }
-        log.debug("Response status from nfvo: "+jsonResponse.getCode());
+        //TODO check why the following line launch exception
+        //log.debug("Response status from nfvo: "+jsonResponse.getCode());
     }
     public void configureRedundancy(VirtualNetworkFunctionRecord vnfr) throws HighAvailabilityException, UnirestException {
         if(!vnfrNeedsRedundancy(vnfr))
             return;
-
         for (VirtualDeploymentUnit vdu : vnfr.getVdu()) {
             if (vdu.getHigh_availability().getResiliencyLevel().ordinal() == ResiliencyLevel.ACTIVE_STANDBY_STATELESS.ordinal()) {
                 if (vdu.getHigh_availability().getRedundancyScheme().equals("1:N")) {
                     // check the 1:N redundancy
                     if(checkIfStandbyVNFCInstance(vdu))
                         continue;
-
                     if( checkMaxNumInstances(vdu) )
                         continue;
-
                     //Creating a new component to add into the vdu
                     VNFComponent vnfComponent_new = getVNFComponent(vdu);
 
@@ -150,7 +163,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
             for(VNFCInstance vnfcInstance: vdu.getVnfc_instance()){
                 if(vnfcInstance.getState()!=null && vnfcInstance.getState().equals("failed")){
                     log.info("The vnfcInstance: "+ vnfcInstance.getHostname() +" of the vnfr: "+ vnfr.getName()+" is in "+vnfcInstance.getState()+" state");
-                    log.info("DELETING VNFCInstance:"+vnfcInstance.getHostname());
+                    log.info("Deleting VNFCInstance:"+vnfcInstance.getHostname());
                     sendScaleInMessage(vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
                     return vnfcInstance.getHostname();
                 }
@@ -206,7 +219,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         log.debug("Delete message to this url: "+finalUrl);
         jsonResponse = Unirest.delete(finalUrl).header("KeepAliveTimeout","5000").asString();
 
-        log.debug("Response status from nfvo: "+jsonResponse.getCode());
+        //log.debug("Response status from nfvo: "+jsonResponse.getCode());
     }
     private void sendSwitchToStandbyMessage(VNFCInstance failedVnfcInstance,String ... ids) throws UnirestException {
 
@@ -222,7 +235,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         String jsonMessage= mapper.toJson(failedVnfcInstance,VNFCInstance.class);
         jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
 
-        log.debug("Response status from nfvo: "+jsonResponse.getCode());
+
     }
 
     private void sendAddVNFCMessage(VNFComponent vnfComponent, String ... ids) throws UnirestException {
@@ -238,6 +251,6 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         String jsonMessage= mapper.toJson(vnfComponent,VNFComponent.class);
 
         jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
-        log.debug("Response status from nfvo: "+jsonResponse.getCode());
+
     }
 }
