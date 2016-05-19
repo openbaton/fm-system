@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 Fraunhofer FOKUS
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright (c) 2015-2016 Fraunhofer FOKUS
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 package org.openbaton.faultmanagement.fc;
 
 import com.google.gson.Gson;
@@ -28,14 +29,16 @@ import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.fc.exceptions.NFVORequestorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /*import org.openbaton.sdk.NFVORequestorWrapper;
 import org.openbaton.sdk.api.exceptions.SDKException;*/
@@ -46,24 +49,26 @@ import org.openbaton.sdk.api.exceptions.SDKException;*/
 @Service
 public class NFVORequestorWrapperWrapper implements org.openbaton.faultmanagement.fc.interfaces.NFVORequestorWrapper {
     private Set<NetworkServiceRecord> nsrSet;
-    private static final String name = "FaultManagement";
     private Gson mapper;
     private static final Logger log = LoggerFactory.getLogger(NFVORequestorWrapperWrapper.class);
     private List<NetworkServiceRecord> nsrList;
-    private String nfvoIp,nfvoPort,nfvoUrl;
+    private String nfvoUrl;
     //private NFVORequestor nfvoRequestor;
+    @Value("${nfvo.ip:}")
+    private String nfvoIp;
+    @Value("${nfvo.port:8080}")
+    private String nfvoPort;
 
     @PostConstruct
     public void init() throws IOException {
         nsrSet=new HashSet<>();
 
         this.mapper = new GsonBuilder().setPrettyPrinting().create();
-        InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
-        Properties properties = new Properties();
-        properties.load(is);
-        nfvoIp = properties.getProperty("nfvo.rabbit.brokerIp");
-        nfvoPort = properties.getProperty("server.port","8080");
+
+        if(nfvoIp==null || nfvoIp.isEmpty())
+            throw new NullPointerException("The nfvoIp is not present. Please set the 'nfvo.ip' property in the fms.properties");
         nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
+        log.debug("NFVO url:"+nfvoUrl);
         //nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), nfvoIp,nfvoPort,"1");
     }
 

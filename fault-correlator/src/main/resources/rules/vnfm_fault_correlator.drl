@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 Fraunhofer FOKUS
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright (c) 2015-2016 Fraunhofer FOKUS
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 import org.openbaton.catalogue.mano.common.monitoring.*
 import org.openbaton.faultmanagement.fc.repositories.VRAlarmRepository
 import org.openbaton.faultmanagement.fc.repositories.VNFAlarmRepository
@@ -72,8 +73,10 @@ rule "Get a CRITICAL Virtualized Resource Alarm and switch to standby"
 
         RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(),"");
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
+        recoveryAction.setVnfrId(vnfr.getId());
         logger.debug("Recovery action in progress! :"+recoveryAction);
         insert(recoveryAction);
+        delete(a);
 end
 
 rule "A VR alarm is cleared"
@@ -146,22 +149,23 @@ rule "A VNF alarm is updated"
         logger.info("Switch to standby fired!");
         highAvailabilityManager.switchToRedundantVNFC(vnfcInstance,vnfr,vdu);
 
-        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,"generic", "vimname" );
+        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(),"");
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
+        recoveryAction.setVnfrId(vnfr.getId());
         logger.debug("Recovery action in progress! :"+recoveryAction);
 end
 
 
 
-rule "Got a critical VNF Alarm and execute a switch to standby if no action is ongoing on the vim"
+rule "Got a critical VNF Alarm and execute a HEAL if no VRAlarm is received in 30 seconds"
 
     when
-       vnfAlarm : VNFAlarm(  alarmState == AlarmState.FIRED, perceivedSeverity == PerceivedSeverity.CRITICAL, $vimName : vimName, vnfcIds : vnfcIds )
+       vnfAlarm : VNFAlarm(  alarmState == AlarmState.FIRED, perceivedSeverity == PerceivedSeverity.CRITICAL, vnfcIds : vnfcIds )
        vnfcId : String() from vnfcIds
        vnfcInstance : VNFCInstance( hostname : hostname) from nfvoRequestorWrapper.getVNFCInstanceById(vnfcId)
        activeVRAlarm : List( size == 0) from collect ( VRAlarm( alarmState != AlarmState.CLEARED ) from vrAlarmRepository.findByManagedObject(hostname))
        not ( VRAlarm(this after [0s,30s] vnfAlarm))
-       not RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS, vimName == $vimName)
+       not RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
     then
 
     //Get the vnfr
@@ -183,6 +187,8 @@ rule "Got a critical VNF Alarm and execute a switch to standby if no action is o
 
     RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.HEAL,vnfr.getEndpoint(),"");
     recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
+    recoveryAction.setVnfrId(vnfr.getId());
     logger.debug("Recovery action in progress! :"+recoveryAction);
     insert(recoveryAction);
+    delete(vnfAlarm);
 end

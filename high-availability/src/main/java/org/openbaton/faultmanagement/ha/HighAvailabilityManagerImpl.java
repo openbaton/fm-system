@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 Fraunhofer FOKUS
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright (c) 2015-2016 Fraunhofer FOKUS
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 package org.openbaton.faultmanagement.ha;
 
 import com.google.gson.Gson;
@@ -53,16 +54,20 @@ import java.util.concurrent.TimeUnit;
 public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
     private Gson mapper;
     private static final Logger log = LoggerFactory.getLogger(HighAvailabilityManagerImpl.class);
-    private String nfvoIp,nfvoPort,nfvoUrl;
+    private String nfvoUrl;
+    @Value("${nfvo.ip:}")
+    private String nfvoIp;
+    @Value("${nfvo.port:8080}")
+    private String nfvoPort;
+
     @PostConstruct
     public void init() throws IOException {
         mapper = new GsonBuilder().setPrettyPrinting().create();
-        InputStream is = new FileInputStream("/etc/openbaton/openbaton.properties");
-        Properties properties = new Properties();
-        properties.load(is);
-        nfvoIp = properties.getProperty("nfvo.rabbit.brokerIp");
-        nfvoPort = properties.getProperty("server.port","8080");
+        if(nfvoIp==null || nfvoIp.isEmpty())
+            throw new NullPointerException("The nfvoIp is not present. Please set the 'nfvo.ip' property in the fms.properties");
         nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
+        log.debug("NFVO url:"+nfvoUrl);
+
     }
 
     public void switchToRedundantVNFC(VNFCInstance failedVnfcInstance,String nsrId, String vnfrId, String vduId,String vnfcInstanceId) throws HighAvailabilityException {
@@ -106,37 +111,22 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         } catch (UnirestException e) {
             e.printStackTrace();
         }
-        log.debug("Response status from nfvo: "+jsonResponse.getCode());
+        //TODO check why the following line launch exception
+        //log.debug("Response status from nfvo: "+jsonResponse.getCode());
     }
     public void configureRedundancy(VirtualNetworkFunctionRecord vnfr) throws HighAvailabilityException, UnirestException {
         if(!vnfrNeedsRedundancy(vnfr))
             return;
-
         for (VirtualDeploymentUnit vdu : vnfr.getVdu()) {
             if (vdu.getHigh_availability().getResiliencyLevel().ordinal() == ResiliencyLevel.ACTIVE_STANDBY_STATELESS.ordinal()) {
                 if (vdu.getHigh_availability().getRedundancyScheme().equals("1:N")) {
                     // check the 1:N redundancy
                     if(checkIfStandbyVNFCInstance(vdu))
                         continue;
-
                     if( checkMaxNumInstances(vdu) )
                         continue;
-
-                    //Get a component sample
-                    VNFComponent componentSample = vdu.getVnfc().iterator().next();
-
                     //Creating a new component to add into the vdu
-                    VNFComponent vnfComponent_new = new VNFComponent();
-                    Set<VNFDConnectionPoint> vnfdConnectionPointSet= new HashSet<>();
-                    for (VNFDConnectionPoint vnfdConnectionPointSample: componentSample.getConnection_point()){
-                        VNFDConnectionPoint vnfdConnectionPoint = new VNFDConnectionPoint();
-                        vnfdConnectionPoint.setVirtual_link_reference(vnfdConnectionPointSample.getVirtual_link_reference());
-                        vnfdConnectionPoint.setFloatingIp(vnfdConnectionPointSample.getFloatingIp());
-                        vnfdConnectionPoint.setType(vnfdConnectionPointSample.getType());
-
-                        vnfdConnectionPointSet.add(vnfdConnectionPoint);
-                    }
-                    vnfComponent_new.setConnection_point(vnfdConnectionPointSet);
+                    VNFComponent vnfComponent_new = getVNFComponent(vdu);
 
                     try {
                         createStandByVNFC(vnfComponent_new, vnfr, vdu);
@@ -148,12 +138,32 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         }
     }
 
+    private VNFComponent getVNFComponent(VirtualDeploymentUnit vdu){
+
+        VNFComponent componentSample = vdu.getVnfc().iterator().next();
+
+        VNFComponent vnfComponent_new = new VNFComponent();
+        Set<VNFDConnectionPoint> vnfdConnectionPointSet= new HashSet<>();
+        for (VNFDConnectionPoint vnfdConnectionPointSample : componentSample.getConnection_point()){
+            VNFDConnectionPoint vnfdConnectionPoint = new VNFDConnectionPoint();
+            vnfdConnectionPoint.setVirtual_link_reference(vnfdConnectionPointSample.getVirtual_link_reference());
+            vnfdConnectionPoint.setFloatingIp(vnfdConnectionPointSample.getFloatingIp());
+            vnfdConnectionPoint.setType(vnfdConnectionPointSample.getType());
+
+            vnfdConnectionPointSet.add(vnfdConnectionPoint);
+        }
+
+        vnfComponent_new.setConnection_point(vnfdConnectionPointSet);
+
+        return vnfComponent_new;
+    }
+
     public String cleanFailedInstances(VirtualNetworkFunctionRecord vnfr) throws UnirestException {
         for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
             for(VNFCInstance vnfcInstance: vdu.getVnfc_instance()){
                 if(vnfcInstance.getState()!=null && vnfcInstance.getState().equals("failed")){
                     log.info("The vnfcInstance: "+ vnfcInstance.getHostname() +" of the vnfr: "+ vnfr.getName()+" is in "+vnfcInstance.getState()+" state");
-                    log.info("DELETING VNFCInstance:"+vnfcInstance.getHostname());
+                    log.info("Deleting VNFCInstance:"+vnfcInstance.getHostname());
                     sendScaleInMessage(vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
                     return vnfcInstance.getHostname();
                 }
@@ -209,7 +219,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         log.debug("Delete message to this url: "+finalUrl);
         jsonResponse = Unirest.delete(finalUrl).header("KeepAliveTimeout","5000").asString();
 
-        log.debug("Response status from nfvo: "+jsonResponse.getCode());
+        //log.debug("Response status from nfvo: "+jsonResponse.getCode());
     }
     private void sendSwitchToStandbyMessage(VNFCInstance failedVnfcInstance,String ... ids) throws UnirestException {
 
@@ -225,7 +235,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         String jsonMessage= mapper.toJson(failedVnfcInstance,VNFCInstance.class);
         jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
 
-        log.debug("Response status from nfvo: "+jsonResponse.getCode());
+
     }
 
     private void sendAddVNFCMessage(VNFComponent vnfComponent, String ... ids) throws UnirestException {
@@ -241,6 +251,6 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         String jsonMessage= mapper.toJson(vnfComponent,VNFComponent.class);
 
         jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
-        log.debug("Response status from nfvo: "+jsonResponse.getCode());
+
     }
 }

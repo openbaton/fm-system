@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 Fraunhofer FOKUS
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright (c) 2015-2016 Fraunhofer FOKUS
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 package org.openbaton.faultmanagement.fc;
 
 import com.google.gson.Gson;
@@ -42,6 +43,7 @@ import javax.annotation.PostConstruct;
 public class ConfigurationBeans {
     public static final String queueName_eventInstatiateFinish = "nfvo.fm.nsr.create";
     public static final String queueName_eventResourcesReleaseFinish = "nfvo.fm.nsr.delete";
+    public static final String queueName_vnfEvents = "nfvo.fm.vnf.events";
     private Logger logger;
 
     @PostConstruct
@@ -74,6 +76,11 @@ public class ConfigurationBeans {
         logger.debug("Created Queue for NSR Create event");
         return new Queue(queueName_eventInstatiateFinish,false,false,true);
     }
+    @Bean
+    public Queue getVnfEventsQueue(){
+        logger.debug("Created Queue for VNF events");
+        return new Queue(queueName_vnfEvents,false,false,true);
+    }
 
     @Bean
     public Queue getDeletionQueue(){
@@ -88,6 +95,12 @@ public class ConfigurationBeans {
     }
 
     @Bean
+    public Binding setVnfEventsBinding(@Qualifier("getVnfEventsQueue") Queue queue, TopicExchange topicExchange){
+        logger.debug("Created Binding for VNF events");
+        return BindingBuilder.bind(queue).to(topicExchange).with("vnf-events");
+    }
+
+    @Bean
     public Binding setDeletionBinding(@Qualifier("getDeletionQueue") Queue queue, TopicExchange topicExchange){
         logger.debug("Created Binding for NSR Deletion event");
         return BindingBuilder.bind(queue).to(topicExchange).with("ns-deletion");
@@ -96,6 +109,11 @@ public class ConfigurationBeans {
     @Bean
     public MessageListenerAdapter setCreationMessageListenerAdapter(OpenbatonEventReceiver receiver){
         return new MessageListenerAdapter(receiver,"receiveNewNsr");
+    }
+
+    @Bean
+    public MessageListenerAdapter setVnfEventsMessageListenerAdapter(OpenbatonEventReceiver receiver){
+        return new MessageListenerAdapter(receiver,"vnfEvent");
     }
 
     @Bean
@@ -112,6 +130,16 @@ public class ConfigurationBeans {
         res.setMessageListener(adapter);
         return res;
     }
+    @Bean
+    public SimpleMessageListenerContainer setVnfEventsMessageContainer(ConnectionFactory connectionFactory, @Qualifier("getVnfEventsQueue") Queue queue, @Qualifier("setVnfEventsMessageListenerAdapter") MessageListenerAdapter adapter){
+        logger.debug("Created MessageContainer for VNF events");
+        SimpleMessageListenerContainer res = new SimpleMessageListenerContainer();
+        res.setConnectionFactory(connectionFactory);
+        res.setQueues(queue);
+        res.setMessageListener(adapter);
+        return res;
+    }
+
 
     @Bean
     public SimpleMessageListenerContainer setDeletionMessageContainer(ConnectionFactory connectionFactory, @Qualifier("getDeletionQueue") Queue queue, @Qualifier("setDeletionMessageListenerAdapter") MessageListenerAdapter messageListenerAdapter){

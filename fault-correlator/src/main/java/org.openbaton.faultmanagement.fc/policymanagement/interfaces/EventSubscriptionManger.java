@@ -13,39 +13,18 @@
 * limitations under the License.
 */
 
-package org.openbaton.faultmanagement.fc;
+package org.openbaton.faultmanagement.fc.policymanagement.interfaces;
 
-import com.google.gson.JsonObject;
-import org.json.JSONObject;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
+import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
-
-import java.io.Serializable;
+import org.openbaton.sdk.api.exception.SDKException;
 
 /**
- * Created by mob on 30.11.15.
+ * Created by mob on 13.05.16.
  */
-public class OpenbatonEvent implements Serializable{
-    private Action action;
-
-    private JsonObject payload;
-
-    public OpenbatonEvent() {
-    }
-
-    public Action getAction() {
-        return action;
-    }
-
-    public void setAction(Action action) {
-        this.action = action;
-    }
-
-    public JsonObject getPayload() {
-        return payload;
-    }
-
-    public void setPayload(JsonObject payload) {
-        this.payload = payload;
-    }
+public interface EventSubscriptionManger {
+    String subscribe(NetworkServiceRecord networkServiceRecord, Action action) throws SDKException;
+    String subscribe(VirtualNetworkFunctionRecord virtualNetworkFunctionRecord, Action action) throws SDKException;
+    void unSubscribe(String subscriptionId) throws SDKException;
 }

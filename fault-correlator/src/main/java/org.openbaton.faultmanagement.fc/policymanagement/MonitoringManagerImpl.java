@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 Fraunhofer FOKUS
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright (c) 2015-2016 Fraunhofer FOKUS
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 package org.openbaton.faultmanagement.fc.policymanagement;
 
 import org.openbaton.catalogue.mano.common.faultmanagement.Criteria;
@@ -50,7 +51,6 @@ import java.util.concurrent.*;
 public class MonitoringManagerImpl implements MonitoringManager {
     private static final Logger log = LoggerFactory.getLogger(MonitoringManagerImpl.class);
     private final ScheduledExecutorService nsScheduler = Executors.newScheduledThreadPool(1);
-    private static final String monitorApiUrl="localhost:8090";
     private Map<String,ScheduledFuture<?>> futures;
     private Map<String,List<String> > vduIdPmJobIdMap;
     private Set<String> vnfTriggerId;
@@ -76,7 +76,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
             log.error(e.getMessage(), e);
             throw e;
         }
-        log.debug("monitoringplugincaller obtained");
+        log.debug("MonitoringPluginCaller obtained");
     }
 
     @Override
@@ -177,6 +177,9 @@ public class MonitoringManagerImpl implements MonitoringManager {
                             {
                                 continue;
                             }
+                            else if (vnfcInstance.getState() != null && vnfcInstance.getState().equals("failed")){
+                                continue;
+                            }
                             //Check if the vnfcInstance is already monitored
                             if(isVNFCMonitored(vnfcInstance.getHostname())){
                                 continue;
@@ -196,8 +199,11 @@ public class MonitoringManagerImpl implements MonitoringManager {
                         //One pmJob per vdu (Actually)
                         //create a pm job with all the items without a custom period in the criteria
                         //default period is 30 seconds
-                        String pmJobId = monitoringPluginCaller.createPMJob(objectSelection, monitoringParamentersLIst, new ArrayList<String>(), 30, 0);
-                        savePmJobId(vdu.getId(), pmJobId);
+                        String pmJobId;
+                        if(!monitoringParamentersLIst.isEmpty()) {
+                            pmJobId = monitoringPluginCaller.createPMJob(objectSelection, monitoringParamentersLIst, new ArrayList<String>(), 30, 0);
+                            savePmJobId(vdu.getId(), pmJobId);
+                        }
 
                         //create all pm job with a custom period in the criteria
                         Set<String> monitoringParameterWithPeriod = vdu.getMonitoring_parameter();
