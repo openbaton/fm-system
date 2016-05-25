@@ -233,7 +233,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
                                             thresholdId = monitoringPluginCaller.createThreshold(objs, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
                                             thresholdIdListHostname.put(thresholdId, objs.getObjectInstanceIds());
                                             thresholdIdFMPolicyId.put(thresholdId, vnffmp.getId());
-                                            if(vnffmp.getName().startsWith("VNF")){
+                                            if(vnffmp.isVNFAlarm()){
                                                 log.debug("VNF threshold id: "+thresholdId);
                                                 vnfTriggerId.add(thresholdId);
                                             }
@@ -242,7 +242,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
                                         thresholdId = monitoringPluginCaller.createThreshold(objectSelection, performanceMetric, ThresholdType.SINGLE_VALUE, thresholdDetails);
                                         thresholdIdListHostname.put(thresholdId, objectSelection.getObjectInstanceIds());
                                         thresholdIdFMPolicyId.put(thresholdId, vnffmp.getId());
-                                        if(vnffmp.getName().startsWith("VNF")){
+                                        if(vnffmp.isVNFAlarm()){
                                             log.debug("VNF threshold id: "+thresholdId);
                                             vnfTriggerId.add(thresholdId);
                                         }
