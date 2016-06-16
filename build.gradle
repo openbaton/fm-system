@@ -86,7 +86,7 @@ allprojects{
         compile 'org.springframework.boot:spring-boot-starter-logging:' + springBootVersion
 
         //Openbaton
-        compile 'org.openbaton:monitoring:2.0.1'
+        compile 'org.openbaton:monitoring:2.1.0'
 
         testCompile 'org.springframework:spring-test:' + springVersion
         //Gson

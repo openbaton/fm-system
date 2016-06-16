@@ -15,8 +15,6 @@
 
 package org.openbaton.faultmanagement.fc;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
@@ -25,8 +23,11 @@ import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
-import org.openbaton.exceptions.NotFoundException;
+import org.openbaton.catalogue.security.Project;
 import org.openbaton.faultmanagement.fc.exceptions.NFVORequestorException;
+import org.openbaton.faultmanagement.fc.interfaces.NFVORequestorWrapper;
+import org.openbaton.sdk.NFVORequestor;
+import org.openbaton.sdk.api.exception.SDKException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,42 +35,38 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-/*import org.openbaton.sdk.NFVORequestorWrapper;
-import org.openbaton.sdk.api.exceptions.SDKException;*/
 
 /**
  * Created by mob on 26.10.15.
  */
 @Service
-public class NFVORequestorWrapperWrapper implements org.openbaton.faultmanagement.fc.interfaces.NFVORequestorWrapper {
-    private Set<NetworkServiceRecord> nsrSet;
-    private Gson mapper;
+public class NFVORequestorWrapperWrapper implements NFVORequestorWrapper {
     private static final Logger log = LoggerFactory.getLogger(NFVORequestorWrapperWrapper.class);
     private List<NetworkServiceRecord> nsrList;
-    private String nfvoUrl;
-    //private NFVORequestor nfvoRequestor;
+    private NFVORequestor nfvoRequestor;
+    @Value("${nfvo-usr:}")
+    private String nfvoUsr;
+    @Value("${nfvo-pwd:}")
+    private String nfvoPwd;
     @Value("${nfvo.ip:}")
     private String nfvoIp;
     @Value("${nfvo.port:8080}")
     private String nfvoPort;
+    private String projectId;
 
     @PostConstruct
     public void init() throws IOException {
-        nsrSet=new HashSet<>();
-
-        this.mapper = new GsonBuilder().setPrettyPrinting().create();
-
-        if(nfvoIp==null || nfvoIp.isEmpty())
-            throw new NullPointerException("The nfvoIp is not present. Please set the 'nfvo.ip' property in the fms.properties");
-        nfvoUrl = "http://"+nfvoIp+":"+nfvoPort+"/api/v1/ns-records";
-        log.debug("NFVO url:"+nfvoUrl);
-        //nfvoRequestor = new NFVORequestor(properties.getProperty("nfvo-usr"),properties.getProperty("nfvo-pwd"), nfvoIp,nfvoPort,"1");
+        this.nfvoRequestor = new NFVORequestor(nfvoUsr,nfvoPwd, null,false,nfvoIp,nfvoPort,"1");
+        try {
+            for (Project project : nfvoRequestor.getProjectAgent().findAll()) {
+                if (project.getName().equals("default")) {
+                    projectId = project.getId();
+                }
+            }
+        } catch (ClassNotFoundException|SDKException e) {
+            e.printStackTrace();
+        }
     }
 
     private HttpResponse<JsonNode> executeGet(String url) throws NFVORequestorException {
@@ -82,43 +79,25 @@ public class NFVORequestorWrapperWrapper implements org.openbaton.faultmanagemen
         return jsonResponse;
     }
 
-    private List<NetworkServiceRecord> getNetworkServiceRecordsFromNfvo(String url) throws NFVORequestorException {
-
-        HttpResponse<JsonNode> jsonResponse = executeGet(url);
-        Class<?> aClass = Array.newInstance(NetworkServiceRecord.class, 3).getClass();
-        Object[] nsrArray = (Object[]) mapper.fromJson(jsonResponse.getBody().toString(), aClass);
-        nsrList = Arrays.asList((NetworkServiceRecord[]) nsrArray);
-        return nsrList;
-    }
-
     @Override
-    public NetworkServiceRecord getNetworkServiceRecord(String nsrId) throws NotFoundException, NFVORequestorException {
-        return this.getNetworkServiceRecordFromNfvo(nfvoUrl+"/"+nsrId);
+    public NetworkServiceRecord getNetworkServiceRecord(String nsrId) throws ClassNotFoundException, SDKException {
+        return nfvoRequestor.getNetworkServiceRecordAgent().findById(nsrId);
     }
-
-    private NetworkServiceRecord getNetworkServiceRecordFromNfvo(String url) throws NotFoundException, NFVORequestorException {
-        HttpResponse<JsonNode> jsonResponse = executeGet(url);
-        if(jsonResponse.getBody()==null)
-            throw new NotFoundException("Not possibile to retrieve the NSR from the orchestrator");
-        return mapper.fromJson(jsonResponse.getBody().toString(), NetworkServiceRecord.class);
-    }
-    @Override
-    public List<NetworkServiceRecord> getNetworkServiceRecords() throws NFVORequestorException {
-        return this.getNetworkServiceRecordsFromNfvo(nfvoUrl);
-    }
-
 
 
     @Override
-    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId) throws NotFoundException, NFVORequestorException {
-        HttpResponse<JsonNode> jsonResponse = executeGet(nfvoUrl+"/"+nsrId+"/vnfrecords/"+vnfrId);
-        if(jsonResponse.getBody()==null)
-            throw new NotFoundException("Not possibile to retrieve the VNFR from the orchestrator");
-        return mapper.fromJson(jsonResponse.getBody().toString(), VirtualNetworkFunctionRecord.class);
+    public List<NetworkServiceRecord> getNetworkServiceRecords() throws ClassNotFoundException, SDKException {
+        return nfvoRequestor.getNetworkServiceRecordAgent().findAll();
+    }
+
+
+    @Override
+    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId) throws SDKException {
+        return nfvoRequestor.getNetworkServiceRecordAgent().getVirtualNetworkFunctionRecord(nsrId,vnfrId);
     }
 
     @Override
-    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String vnfrId) throws NFVORequestorException {
+    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String vnfrId) throws SDKException, ClassNotFoundException {
         for(NetworkServiceRecord nsr : getNetworkServiceRecords()){
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
                 if(vnfr.getId().equals(vnfrId))
@@ -129,7 +108,7 @@ public class NFVORequestorWrapperWrapper implements org.openbaton.faultmanagemen
     }
 
     @Override
-    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecordFromVNFCHostname(String hostname) throws NFVORequestorException {
+    public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecordFromVNFCHostname(String hostname) throws SDKException, ClassNotFoundException {
         List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
         for(NetworkServiceRecord nsr : nsrs){
             for(VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()){
@@ -146,18 +125,18 @@ public class NFVORequestorWrapperWrapper implements org.openbaton.faultmanagemen
 
     @Override
     public VNFCInstance getVNFCInstanceFromVnfr(VirtualNetworkFunctionRecord vnfr, String vnfcInstaceId) {
-            for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
-                for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
-                    if(vnfcInstance.getId().equals(vnfcInstaceId))
-                        return vnfcInstance;
-                }
+        for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
+            for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
+                if(vnfcInstance.getId().equals(vnfcInstaceId))
+                    return vnfcInstance;
             }
+        }
         return null;
     }
 
     public VirtualDeploymentUnit getVDU(VirtualNetworkFunctionRecord vnfr,String vnfcInstaceId) {
 
-         for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
+        for(VirtualDeploymentUnit vdu : vnfr.getVdu()){
             for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
                 if(vnfcInstance.getId().equals(vnfcInstaceId))
                     return vdu;
@@ -167,7 +146,7 @@ public class NFVORequestorWrapperWrapper implements org.openbaton.faultmanagemen
     }
 
     @Override
-    public VNFCInstance getVNFCInstance(String hostname) throws NFVORequestorException {
+    public VNFCInstance getVNFCInstance(String hostname) throws SDKException, ClassNotFoundException {
 
         List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
         for(NetworkServiceRecord nsr : nsrs){
@@ -184,7 +163,7 @@ public class NFVORequestorWrapperWrapper implements org.openbaton.faultmanagemen
     }
 
     @Override
-    public VNFCInstance getVNFCInstanceById(String VnfcId) throws NFVORequestorException {
+    public VNFCInstance getVNFCInstanceById(String VnfcId) throws SDKException, ClassNotFoundException {
 
         List<NetworkServiceRecord> nsrs= getNetworkServiceRecords();
         for(NetworkServiceRecord nsr : nsrs){

@@ -20,6 +20,7 @@ import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
+import org.openbaton.catalogue.security.Project;
 import org.openbaton.faultmanagement.fc.ConfigurationBeans;
 import org.openbaton.faultmanagement.fc.policymanagement.interfaces.EventSubscriptionManger;
 import org.openbaton.sdk.NFVORequestor;
@@ -55,6 +56,7 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger,Com
     private String nfvoPort;
     @Value("${server.port:}")
     private String fmsPort;
+    private String projectId;
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
     private String unsubscriptionIdINSTANTIATE_FINISH;
@@ -63,7 +65,18 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger,Com
 
     @PostConstruct
     public void init(){
-        nfvoRequestor = new NFVORequestor(nfvoUsr,nfvoUsr, nfvoIp,nfvoPort,"1");
+
+        this.nfvoRequestor = new NFVORequestor(nfvoUsr,nfvoPwd, null,false,nfvoIp,nfvoPort,"1");
+        try {
+            for (Project project : nfvoRequestor.getProjectAgent().findAll()) {
+                if (project.getName().equals("default")) {
+                    projectId = project.getId();
+                }
+            }
+        } catch (ClassNotFoundException|SDKException e) {
+            e.printStackTrace();
+        }
+
         unsubscriptionIdList=new ArrayList<>();
     }
 
@@ -87,11 +100,13 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger,Com
     }
 
     private EventEndpoint sendSubscription(EventEndpoint eventEndpoint) throws SDKException {
+        nfvoRequestor.setProjectId(projectId);
         return nfvoRequestor.getEventAgent().create(eventEndpoint);
     }
 
     @Override
     public void unSubscribe(String subscriptionId) throws SDKException {
+        nfvoRequestor.setProjectId(projectId);
         nfvoRequestor.getEventAgent().requestDelete(subscriptionId);
     }
 

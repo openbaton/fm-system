@@ -270,8 +270,10 @@ public class PolicyManagerImpl implements PolicyManager {
                 nsr = NFVORequestorWrapper.getNetworkServiceRecord(this.nsr.getId());
             } catch (NotFoundException e) {
                 log.error(e.getMessage(),e);
-            } catch (NFVORequestorException e) {
-                log.error(e.getMessage(),e);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (SDKException e) {
+                e.printStackTrace();
             }
             if(nsr.getStatus().ordinal() != Status.ACTIVE.ordinal()) {
                 log.debug("Redundancy thread: the nsr to check redundancy is not in ACTIVE state");
