@@ -73,16 +73,6 @@ public class NFVORequestorWrapperWrapper implements NFVORequestorWrapper {
         }
     }
 
-    private HttpResponse<JsonNode> executeGet(String url) throws NFVORequestorException {
-        HttpResponse<JsonNode> jsonResponse=null;
-        try {
-            jsonResponse = Unirest.get(url).asJson();
-        } catch (UnirestException e) {
-            throw new NFVORequestorException("Is not possible to retrieve data from NFVO");
-        }
-        return jsonResponse;
-    }
-
     @Override
     public NetworkServiceRecord getNetworkServiceRecord(String nsrId) throws ClassNotFoundException, SDKException {
         nfvoRequestor.setProjectId(projectId);

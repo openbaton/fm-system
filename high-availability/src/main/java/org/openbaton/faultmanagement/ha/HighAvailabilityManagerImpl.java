@@ -242,8 +242,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         String jsonMessage= mapper.toJson(vnfComponent,VNFComponent.class);
         try {
             jsonResponse = Unirest.post(finalUrl).header("project-id", projectId).header("Content-type", "application/json").header("KeepAliveTimeout", "5000").body(jsonMessage).asString();
-
-            log.debug("response " + jsonResponse.getCode());
+            log.debug("response ");
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }
