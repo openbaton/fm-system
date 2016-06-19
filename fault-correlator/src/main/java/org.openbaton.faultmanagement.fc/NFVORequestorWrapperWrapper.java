@@ -85,18 +85,21 @@ public class NFVORequestorWrapperWrapper implements NFVORequestorWrapper {
 
     @Override
     public NetworkServiceRecord getNetworkServiceRecord(String nsrId) throws ClassNotFoundException, SDKException {
+        nfvoRequestor.setProjectId(projectId);
         return nfvoRequestor.getNetworkServiceRecordAgent().findById(nsrId);
     }
 
 
     @Override
     public List<NetworkServiceRecord> getNetworkServiceRecords() throws ClassNotFoundException, SDKException {
+        nfvoRequestor.setProjectId(projectId);
         return nfvoRequestor.getNetworkServiceRecordAgent().findAll();
     }
 
 
     @Override
     public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId,String vnfrId) throws SDKException {
+        nfvoRequestor.setProjectId(projectId);
         return nfvoRequestor.getNetworkServiceRecordAgent().getVirtualNetworkFunctionRecord(nsrId,vnfrId);
     }
 
