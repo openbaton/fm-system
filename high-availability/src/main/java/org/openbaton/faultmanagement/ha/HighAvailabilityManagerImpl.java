@@ -20,7 +20,6 @@ import com.google.gson.GsonBuilder;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import org.openbaton.catalogue.mano.common.ConnectionPoint;
 import org.openbaton.catalogue.mano.common.ResiliencyLevel;
 import org.openbaton.catalogue.mano.descriptor.VNFComponent;
 import org.openbaton.catalogue.mano.descriptor.VNFDConnectionPoint;
@@ -28,24 +27,16 @@ import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
-import org.openbaton.catalogue.nfvo.messages.OrVnfmHealVNFRequestMessage;
 import org.openbaton.catalogue.nfvo.messages.VnfmOrHealedMessage;
 import org.openbaton.faultmanagement.ha.exceptions.HighAvailabilityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by mob on 11.01.16.
@@ -70,9 +61,9 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
 
     }
 
-    public void switchToRedundantVNFC(VNFCInstance failedVnfcInstance,String nsrId, String vnfrId, String vduId,String vnfcInstanceId) throws HighAvailabilityException {
+    public void switchToRedundantVNFC(String projectId , VNFCInstance failedVnfcInstance,String nsrId, String vnfrId, String vduId,String vnfcInstanceId) throws HighAvailabilityException {
         try {
-            sendSwitchToStandbyMessage(failedVnfcInstance,nsrId, vnfrId, vduId,vnfcInstanceId);
+            sendSwitchToStandbyMessage(projectId, failedVnfcInstance, nsrId, vnfrId, vduId,vnfcInstanceId);
         } catch (UnirestException e) {
             throw new HighAvailabilityException(e.getMessage(),e);
         }
@@ -81,7 +72,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
     public void switchToRedundantVNFC(VNFCInstance failedVnfcInstance, VirtualNetworkFunctionRecord vnfr,VirtualDeploymentUnit vdu) throws HighAvailabilityException {
         for(VNFCInstance vnfcInstance : vdu.getVnfc_instance()){
             if(vnfcInstance.getState()!=null && vnfcInstance.getState().equals("standby"))
-                switchToRedundantVNFC(failedVnfcInstance,vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
+                switchToRedundantVNFC(vnfr.getProjectId(), failedVnfcInstance,vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
         }
     }
 
@@ -164,7 +155,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
                 if(vnfcInstance.getState()!=null && vnfcInstance.getState().equals("failed")){
                     log.info("The vnfcInstance: "+ vnfcInstance.getHostname() +" of the vnfr: "+ vnfr.getName()+" is in "+vnfcInstance.getState()+" state");
                     log.info("Deleting VNFCInstance:"+vnfcInstance.getHostname());
-                    sendScaleInMessage(vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
+                    sendScaleInMessage(vnfr.getProjectId(), vnfr.getParent_ns_id(),vnfr.getId(),vdu.getId(),vnfcInstance.getId());
                     return vnfcInstance.getHostname();
                 }
             }
@@ -202,12 +193,12 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
 
         try {
             log.info("Creating a new VNFC STANDBY instance");
-            sendAddVNFCMessage(vnfComponent, vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId());
+            sendAddVNFCMessage(vnfComponent, vnfr.getProjectId(), vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId());
         } catch (UnirestException e) {
             throw new HighAvailabilityException(e.getMessage(),e);
         }
     }
-    private void sendScaleInMessage(String ... ids) throws UnirestException {
+    private void sendScaleInMessage(String projectId, String... ids) throws UnirestException {
 
         String finalUrl=nfvoUrl;
         finalUrl += "/"+ids[0];
@@ -217,11 +208,11 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
 
         HttpResponse<String> jsonResponse;
         log.debug("Delete message to this url: "+finalUrl);
-        jsonResponse = Unirest.delete(finalUrl).header("KeepAliveTimeout","5000").asString();
+        jsonResponse = Unirest.delete(finalUrl).header("project-id", projectId).header("KeepAliveTimeout","5000").asString();
 
         //log.debug("Response status from nfvo: "+jsonResponse.getCode());
     }
-    private void sendSwitchToStandbyMessage(VNFCInstance failedVnfcInstance,String ... ids) throws UnirestException {
+    private void sendSwitchToStandbyMessage(String projectId, VNFCInstance failedVnfcInstance, String... ids) throws UnirestException {
 
         String finalUrl=nfvoUrl;
         finalUrl += "/"+ids[0];
@@ -233,12 +224,12 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         HttpResponse<String> jsonResponse;
         log.debug("Sending message switch to standby: "+finalUrl);
         String jsonMessage= mapper.toJson(failedVnfcInstance,VNFCInstance.class);
-        jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
+        jsonResponse = Unirest.post(finalUrl).header("project-id", projectId).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
 
 
     }
 
-    private void sendAddVNFCMessage(VNFComponent vnfComponent, String ... ids) throws UnirestException {
+    private void sendAddVNFCMessage(VNFComponent vnfComponent, String projectId, String... ids) throws UnirestException {
 
         String finalUrl=nfvoUrl;
         finalUrl += "/"+ids[0];
@@ -249,8 +240,12 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         HttpResponse<String> jsonResponse;
         log.debug("Posting new VNFC in standby mode: "+finalUrl);
         String jsonMessage= mapper.toJson(vnfComponent,VNFComponent.class);
+        try {
+            jsonResponse = Unirest.post(finalUrl).header("project-id", projectId).header("Content-type", "application/json").header("KeepAliveTimeout", "5000").body(jsonMessage).asString();
 
-        jsonResponse = Unirest.post(finalUrl).header("Content-type","application/json").header("KeepAliveTimeout","5000").body(jsonMessage).asString();
-
+            log.debug("response " + jsonResponse.getCode());
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
+        }
     }
 }

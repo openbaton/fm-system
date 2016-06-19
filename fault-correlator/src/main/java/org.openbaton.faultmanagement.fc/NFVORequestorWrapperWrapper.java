@@ -59,7 +59,11 @@ public class NFVORequestorWrapperWrapper implements NFVORequestorWrapper {
     public void init() throws IOException {
         this.nfvoRequestor = new NFVORequestor(nfvoUsr,nfvoPwd, null,false,nfvoIp,nfvoPort,"1");
         try {
-            for (Project project : nfvoRequestor.getProjectAgent().findAll()) {
+            log.debug("executing get all projects");
+
+            List<Project> projects = nfvoRequestor.getProjectAgent().findAll();
+            log.debug("found " + projects.size() + " projects");
+            for (Project project : projects) {
                 if (project.getName().equals("default")) {
                     projectId = project.getId();
                 }
