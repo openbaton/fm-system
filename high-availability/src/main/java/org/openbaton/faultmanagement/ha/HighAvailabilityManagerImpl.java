@@ -240,6 +240,8 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         HttpResponse<String> jsonResponse;
         log.debug("Posting new VNFC in standby mode: "+finalUrl);
         String jsonMessage= mapper.toJson(vnfComponent,VNFComponent.class);
+        log.debug("VNFComponent json= "+jsonMessage);
+        log.debug("project id= "+projectId);
         try {
             jsonResponse = Unirest.post(finalUrl).header("project-id", projectId).header("Content-type", "application/json").header("KeepAliveTimeout", "5000").body(jsonMessage).asString();
             log.debug("response ");
