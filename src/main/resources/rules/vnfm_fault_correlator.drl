@@ -1,0 +1,186 @@
+/*
+* Copyright (c) 2015-2016 Fraunhofer FOKUS
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+import org.openbaton.catalogue.mano.common.monitoring.*
+import org.openbaton.catalogue.mano.record.VNFCInstance
+import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord
+import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification
+import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedNotification
+import java.util.Date
+import java.text.SimpleDateFormat
+import  org.openbaton.faultmanagement.core.pm.interfaces.PolicyManager
+import java.text.DateFormat
+import  org.openbaton.faultmanagement.core.ham.interfaces.HighAvailabilityManager
+import  org.openbaton.faultmanagement.repo.VNFAlarmRepository
+import  org.openbaton.faultmanagement.repo.VRAlarmRepository
+
+import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit
+import java.util.List
+import org.openbaton.faultmanagement.requestor.interfaces.NFVORequestorWrapper
+import java.util.Iterator
+import org.openbaton.faultmanagement.catalogue.RecoveryAction
+import org.openbaton.faultmanagement.catalogue.RecoveryActionType
+import org.openbaton.faultmanagement.catalogue.RecoveryActionStatus
+
+global PolicyManager policyManager
+global org.slf4j.Logger logger
+global NFVORequestorWrapper nfvoRequestorWrapper
+global HighAvailabilityManager highAvailabilityManager
+global VRAlarmRepository vrAlarmRepository
+global VNFAlarmRepository vnfAlarmRepository
+
+declare VRAlarm
+ @role(event)
+ @expires(2m)
+end
+
+declare VNFAlarm
+ @role(event)
+ @expires(2m)
+end
+
+
+
+//----------------------------------------------- VirtualizedResource ALARMS -----------------------------------------------------
+
+rule "Get a CRITICAL Virtualized Resource Alarm and switch to standby"
+
+    when
+        a : VRAlarm( thresholdId : thresholdId, hostname : managedObject, alarmState == AlarmState.FIRED,
+        perceivedSeverity == PerceivedSeverity.CRITICAL)
+        not RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
+    then
+        logger.info("(VIRTUALIZATION LAYER) A CRITICAL alarm is received regarding the managedObject: " + hostname);
+        VNFCInstance failedVnfcInstance = nfvoRequestorWrapper.getVNFCInstance(hostname);
+
+        VirtualNetworkFunctionRecord vnfr = nfvoRequestorWrapper.getVirtualNetworkFunctionRecordFromVNFCHostname(hostname);
+
+        VirtualDeploymentUnit vdu = nfvoRequestorWrapper.getVDU(vnfr,failedVnfcInstance.getId());
+
+        logger.info("Switch to standby fired!");
+        highAvailabilityManager.switchToStandby(vnfr.getId(),failedVnfcInstance.getId());
+
+        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(),"");
+        recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
+        recoveryAction.setVnfrId(vnfr.getId());
+        logger.debug("Recovery action in progress! :"+recoveryAction);
+        insert(recoveryAction);
+        delete(a);
+end
+
+rule "A VR alarm is cleared"
+    when
+        VirtualizedResourceAlarmStateChangedNotification( currentThresholdId : triggerId, alarmState == AlarmState.CLEARED )
+        updatedVrAlarm : VRAlarm() from vrAlarmRepository.changeAlarmState( currentThresholdId , AlarmState.CLEARED )
+    then
+        logger.debug("\tThis vr alarm is cleared :" + updatedVrAlarm);
+        Iterable<VRAlarm> alarms = vrAlarmRepository.findAll();
+        logger.debug("Current VR alarms:"+alarms);
+end
+
+rule "Save a VR Alarm"
+    when
+        a : VRAlarm()
+    then
+        VRAlarm vrAlarm = vrAlarmRepository.save(a);
+        logger.debug("\tThis VR alarm is saved :" + vrAlarm);
+        Iterable<VRAlarm> alarms = vrAlarmRepository.findAll();
+        logger.debug("Current VR alarms:"+alarms);
+end
+
+
+
+
+//-------------------------------------------- VNF ALARMS ---------------------------------------------------------------
+
+
+rule "Get a VNF Alarm from a VNFM"
+    when
+        vnfAlarm : VNFAlarm( vnfrId : vnfrId )
+    then
+        VirtualNetworkFunctionRecord vnfr = nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfrId);
+        logger.debug("Got a VNFAlarm from the VNF manager: "+vnfr.getEndpoint());
+end
+
+
+rule "Save a VNFAlarm"
+    when
+        vnfAlarm : VNFAlarm()
+    then
+    VNFAlarm alarm = vnfAlarmRepository.save(vnfAlarm);
+    logger.debug("Saved VnfAlarm: "+alarm);
+end
+
+rule "A VNF alarm is cleared"
+
+    when
+        VNFAlarmStateChangedNotification( $vnfrId : resourceId, alarmState == AlarmState.CLEARED )
+    then
+        VNFAlarm vnfAlarm = vnfAlarmRepository.changeAlarmState($vnfrId,AlarmState.CLEARED);
+        logger.info("\tThis VNF alarm is cleared :" + vnfAlarm);
+        Iterable<VNFAlarm> alarms = vnfAlarmRepository.findAll();
+        logger.debug("Current VNF alarms:"+alarms);
+end
+
+rule "A VNF alarm is updated"
+
+    when
+        vascn : VNFAlarmStateChangedNotification(  $vnfrId : resourceId, alarmState == AlarmState.UPDATED )
+        vnfAlarmUpdated : VNFAlarm( perceivedSeverity == PerceivedSeverity.CRITICAL, vnfcIds : vnfcIds ) from vnfAlarmRepository.findFirstByVnfrId($vnfrId)
+        vnfcId : String() from vnfcIds
+    then
+        logger.info("\tThis VNF alarm is updated :" + vnfAlarmRepository.changeAlarmState( $vnfrId, AlarmState.UPDATED));
+
+        VirtualNetworkFunctionRecord vnfr = nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfAlarmUpdated.getVnfrId());
+
+        highAvailabilityManager.switchToStandby(vnfr.getId(),vnfcId);
+        logger.info("Switch to standby fired!");
+
+        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(),"");
+        recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
+        recoveryAction.setVnfrId(vnfr.getId());
+        logger.debug("Recovery action in progress! :"+recoveryAction);
+end
+
+
+
+rule "Got a critical VNF Alarm and execute a HEAL if no VRAlarm is received in 30 seconds"
+
+    when
+       vnfAlarm : VNFAlarm(  alarmState == AlarmState.FIRED, perceivedSeverity == PerceivedSeverity.CRITICAL, vnfcIds : vnfcIds )
+       vnfcId : String() from vnfcIds
+       vnfcInstance : VNFCInstance( hostname : hostname) from nfvoRequestorWrapper.getVNFCInstanceById(vnfcId)
+       activeVRAlarm : List( size == 0) from collect ( VRAlarm( alarmState != AlarmState.CLEARED ) from vrAlarmRepository.findByManagedObject(hostname))
+       not ( VRAlarm(this after [0s,30s] vnfAlarm))
+       not RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
+    then
+
+    //Get the vnfr
+    VirtualNetworkFunctionRecord vnfr = nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfAlarm.getVnfrId());
+
+    logger.info("(VNF LAYER) A CRITICAL alarm is received by the vnfc: "+vnfcInstance.getHostname());
+
+    highAvailabilityManager.executeHeal(vnfcInstance.getId(),"serviceDown");
+    logger.info("Heal fired!");
+
+    //Insert a new recovery action
+
+    RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.HEAL,vnfr.getEndpoint(),"");
+    recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
+    recoveryAction.setVnfrId(vnfr.getId());
+    logger.debug("Recovery action in progress! :"+recoveryAction);
+    insert(recoveryAction);
+    delete(vnfAlarm);
+end

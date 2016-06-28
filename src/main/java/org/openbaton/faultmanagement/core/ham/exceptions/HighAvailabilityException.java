@@ -13,22 +13,23 @@
 * limitations under the License.
 */
 
-group 'org.openbaton'
-apply plugin: 'java'
+package org.openbaton.faultmanagement.core.ham.exceptions;
 
-repositories {
-    mavenCentral()
-    maven {
-        url "http://get.openbaton.org:8081/nexus/content/groups/public"
+/**
+ * Created by mob on 11.01.16.
+ */
+public class HighAvailabilityException extends Exception{
+    public HighAvailabilityException() {
     }
-}
+    public HighAvailabilityException(Throwable cause) {
+        super(cause);
+    }
 
-dependencies {
-    //compile project(':fault-correlator')
+    public HighAvailabilityException(String message) {
+        super(message);
+    }
 
-    compile 'org.springframework.boot:spring-boot:1.3.3.RELEASE'
-    compile 'commons-io:commons-io:2.4'
-    compile "org.springframework.shell:spring-shell:1.1.0.RELEASE"
-
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    public HighAvailabilityException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

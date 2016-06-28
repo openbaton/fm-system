@@ -13,22 +13,19 @@
 * limitations under the License.
 */
 
-group 'org.openbaton'
-apply plugin: 'java'
+package org.openbaton.faultmanagement.core.mm.interfaces;
 
-repositories {
-    mavenCentral()
-    maven {
-        url "http://get.openbaton.org:8081/nexus/content/groups/public"
-    }
-}
+import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
+import org.openbaton.exceptions.MonitoringException;
 
-dependencies {
-    //compile project(':fault-correlator')
+import java.util.List;
 
-    compile 'org.springframework.boot:spring-boot:1.3.3.RELEASE'
-    compile 'commons-io:commons-io:2.4'
-    compile "org.springframework.shell:spring-shell:1.1.0.RELEASE"
-
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+/**
+ * Created by mob on 04.11.15.
+ */
+public interface MonitoringManager {
+    void startMonitorNS(NetworkServiceRecord networkServiceRecord);
+    void stopMonitorNS(NetworkServiceRecord nsr) throws MonitoringException;
+    String getPolicyIdFromTrhresholdId(String thresholdId);
+    boolean isVNFThreshold(String thresholdId);
 }

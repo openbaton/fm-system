@@ -28,7 +28,7 @@ repositories {
 
 dependencies {
 
-    compile project (':high-availability')
+    //compile project (':high-availability')
 
     //Rest Annotation in AlarmReceiverImpl
     compile 'org.springframework.boot:spring-boot-starter-websocket:1.3.3.RELEASE'
@@ -44,7 +44,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-jdbc:1.3.3.RELEASE'
 
     //NFVO Requestor
-    compile 'org.openbaton:sdk:2.1.1-SNAPSHOT' /*{
+    compile 'org.openbaton:sdk:2.1.1-SNAPSHOT-fm' /*{
         exclude module: 'catalogue'
     }*/
 

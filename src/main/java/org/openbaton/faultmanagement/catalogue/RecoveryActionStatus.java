@@ -13,22 +13,12 @@
 * limitations under the License.
 */
 
-group 'org.openbaton'
-apply plugin: 'java'
+package org.openbaton.faultmanagement.catalogue;
 
-repositories {
-    mavenCentral()
-    maven {
-        url "http://get.openbaton.org:8081/nexus/content/groups/public"
-    }
-}
-
-dependencies {
-    //compile project(':fault-correlator')
-
-    compile 'org.springframework.boot:spring-boot:1.3.3.RELEASE'
-    compile 'commons-io:commons-io:2.4'
-    compile "org.springframework.shell:spring-shell:1.1.0.RELEASE"
-
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+/**
+ * Created by mob on 12.02.16.
+ */
+public enum  RecoveryActionStatus {
+    FINISHED,
+    IN_PROGRESS,
 }
