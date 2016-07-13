@@ -206,12 +206,13 @@ public class MonitoringManagerImpl implements MonitoringManager {
             //create a pm job with all the items without a custom period in the criteria
             //default period is 30 seconds
             String pmJobId;
+            List<String> list=new ArrayList<>();
             if (!monitoringParamentersLIst.isEmpty()) {
               pmJobId =
                   monitoringPluginCaller.createPMJob(
                       objectSelection,
                       monitoringParamentersLIst,
-                      new ArrayList<>(),
+                      list,
                       new Integer(defaultPeriod),
                       new Integer(0));
               savePmJobId(nsrId, vdu.getId(), pmJobId);
