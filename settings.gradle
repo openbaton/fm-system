@@ -14,9 +14,5 @@
 */
 
 rootProject.name = 'openbaton-fm'
-include 'fault-correlator'
-include 'high-availability'
-include 'cli'
-
 
 
