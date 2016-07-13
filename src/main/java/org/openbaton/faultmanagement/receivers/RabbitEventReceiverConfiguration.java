@@ -1,17 +1,17 @@
 /*
-* Copyright (c) 2015-2016 Fraunhofer FOKUS
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2015-2016 Fraunhofer FOKUS
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.openbaton.faultmanagement.receivers;
 
@@ -42,114 +42,129 @@ import javax.annotation.PostConstruct;
 @Configuration
 @ComponentScan("org.openbaton.faultmanagement.core.fc")
 public class RabbitEventReceiverConfiguration {
-    public static final String queueName_eventInstatiateFinish = "nfvo.fm.nsr.create";
-    public static final String queueName_eventResourcesReleaseFinish = "nfvo.fm.nsr.delete";
-    public static final String queueName_vnfEvents = "nfvo.fm.vnf.events";
-    private Logger logger;
+  public static final String queueName_eventInstatiateFinish = "nfvo.fm.nsr.create";
+  public static final String queueName_eventResourcesReleaseFinish = "nfvo.fm.nsr.delete";
+  public static final String queueName_vnfEvents = "nfvo.fm.vnf.events";
+  private Logger logger;
 
-    @PostConstruct
-    private void init(){
-        this.logger = LoggerFactory.getLogger(this.getClass());
-    }
+  @PostConstruct
+  private void init() {
+    this.logger = LoggerFactory.getLogger(this.getClass());
+  }
 
-    @Bean
-    public Gson getMapper(){
-        return new GsonBuilder().serializeNulls().create();
-    }
+  @Bean
+  public Gson getMapper() {
+    return new GsonBuilder().serializeNulls().create();
+  }
 
-    @Bean
-    public ConnectionFactory getConnectionFactory(Environment env){
-        logger.debug("Created ConnectionFactory");
-        CachingConnectionFactory factory = new CachingConnectionFactory(env.getProperty("spring.rabbitmq.host"));
-        factory.setPassword(env.getProperty("spring.rabbitmq.password"));
-        factory.setUsername(env.getProperty("spring.rabbitmq.username"));
-        return factory;
-    }
+  @Bean
+  public ConnectionFactory getConnectionFactory(Environment env) {
+    logger.debug("Created ConnectionFactory");
+    CachingConnectionFactory factory =
+        new CachingConnectionFactory(env.getProperty("spring.rabbitmq.host"));
+    factory.setPassword(env.getProperty("spring.rabbitmq.password"));
+    factory.setUsername(env.getProperty("spring.rabbitmq.username"));
+    return factory;
+  }
 
-    @Bean
-    public TopicExchange getTopic(){
-        logger.debug("Created Topic Exchange");
-        return new TopicExchange("openbaton-exchange");
-    }
+  @Bean
+  public TopicExchange getTopic() {
+    logger.debug("Created Topic Exchange");
+    return new TopicExchange("openbaton-exchange");
+  }
 
-    @Bean
-    public Queue getCreationQueue(){
-        logger.debug("Created Queue for NSR Create event");
-        return new Queue(queueName_eventInstatiateFinish,false,false,true);
-    }
-    @Bean
-    public Queue getVnfEventsQueue(){
-        logger.debug("Created Queue for VNF events");
-        return new Queue(queueName_vnfEvents,false,false,true);
-    }
+  @Bean
+  public Queue getCreationQueue() {
+    logger.debug("Created Queue for NSR Create event");
+    return new Queue(queueName_eventInstatiateFinish, false, false, true);
+  }
 
-    @Bean
-    public Queue getDeletionQueue(){
-        logger.debug("Created Queue for NSR Delete Event");
-        return new Queue(queueName_eventResourcesReleaseFinish,false,false,true);
-    }
+  @Bean
+  public Queue getVnfEventsQueue() {
+    logger.debug("Created Queue for VNF events");
+    return new Queue(queueName_vnfEvents, false, false, true);
+  }
 
-    @Bean
-    public Binding setCreationBinding(@Qualifier("getCreationQueue") Queue queue, TopicExchange topicExchange){
-        logger.debug("Created Binding for NSR Creation event");
-        return BindingBuilder.bind(queue).to(topicExchange).with("ns-creation");
-    }
+  @Bean
+  public Queue getDeletionQueue() {
+    logger.debug("Created Queue for NSR Delete Event");
+    return new Queue(queueName_eventResourcesReleaseFinish, false, false, true);
+  }
 
-    @Bean
-    public Binding setVnfEventsBinding(@Qualifier("getVnfEventsQueue") Queue queue, TopicExchange topicExchange){
-        logger.debug("Created Binding for VNF events");
-        return BindingBuilder.bind(queue).to(topicExchange).with("vnf-events");
-    }
+  @Bean
+  public Binding setCreationBinding(
+      @Qualifier("getCreationQueue") Queue queue, TopicExchange topicExchange) {
+    logger.debug("Created Binding for NSR Creation event");
+    return BindingBuilder.bind(queue).to(topicExchange).with("ns-creation");
+  }
 
-    @Bean
-    public Binding setDeletionBinding(@Qualifier("getDeletionQueue") Queue queue, TopicExchange topicExchange){
-        logger.debug("Created Binding for NSR Deletion event");
-        return BindingBuilder.bind(queue).to(topicExchange).with("ns-deletion");
-    }
+  @Bean
+  public Binding setVnfEventsBinding(
+      @Qualifier("getVnfEventsQueue") Queue queue, TopicExchange topicExchange) {
+    logger.debug("Created Binding for VNF events");
+    return BindingBuilder.bind(queue).to(topicExchange).with("vnf-events");
+  }
 
-    @Bean
-    public MessageListenerAdapter setCreationMessageListenerAdapter(OpenbatonEventReceiver receiver){
-        return new MessageListenerAdapter(receiver,"receiveNewNsr");
-    }
+  @Bean
+  public Binding setDeletionBinding(
+      @Qualifier("getDeletionQueue") Queue queue, TopicExchange topicExchange) {
+    logger.debug("Created Binding for NSR Deletion event");
+    return BindingBuilder.bind(queue).to(topicExchange).with("ns-deletion");
+  }
 
-    @Bean
-    public MessageListenerAdapter setVnfEventsMessageListenerAdapter(OpenbatonEventReceiver receiver){
-        return new MessageListenerAdapter(receiver,"vnfEvent");
-    }
+  @Bean
+  public MessageListenerAdapter setCreationMessageListenerAdapter(OpenbatonEventReceiver receiver) {
+    return new MessageListenerAdapter(receiver, "receiveNewNsr");
+  }
 
-    @Bean
-    public MessageListenerAdapter setDeletionMessageListenerAdapter(OpenbatonEventReceiver receiver){
-        return new MessageListenerAdapter(receiver,"deleteNsr");
-    }
+  @Bean
+  public MessageListenerAdapter setVnfEventsMessageListenerAdapter(
+      OpenbatonEventReceiver receiver) {
+    return new MessageListenerAdapter(receiver, "vnfEvent");
+  }
 
-    @Bean
-    public SimpleMessageListenerContainer setCreationMessageContainer(ConnectionFactory connectionFactory, @Qualifier("getCreationQueue") Queue queue, @Qualifier("setCreationMessageListenerAdapter") MessageListenerAdapter adapter){
-        logger.debug("Created MessageContainer for NSR Creation event");
-        SimpleMessageListenerContainer res = new SimpleMessageListenerContainer();
-        res.setConnectionFactory(connectionFactory);
-        res.setQueues(queue);
-        res.setMessageListener(adapter);
-        return res;
-    }
-    @Bean
-    public SimpleMessageListenerContainer setVnfEventsMessageContainer(ConnectionFactory connectionFactory, @Qualifier("getVnfEventsQueue") Queue queue, @Qualifier("setVnfEventsMessageListenerAdapter") MessageListenerAdapter adapter){
-        logger.debug("Created MessageContainer for VNF events");
-        SimpleMessageListenerContainer res = new SimpleMessageListenerContainer();
-        res.setConnectionFactory(connectionFactory);
-        res.setQueues(queue);
-        res.setMessageListener(adapter);
-        return res;
-    }
+  @Bean
+  public MessageListenerAdapter setDeletionMessageListenerAdapter(OpenbatonEventReceiver receiver) {
+    return new MessageListenerAdapter(receiver, "deleteNsr");
+  }
 
+  @Bean
+  public SimpleMessageListenerContainer setCreationMessageContainer(
+      ConnectionFactory connectionFactory,
+      @Qualifier("getCreationQueue") Queue queue,
+      @Qualifier("setCreationMessageListenerAdapter") MessageListenerAdapter adapter) {
+    logger.debug("Created MessageContainer for NSR Creation event");
+    SimpleMessageListenerContainer res = new SimpleMessageListenerContainer();
+    res.setConnectionFactory(connectionFactory);
+    res.setQueues(queue);
+    res.setMessageListener(adapter);
+    return res;
+  }
 
-    @Bean
-    public SimpleMessageListenerContainer setDeletionMessageContainer(ConnectionFactory connectionFactory, @Qualifier("getDeletionQueue") Queue queue, @Qualifier("setDeletionMessageListenerAdapter") MessageListenerAdapter messageListenerAdapter){
-        logger.debug("Created MessageContainer for NSR Deletion event");
-        SimpleMessageListenerContainer res = new SimpleMessageListenerContainer();
-        res.setConnectionFactory(connectionFactory);
-        res.setQueues(queue);
-        res.setMessageListener(messageListenerAdapter);
-        return res;
-    }
+  @Bean
+  public SimpleMessageListenerContainer setVnfEventsMessageContainer(
+      ConnectionFactory connectionFactory,
+      @Qualifier("getVnfEventsQueue") Queue queue,
+      @Qualifier("setVnfEventsMessageListenerAdapter") MessageListenerAdapter adapter) {
+    logger.debug("Created MessageContainer for VNF events");
+    SimpleMessageListenerContainer res = new SimpleMessageListenerContainer();
+    res.setConnectionFactory(connectionFactory);
+    res.setQueues(queue);
+    res.setMessageListener(adapter);
+    return res;
+  }
 
+  @Bean
+  public SimpleMessageListenerContainer setDeletionMessageContainer(
+      ConnectionFactory connectionFactory,
+      @Qualifier("getDeletionQueue") Queue queue,
+      @Qualifier("setDeletionMessageListenerAdapter")
+      MessageListenerAdapter messageListenerAdapter) {
+    logger.debug("Created MessageContainer for NSR Deletion event");
+    SimpleMessageListenerContainer res = new SimpleMessageListenerContainer();
+    res.setConnectionFactory(connectionFactory);
+    res.setQueues(queue);
+    res.setMessageListener(messageListenerAdapter);
+    return res;
+  }
 }

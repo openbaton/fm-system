@@ -1,17 +1,17 @@
 /*
-* Copyright (c) 2015-2016 Fraunhofer FOKUS
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2015-2016 Fraunhofer FOKUS
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.openbaton.faultmanagement.core.fc;
 
@@ -43,45 +43,45 @@ import java.io.IOException;
 @Configuration
 public class DroolsAutoConfiguration {
 
-    private static final String RULES_PATH = "rules/";
-    private static final Logger log = LoggerFactory.getLogger(DroolsAutoConfiguration.class);
+  private static final String RULES_PATH = "rules/";
+  private static final Logger log = LoggerFactory.getLogger(DroolsAutoConfiguration.class);
 
-    @Bean
-    KieSession kieSession() throws IOException {
-        KieServices ks = KieServices.Factory.get();
-        KieFileSystem kfs = ks.newKieFileSystem();
+  @Bean
+  KieSession kieSession() throws IOException {
+    KieServices ks = KieServices.Factory.get();
+    KieFileSystem kfs = ks.newKieFileSystem();
 
-        try {
-            for (Resource file : getRuleFiles()) {
-                log.debug("Rule: "+file.getFilename());
-                kfs.write(ResourceFactory.newClassPathResource(RULES_PATH + file.getFilename(), "UTF-8"));
-            }
-        } catch (IOException e) {
-            log.error("Problem accessing rules in "+RULES_PATH);
-            throw e;
-        }
-
-        KieBuilder kbuilder = ks.newKieBuilder(kfs);
-        kbuilder.buildAll();
-
-        if (kbuilder.getResults().hasMessages(Message.Level.ERROR)) {
-            throw new IllegalArgumentException(kbuilder.getResults().toString());
-        }
-
-        ReleaseId relId = kbuilder.getKieModule().getReleaseId();
-        KieContainer kcontainer = ks.newKieContainer(relId);
-        KieBaseConfiguration kbconf = ks.newKieBaseConfiguration();
-        kbconf.setOption(EventProcessingOption.STREAM);
-
-        KieBase kbase = kcontainer.newKieBase(kbconf);
-        KieSessionConfiguration ksconf = ks.newKieSessionConfiguration();
-        KieSession ksession = kbase.newKieSession(ksconf, null);
-
-        return ksession;
+    try {
+      for (Resource file : getRuleFiles()) {
+        log.debug("Rule: " + file.getFilename());
+        kfs.write(ResourceFactory.newClassPathResource(RULES_PATH + file.getFilename(), "UTF-8"));
+      }
+    } catch (IOException e) {
+      log.error("Problem accessing rules in " + RULES_PATH);
+      throw e;
     }
 
-    private Resource[] getRuleFiles() throws IOException {
-        ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
-        return resourcePatternResolver.getResources("classpath*:" + RULES_PATH + "**/*.*");
+    KieBuilder kbuilder = ks.newKieBuilder(kfs);
+    kbuilder.buildAll();
+
+    if (kbuilder.getResults().hasMessages(Message.Level.ERROR)) {
+      throw new IllegalArgumentException(kbuilder.getResults().toString());
     }
+
+    ReleaseId relId = kbuilder.getKieModule().getReleaseId();
+    KieContainer kcontainer = ks.newKieContainer(relId);
+    KieBaseConfiguration kbconf = ks.newKieBaseConfiguration();
+    kbconf.setOption(EventProcessingOption.STREAM);
+
+    KieBase kbase = kcontainer.newKieBase(kbconf);
+    KieSessionConfiguration ksconf = ks.newKieSessionConfiguration();
+    KieSession ksession = kbase.newKieSession(ksconf, null);
+
+    return ksession;
+  }
+
+  private Resource[] getRuleFiles() throws IOException {
+    ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+    return resourcePatternResolver.getResources("classpath*:" + RULES_PATH + "**/*.*");
+  }
 }

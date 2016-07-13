@@ -11,15 +11,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class VRAlarmRepositoryImpl implements VRAlarmRepositoryCustom {
 
-    @Autowired private VRAlarmRepository vrAlarmRepository;
+  @Autowired private VRAlarmRepository vrAlarmRepository;
 
-    @Override
-    @Transactional
-    public VRAlarm changeAlarmState(String thresholdId, AlarmState alarmState) {
-        VRAlarm vrAlarm=vrAlarmRepository.findFirstByThresholdId(thresholdId);
-        if(vrAlarm!=null) {
-            vrAlarm.setAlarmState(alarmState);
-        }
-        return vrAlarm;
+  @Override
+  @Transactional
+  public VRAlarm changeAlarmState(String thresholdId, AlarmState alarmState) {
+    VRAlarm vrAlarm = vrAlarmRepository.findFirstByThresholdId(thresholdId);
+    if (vrAlarm != null) {
+      vrAlarm.setAlarmState(alarmState);
     }
+    return vrAlarm;
+  }
 }

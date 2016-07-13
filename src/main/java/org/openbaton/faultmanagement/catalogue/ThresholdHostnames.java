@@ -10,45 +10,40 @@ import java.util.List;
  */
 @Entity
 public class ThresholdHostnames {
-    @Id
-    private String id;
+  @Id private String id;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    private List<String> hostnames;
+  @ElementCollection(fetch = FetchType.EAGER)
+  private List<String> hostnames;
 
-    @PrePersist
-    public void ensureId() {
-        id = IdGenerator.createUUID();
-    }
+  @PrePersist
+  public void ensureId() {
+    id = IdGenerator.createUUID();
+  }
 
-    public ThresholdHostnames(List<String> hostnames){
-        this.hostnames=hostnames;
-    }
-    public ThresholdHostnames(){
+  public ThresholdHostnames(List<String> hostnames) {
+    this.hostnames = hostnames;
+  }
 
-    }
-    public String getId() {
-        return id;
-    }
+  public ThresholdHostnames() {}
 
+  public String getId() {
+    return id;
+  }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public List<String> getHostnames() {
-        return hostnames;
-    }
+  public List<String> getHostnames() {
+    return hostnames;
+  }
 
-    public void setHostnames(List<String> hostnames) {
-        this.hostnames = hostnames;
-    }
+  public void setHostnames(List<String> hostnames) {
+    this.hostnames = hostnames;
+  }
 
-    @Override
-    public String toString() {
-        return "ThresholdHostnames{" +
-                "id='" + id + '\'' +
-                ", hostnames=" + hostnames +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "ThresholdHostnames{" + "id='" + id + '\'' + ", hostnames=" + hostnames + '}';
+  }
 }

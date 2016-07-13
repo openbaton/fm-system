@@ -6,5 +6,4 @@ import org.springframework.data.repository.CrudRepository;
 /**
  * Created by mob on 28/06/16.
  */
-public interface ThresholdHostnamesRepository extends CrudRepository<ThresholdHostnames, String> {
-}
+public interface ThresholdHostnamesRepository extends CrudRepository<ThresholdHostnames, String> {}
