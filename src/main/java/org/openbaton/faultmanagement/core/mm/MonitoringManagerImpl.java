@@ -212,8 +212,8 @@ public class MonitoringManagerImpl implements MonitoringManager {
                       objectSelection,
                       monitoringParamentersLIst,
                       new ArrayList<>(),
-                      defaultPeriod,
-                      0);
+                      new Integer(defaultPeriod),
+                      new Integer(0));
               savePmJobId(nsrId, vdu.getId(), pmJobId);
             }
 
