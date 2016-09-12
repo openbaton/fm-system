@@ -234,38 +234,32 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
       NetworkServiceRecord nsr = null;
       try {
         nsr = nfvoRequestorWrapper.getNsr(this.nsr.getId());
-      } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-      } catch (SDKException e) {
-        e.printStackTrace();
-      }
-      if (nsr.getStatus().ordinal() != Status.ACTIVE.ordinal()) {
-        log.debug("Redundancy thread: the nsr to check redundancy is not in ACTIVE state");
-        return;
-      }
-      for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
-        if (!vnfrNeedsRedundancy(vnfr)) return;
-        for (VirtualDeploymentUnit vdu : vnfr.getVdu()) {
-          if (vdu.getHigh_availability().getResiliencyLevel().ordinal()
-              == ResiliencyLevel.ACTIVE_STANDBY_STATELESS.ordinal()) {
-            if (vdu.getHigh_availability().getRedundancyScheme().equals("1:N")) {
-              // check the 1:N redundancy
-              if (checkIfStandbyVNFCInstance(vdu)) continue;
-              if (checkMaxNumInstances(vdu)) continue;
-              //Creating a new component to add into the vdu
-              VNFComponent vnfComponent_new = getVNFComponent(vdu);
+        if (nsr.getStatus().ordinal() != Status.ACTIVE.ordinal()) {
+          log.debug("Redundancy thread: the nsr to check redundancy is not in ACTIVE state");
+          return;
+        }
+        for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
+          if (!vnfrNeedsRedundancy(vnfr)) continue;
+          for (VirtualDeploymentUnit vdu : vnfr.getVdu()) {
+            if (vdu.getHigh_availability().getResiliencyLevel().ordinal()
+                == ResiliencyLevel.ACTIVE_STANDBY_STATELESS.ordinal()) {
+              if (vdu.getHigh_availability().getRedundancyScheme().equals("1:N")) {
+                // check the 1:N redundancy
+                if (checkIfStandbyVNFCInstance(vdu)) continue;
+                if (checkMaxNumInstances(vdu)) continue;
+                //Creating a new component to add into the vdu
+                VNFComponent vnfComponent_new = getVNFComponent(vdu);
 
-              try {
                 log.debug("Creating standby vnfc instance");
                 createStandByVNFC(vnfComponent_new, vnfr, vdu);
                 log.debug("Creating standby vnfc instance message sent");
-              } catch (Exception e) {
-                if (log.isDebugEnabled()) log.error(e.getMessage(), e);
-                else log.error(e.getMessage());
               }
             }
           }
         }
+      } catch (Exception e) {
+        if (log.isDebugEnabled()) log.error(e.getMessage(), e);
+        else log.error(e.getMessage());
       }
     }
   }
