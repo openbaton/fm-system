@@ -119,6 +119,20 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
     return null;
   }
 
+  public boolean hasFailedVnfcInstances(String vnfrId) throws HighAvailabilityException {
+    try {
+      VirtualNetworkFunctionRecord vnfr =
+          nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfrId);
+      for (VirtualDeploymentUnit vdu : vnfr.getVdu())
+        for (VNFCInstance vnfcInstance : vdu.getVnfc_instance())
+          if (vnfcInstance.getState() != null && vnfcInstance.getState().equals("failed"))
+            return true;
+    } catch (SDKException | ClassNotFoundException e) {
+      throw new HighAvailabilityException(e.getMessage(), e);
+    }
+    return false;
+  }
+
   @Override
   public void stopConfigureRedundancy(String nsrId) {
     ScheduledFuture<?> future = futures.get(nsrId);

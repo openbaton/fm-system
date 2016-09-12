@@ -17,13 +17,13 @@ package org.openbaton.faultmanagement.receivers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import org.kie.api.runtime.KieSession;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.faultmanagement.catalogue.RecoveryAction;
 import org.openbaton.faultmanagement.catalogue.RecoveryActionStatus;
+import org.openbaton.faultmanagement.core.ham.interfaces.HighAvailabilityManager;
 import org.openbaton.faultmanagement.core.pm.interfaces.PolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +40,8 @@ public class OpenbatonEventReceiver {
   @Autowired private Gson mapper;
   @Autowired private PolicyManager policyManager;
   @Autowired private KieSession kieSession;
+  @Autowired private HighAvailabilityManager ham;
+  private String failedVnfrId = "";
 
   public void receiveNewNsr(String message) {
     OpenbatonEvent openbatonEvent;
@@ -48,6 +50,13 @@ public class OpenbatonEventReceiver {
       logger.debug("Received nfvo event with action: " + openbatonEvent.getAction());
 
       NetworkServiceRecord nsr = getNsrFromPayload(openbatonEvent.getPayload());
+      // clean failed vnfc instances
+      if (openbatonEvent.getAction() == Action.INSTANTIATE_FINISH)
+        if (!failedVnfrId.isEmpty() && ham.hasFailedVnfcInstances(failedVnfrId))
+          recoveryActionFinishedOnVnfr(failedVnfrId);
+        else if (!failedVnfrId.isEmpty()) failedVnfrId = "";
+      // clean check complete
+
       boolean isNSRManaged = policyManager.isNSRManaged(nsr.getId());
       if (!isNSRManaged) policyManager.manageNSR(nsr);
     } catch (Exception e) {
@@ -63,6 +72,7 @@ public class OpenbatonEventReceiver {
       logger.debug("Received VNF event with action: " + openbatonEvent.getAction());
       VirtualNetworkFunctionRecord vnfr = getVnfrFromPayload(openbatonEvent.getPayload());
       if (openbatonEvent.getAction().ordinal() == Action.HEAL.ordinal()) {
+        failedVnfrId = vnfr.getId();
         recoveryActionFinishedOnVnfr(vnfr.getId());
       }
     } catch (Exception e) {

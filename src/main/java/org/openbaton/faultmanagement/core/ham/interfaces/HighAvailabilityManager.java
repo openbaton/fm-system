@@ -35,6 +35,8 @@ public interface HighAvailabilityManager {
 
   void executeHeal(String failedVnfcInstanceId, String cause) throws HighAvailabilityException;
 
+  boolean hasFailedVnfcInstances(String vnfrId) throws HighAvailabilityException;
+
   String cleanFailedInstances(String vnfrId) throws HighAvailabilityException;
 
   void stopConfigureRedundancy(String nsrId);
