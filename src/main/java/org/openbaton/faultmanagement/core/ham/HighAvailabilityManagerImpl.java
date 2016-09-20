@@ -151,7 +151,8 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
 
   private boolean checkIfStandbyVNFCInstance(VirtualDeploymentUnit vdu) {
     for (VNFCInstance vnfcInstance : vdu.getVnfc_instance()) {
-      if (vnfcInstance.getState() != null && vnfcInstance.getState().equalsIgnoreCase("standby")) return true;
+      if (vnfcInstance.getState() != null && vnfcInstance.getState().equalsIgnoreCase("standby"))
+        return true;
     }
     return false;
   }
