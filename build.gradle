@@ -24,7 +24,8 @@ apply from: 'gradle/application.java.gradle'
 repositories {
     mavenCentral()
     maven {
-        url "http://get.openbaton.org:8081/nexus/content/groups/public"
+        //url "http://get.openbaton.org:8081/nexus/content/groups/public"
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
     }
     // fc dependency
     maven {
@@ -90,7 +91,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-jdbc:1.3.3.RELEASE'
 
     //NFVO Requestor
-    compile 'org.openbaton:sdk:2.1.1-SNAPSHOT-fm' /*{
+    compile 'org.openbaton:sdk:2.1.4-SNAPSHOT' /*{
         exclude module: 'catalogue'
     }*/
 
@@ -112,7 +113,7 @@ dependencies {
     // cli dependencies end
 
     //Openbaton
-    compile 'org.openbaton:monitoring:2.1.0'
+    compile 'org.openbaton:monitoring:2.1.4-SNAPSHOT'
 
     //Gson
     compile 'com.google.code.gson:gson:2.4'
