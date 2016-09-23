@@ -15,4 +15,6 @@ public interface ManagedNetworkServiceRecordRepositoryCustom {
   ManagedNetworkServiceRecord addFmPolicyId(String nsrId, String thresholdId, String fmPolicyId);
 
   ManagedNetworkServiceRecord addVnfTriggerId(String nsrId, String thresholdId);
+
+  String addUnsubscriptionId(String nsrId, String unSubscriptionId);
 }
