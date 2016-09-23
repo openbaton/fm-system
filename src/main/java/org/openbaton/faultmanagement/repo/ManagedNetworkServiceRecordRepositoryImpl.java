@@ -57,6 +57,16 @@ public class ManagedNetworkServiceRecordRepositoryImpl
 
   @Override
   @Transactional
+  public String addUnsubscriptionId(String nsrId, String unSubscriptionId) {
+    ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsrId);
+    if (mnsr != null) {
+      mnsr.getUnSubscriptionIds().add(unSubscriptionId);
+    }
+    return unSubscriptionId;
+  }
+
+  @Override
+  @Transactional
   public ManagedNetworkServiceRecord addFmPolicyId(
       String nsrId, String thresholdId, String fmPolicyId) {
     ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsrId);

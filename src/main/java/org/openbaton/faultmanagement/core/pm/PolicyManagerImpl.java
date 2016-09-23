@@ -21,10 +21,10 @@ import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.exceptions.MonitoringException;
+import org.openbaton.faultmanagement.catalogue.ManagedNetworkServiceRecord;
 import org.openbaton.faultmanagement.core.ham.exceptions.HighAvailabilityException;
 import org.openbaton.faultmanagement.core.ham.interfaces.HighAvailabilityManager;
 import org.openbaton.faultmanagement.core.mm.interfaces.MonitoringManager;
-import org.openbaton.faultmanagement.catalogue.ManagedNetworkServiceRecord;
 import org.openbaton.faultmanagement.core.pm.exceptions.FaultManagementPolicyException;
 import org.openbaton.faultmanagement.core.pm.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.repo.ManagedNetworkServiceRecordRepository;
@@ -68,8 +68,8 @@ public class PolicyManagerImpl implements PolicyManager {
     List<VirtualNetworkFunctionRecord> vnfrRequiringFaultManagement =
         getVnfrRequiringFaultManagement(nsr);
 
-    eventSubscriptionManger.subscribe(nsr, Action.HEAL);
     saveManagedNetworkServiceRecord(nsr);
+    eventSubscriptionManger.subscribe(nsr, Action.HEAL);
     monitoringManager.startMonitorNS(nsr);
     highAvailabilityManager.configureRedundancy(nsr);
   }
@@ -124,6 +124,16 @@ public class PolicyManagerImpl implements PolicyManager {
     log.debug("stopping threads pf nsr : " + networkServiceRecord.getName());
     monitoringManager.stopMonitorNS(networkServiceRecord);
     highAvailabilityManager.stopConfigureRedundancy(networkServiceRecord.getId());
+    ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(networkServiceRecord.getId());
+    if (mnsr != null)
+      for (String unSubscriptionId : mnsr.getUnSubscriptionIds())
+        try {
+          eventSubscriptionManger.unSubscribe(unSubscriptionId);
+        } catch (SDKException e) {
+          throw new MonitoringException(e.getMessage(), e);
+        }
+    mnsrRepo.deleteByNsrId(networkServiceRecord.getId());
+    log.debug("Unmanaged nsr:" + networkServiceRecord.getName());
   }
 
   @Override

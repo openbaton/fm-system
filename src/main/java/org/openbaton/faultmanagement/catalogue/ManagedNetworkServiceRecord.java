@@ -35,6 +35,9 @@ public class ManagedNetworkServiceRecord {
   private Map<String, ThresholdHostnames> hostnames;
 
   @ElementCollection(fetch = FetchType.EAGER)
+  private Set<String> unSubscriptionIds;
+
+  @ElementCollection(fetch = FetchType.EAGER)
   private Map<String, VduPmJobs> vduIdPmJobIdMap;
 
   @ElementCollection(fetch = FetchType.EAGER)
@@ -76,6 +79,14 @@ public class ManagedNetworkServiceRecord {
     this.thresholdIdFmPolicyMap = thresholdIdFmPolicyMap;
   }
 
+  public Set<String> getUnSubscriptionIds() {
+    return unSubscriptionIds;
+  }
+
+  public void setUnSubscriptionIds(Set<String> unSubscriptionIds) {
+    this.unSubscriptionIds = unSubscriptionIds;
+  }
+
   public Map<String, VduPmJobs> getVduIdPmJobIdMap() {
     return vduIdPmJobIdMap;
   }
@@ -113,6 +124,8 @@ public class ManagedNetworkServiceRecord {
         + thresholdIdFmPolicyMap
         + ", hostnames="
         + hostnames
+        + ", unSubscriptionIds="
+        + unSubscriptionIds
         + ", vduIdPmJobIdMap="
         + vduIdPmJobIdMap
         + ", vnfTriggerId="

@@ -20,8 +20,10 @@ import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.catalogue.nfvo.EndpointType;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
+import org.openbaton.faultmanagement.catalogue.ManagedNetworkServiceRecord;
 import org.openbaton.faultmanagement.core.pm.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.receivers.RabbitEventReceiverConfiguration;
+import org.openbaton.faultmanagement.repo.ManagedNetworkServiceRecordRepository;
 import org.openbaton.faultmanagement.requestor.interfaces.NFVORequestorWrapper;
 import org.openbaton.faultmanagement.subscriber.interfaces.EventSubscriptionManger;
 import org.openbaton.sdk.api.exception.SDKException;
@@ -35,9 +37,6 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by mob on 13.05.16.
  */
@@ -48,10 +47,10 @@ public class EventSubscriptionManagerImpl
 
   @Autowired private NFVORequestorWrapper nfvoRequestor;
   @Autowired private PolicyManager policyManager;
+  @Autowired private ManagedNetworkServiceRecordRepository mnsrRepo;
   private Logger log = LoggerFactory.getLogger(this.getClass());
   private String unsubscriptionIdINSTANTIATE_FINISH;
   private String unsubscriptionIdRELEASE_RESOURCES_FINISH;
-  private List<String> unsubscriptionIdList = new ArrayList<>();
 
   @Override
   public String subscribe(NetworkServiceRecord networkServiceRecord, Action action)
@@ -64,7 +63,7 @@ public class EventSubscriptionManagerImpl
             RabbitEventReceiverConfiguration.queueName_vnfEvents);
     eventEndpoint.setNetworkServiceId(networkServiceRecord.getId());
     String id = sendSubscription(eventEndpoint);
-    unsubscriptionIdList.add(id);
+    mnsrRepo.addUnsubscriptionId(networkServiceRecord.getId(), id);
     return id;
   }
 
@@ -79,7 +78,7 @@ public class EventSubscriptionManagerImpl
             RabbitEventReceiverConfiguration.queueName_vnfEvents);
     eventEndpoint.setVirtualNetworkFunctionId(virtualNetworkFunctionRecord.getId());
     String id = sendSubscription(eventEndpoint);
-    unsubscriptionIdList.add(id);
+    mnsrRepo.addUnsubscriptionId(virtualNetworkFunctionRecord.getParent_ns_id(), id);
     return id;
   }
 
@@ -136,9 +135,10 @@ public class EventSubscriptionManagerImpl
         unSubscribe(unsubscriptionIdRELEASE_RESOURCES_FINISH);
 
       log.debug("unsubscribing vnf event subscriptions");
-      for (String unsubscriptionId : unsubscriptionIdList) {
-        unSubscribe(unsubscriptionId);
-      }
+      for (ManagedNetworkServiceRecord mnsr : mnsrRepo.findAll())
+        for (String unsubscriptionId : mnsr.getUnSubscriptionIds()) {
+          unSubscribe(unsubscriptionId);
+        }
 
     } catch (SDKException e) {
       log.error("The NFVO is not available for unsubscriptions: " + e.getMessage(), e);
