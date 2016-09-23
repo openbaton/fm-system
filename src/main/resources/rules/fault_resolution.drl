@@ -47,14 +47,14 @@ rule "Recovery action finished in nsr"
         delete(recoveryActionEnd);
 end
 
-rule "Recovery action finished in nsr"
+rule "Recovery action finished"
     when
        $ra : RecoveryAction(status == RecoveryActionStatus.FINISHED)
     then
         logger.info("This recovery action is finished: " + $ra);
 end
 
-rule "Recovery action finished in nsr"
+rule "Recovery action in progress"
     when
        $ra : RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
     then
