@@ -29,6 +29,7 @@ public class RecoveryAction {
   private String startingTime;
   private RecoveryActionStatus status;
   private String vnfrId;
+  private String nsrId;
 
   public RecoveryAction(
       RecoveryActionType recoveryActionType, String vnfmEndpoint, String vimName) {
@@ -51,6 +52,14 @@ public class RecoveryAction {
       Date date = new Date();
       this.startingTime = dateFormat.format(date);
     }
+  }
+
+  public String getNsrId() {
+    return nsrId;
+  }
+
+  public void setNsrId(String nsrId) {
+    this.nsrId = nsrId;
   }
 
   public RecoveryActionType getRecoveryActionType() {
@@ -111,6 +120,9 @@ public class RecoveryAction {
         + status
         + ", vnfrId='"
         + vnfrId
+        + '\''
+        + ", nsrId='"
+        + nsrId
         + '\''
         + '}';
   }

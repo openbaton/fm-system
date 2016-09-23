@@ -91,32 +91,31 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
     return vnfComponent_new;
   }
 
-  public String cleanFailedInstances(String vnfrId) throws HighAvailabilityException {
+  public void cleanFailedInstances(String nsrId) throws HighAvailabilityException {
     try {
-      VirtualNetworkFunctionRecord vnfr =
-          nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfrId);
-      for (VirtualDeploymentUnit vdu : vnfr.getVdu()) {
-        for (VNFCInstance vnfcInstance : vdu.getVnfc_instance()) {
-          if (vnfcInstance.getState() != null && vnfcInstance.getState().equals("failed")) {
-            log.info(
-                "The vnfcInstance: "
-                    + vnfcInstance.getHostname()
-                    + " of the vnfr: "
-                    + vnfr.getName()
-                    + " is in "
-                    + vnfcInstance.getState()
-                    + " state");
-            log.info("Deleting VNFCInstance:" + vnfcInstance.getHostname());
-            nfvoRequestorWrapper.deleteVnfcInstance(
-                vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId(), vnfcInstance.getId());
-            return vnfcInstance.getHostname();
+      NetworkServiceRecord nsr = nfvoRequestorWrapper.getNsr(nsrId);
+      for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr())
+        for (VirtualDeploymentUnit vdu : vnfr.getVdu()) {
+          for (VNFCInstance vnfcInstance : vdu.getVnfc_instance()) {
+            if (vnfcInstance.getState() != null
+                && vnfcInstance.getState().equalsIgnoreCase("failed")) {
+              log.info(
+                  "The vnfcInstance: "
+                      + vnfcInstance.getHostname()
+                      + " of the vnfr: "
+                      + vnfr.getName()
+                      + " is in "
+                      + vnfcInstance.getState()
+                      + " state");
+              log.info("Deleting VNFCInstance:" + vnfcInstance.getHostname());
+              nfvoRequestorWrapper.deleteVnfcInstance(
+                  vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId(), vnfcInstance.getId());
+            }
           }
         }
-      }
     } catch (SDKException | ClassNotFoundException e) {
       throw new HighAvailabilityException(e.getMessage(), e);
     }
-    return null;
   }
 
   public boolean hasFailedVnfcInstances(String vnfrId) throws HighAvailabilityException {

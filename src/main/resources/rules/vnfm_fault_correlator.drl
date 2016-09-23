@@ -74,7 +74,7 @@ rule "Get a CRITICAL Virtualized Resource Alarm and switch to standby"
 
         RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(),"");
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
-        recoveryAction.setVnfrId(vnfr.getId());
+        recoveryAction.setNsrId(vnfr.getParent_ns_id());
         logger.debug("Recovery action in progress! :"+recoveryAction);
         insert(recoveryAction);
         delete(a);
@@ -150,7 +150,7 @@ rule "A VNF alarm is updated"
 
         RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(),"");
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
-        recoveryAction.setVnfrId(vnfr.getId());
+        recoveryAction.setNsrId(vnfr.getParent_ns_id());
         logger.debug("Recovery action in progress! :"+recoveryAction);
 end
 
@@ -179,7 +179,7 @@ rule "Got a critical VNF Alarm and execute a HEAL if no VRAlarm is received in 3
 
     RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.HEAL,vnfr.getEndpoint(),"");
     recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
-    recoveryAction.setVnfrId(vnfr.getId());
+    recoveryAction.setNsrId(vnfr.getParent_ns_id());
     logger.debug("Recovery action in progress! :"+recoveryAction);
     insert(recoveryAction);
     delete(vnfAlarm);

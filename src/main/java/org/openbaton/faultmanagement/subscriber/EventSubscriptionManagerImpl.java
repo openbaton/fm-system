@@ -62,7 +62,7 @@ public class EventSubscriptionManagerImpl
             EndpointType.RABBIT,
             action,
             RabbitEventReceiverConfiguration.queueName_vnfEvents);
-    eventEndpoint.setVirtualNetworkFunctionId(networkServiceRecord.getId());
+    eventEndpoint.setNetworkServiceId(networkServiceRecord.getId());
     String id = sendSubscription(eventEndpoint);
     unsubscriptionIdList.add(id);
     return id;
