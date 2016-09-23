@@ -50,15 +50,16 @@ public class OpenbatonEventReceiver {
       logger.debug("Received nfvo event with action: " + openbatonEvent.getAction());
 
       NetworkServiceRecord nsr = getNsrFromPayload(openbatonEvent.getPayload());
-      // clean failed vnfc instances
+      /*// clean failed vnfc instances
       if (openbatonEvent.getAction() == Action.INSTANTIATE_FINISH)
         if (!failedVnfrId.isEmpty() && ham.hasFailedVnfcInstances(failedVnfrId))
           recoveryActionFinishedOnVnfr(failedVnfrId);
         else if (!failedVnfrId.isEmpty()) failedVnfrId = "";
-      // clean check complete
-
+          // clean check complete*/
       boolean isNSRManaged = policyManager.isNSRManaged(nsr.getId());
-      if (!isNSRManaged) policyManager.manageNSR(nsr);
+      if (isNSRManaged)
+        if (openbatonEvent.getAction() == Action.HEAL) recoveryActionFinishedOnNsr(nsr.getId());
+        else policyManager.manageNSR(nsr);
     } catch (Exception e) {
       if (logger.isDebugEnabled()) logger.error(e.getMessage(), e);
       else logger.error(e.getMessage());
@@ -70,11 +71,7 @@ public class OpenbatonEventReceiver {
     try {
       openbatonEvent = getOpenbatonEvent(message);
       logger.debug("Received VNF event with action: " + openbatonEvent.getAction());
-      VirtualNetworkFunctionRecord vnfr = getVnfrFromPayload(openbatonEvent.getPayload());
-      if (openbatonEvent.getAction().ordinal() == Action.HEAL.ordinal()) {
-        failedVnfrId = vnfr.getId();
-        recoveryActionFinishedOnVnfr(vnfr.getId());
-      }
+      //VirtualNetworkFunctionRecord vnfr = getVnfrFromPayload(openbatonEvent.getPayload());
     } catch (Exception e) {
       if (logger.isDebugEnabled()) logger.error(e.getMessage(), e);
       else logger.error(e.getMessage());
@@ -109,6 +106,13 @@ public class OpenbatonEventReceiver {
   private void recoveryActionFinishedOnVnfr(String vnfrId) {
     RecoveryAction recoveryAction = new RecoveryAction();
     recoveryAction.setVnfrId(vnfrId);
+    recoveryAction.setStatus(RecoveryActionStatus.FINISHED);
+    kieSession.insert(recoveryAction);
+  }
+
+  private void recoveryActionFinishedOnNsr(String nsrId) {
+    RecoveryAction recoveryAction = new RecoveryAction();
+    recoveryAction.setNsrId(nsrId);
     recoveryAction.setStatus(RecoveryActionStatus.FINISHED);
     kieSession.insert(recoveryAction);
   }

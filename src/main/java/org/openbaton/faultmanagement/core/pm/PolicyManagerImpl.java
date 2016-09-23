@@ -68,9 +68,7 @@ public class PolicyManagerImpl implements PolicyManager {
     List<VirtualNetworkFunctionRecord> vnfrRequiringFaultManagement =
         getVnfrRequiringFaultManagement(nsr);
 
-    for (VirtualNetworkFunctionRecord vnfr : vnfrRequiringFaultManagement) {
-      eventSubscriptionManger.subscribe(vnfr, Action.HEAL);
-    }
+    eventSubscriptionManger.subscribe(nsr, Action.HEAL);
     saveManagedNetworkServiceRecord(nsr);
     monitoringManager.startMonitorNS(nsr);
     highAvailabilityManager.configureRedundancy(nsr);
