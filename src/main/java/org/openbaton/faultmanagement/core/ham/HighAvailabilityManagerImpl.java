@@ -124,7 +124,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
           nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfrId);
       for (VirtualDeploymentUnit vdu : vnfr.getVdu())
         for (VNFCInstance vnfcInstance : vdu.getVnfc_instance())
-          if (vnfcInstance.getState() != null && vnfcInstance.getState().equals("failed"))
+          if (vnfcInstance.getState() != null && vnfcInstance.getState().equalsIgnoreCase("failed"))
             return true;
     } catch (SDKException | ClassNotFoundException e) {
       throw new HighAvailabilityException(e.getMessage(), e);
@@ -229,7 +229,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
   private VNFCInstance findStandbyVnfcInstance(VirtualDeploymentUnit vdu)
       throws HighAvailabilityException {
     for (VNFCInstance vnfcInstance : vdu.getVnfc_instance()) {
-      if (vnfcInstance.getState() != null && vnfcInstance.getState().equals("standby"))
+      if (vnfcInstance.getState() != null && vnfcInstance.getState().equalsIgnoreCase("standby"))
         return vnfcInstance;
     }
     throw new HighAvailabilityException(
