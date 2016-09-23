@@ -58,7 +58,10 @@ public class OpenbatonEventReceiver {
           // clean check complete*/
       boolean isNSRManaged = policyManager.isNSRManaged(nsr.getId());
       if (isNSRManaged) {
-        if (openbatonEvent.getAction() == Action.HEAL) recoveryActionFinishedOnNsr(nsr.getId());
+        if (openbatonEvent.getAction() == Action.HEAL) {
+          logger.debug("Recoveri action finished on nsr:" + nsr.getId());
+          recoveryActionFinishedOnNsr(nsr.getId());
+        }
       } else policyManager.manageNSR(nsr);
     } catch (Exception e) {
       if (logger.isDebugEnabled()) logger.error(e.getMessage(), e);
