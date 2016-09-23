@@ -60,7 +60,7 @@ public class EventSubscriptionManagerImpl
             "FM-nsr-" + action,
             EndpointType.RABBIT,
             action,
-            RabbitEventReceiverConfiguration.queueName_vnfEvents);
+            RabbitEventReceiverConfiguration.queueName_eventInstatiateFinish);
     eventEndpoint.setNetworkServiceId(networkServiceRecord.getId());
     String id = sendSubscription(eventEndpoint);
     mnsrRepo.addUnsubscriptionId(networkServiceRecord.getId(), id);
