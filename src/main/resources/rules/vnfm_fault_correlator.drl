@@ -80,6 +80,15 @@ rule "Get a CRITICAL Virtualized Resource Alarm and switch to standby"
         delete(a);
 end
 
+rule "Recovery action still in progress"
+
+    when
+        a : VRAlarm( )
+        RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
+    then
+        logger.warn("Received vr Alarm bu a recovery action is still in progress");
+end
+
 rule "A VR alarm is cleared"
     when
         VirtualizedResourceAlarmStateChangedNotification( currentThresholdId : triggerId, alarmState == AlarmState.CLEARED )
