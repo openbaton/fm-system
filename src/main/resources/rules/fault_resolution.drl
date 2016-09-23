@@ -20,24 +20,10 @@ import org.openbaton.faultmanagement.core.ham.interfaces.HighAvailabilityManager
 global org.slf4j.Logger logger
 global HighAvailabilityManager highAvailabilityManager
 
-rule "Recovery action finished in vnfr"
-    when
-       recoveryActionEnd : RecoveryAction(status == RecoveryActionStatus.FINISHED, $vnfrId : vnfrId)
-       recoveryActionActual : RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS, vnfrId == $vnfrId)
-    then
-        logger.info("The recovery action " + recoveryActionActual.getRecoveryActionType() + " is finished in the vnf with id: "+$vnfrId);
-
-        //highAvailabilityManager.cleanFailedInstances($vnfrId);
-
-        delete(recoveryActionActual);
-        delete(recoveryActionEnd);
-end
-
-
 rule "Recovery action finished in nsr"
     when
-       recoveryActionEnd : RecoveryAction(status == RecoveryActionStatus.FINISHED, $nsrId : nsrId)
-       recoveryActionActual : RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS, nsrId == $nsrId)
+       recoveryActionEnd : RecoveryAction(status == RecoveryActionStatus.FINISHED, nsrId != null, $nsrId : nsrId)
+       recoveryActionActual : RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS, nsrId != null , nsrId == $nsrId)
     then
         logger.info("The recovery action " + recoveryActionActual.getRecoveryActionType() + " is finished in the ns with id: "+$nsrId);
 
@@ -45,18 +31,4 @@ rule "Recovery action finished in nsr"
 
         delete(recoveryActionActual);
         delete(recoveryActionEnd);
-end
-
-rule "Recovery action finished"
-    when
-       $ra : RecoveryAction(status == RecoveryActionStatus.FINISHED)
-    then
-        logger.info("This recovery action is finished: " + $ra);
-end
-
-rule "Recovery action in progress"
-    when
-       $ra : RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
-    then
-        logger.info("This recovery action is in progress: " + $ra);
 end
