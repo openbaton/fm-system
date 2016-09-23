@@ -178,10 +178,10 @@ public class MonitoringManagerImpl implements MonitoringManager {
             ObjectSelection objectSelection = new ObjectSelection();
             for (VNFCInstance vnfcInstance : vdu.getVnfc_instance()) {
               //Check if the vnfcInstance is not in standby
-              if (vnfcInstance.getState() != null && vnfcInstance.getState().equals("standby")) {
+              if (vnfcInstance.getState() != null && vnfcInstance.getState().equalsIgnoreCase("standby")) {
                 continue;
               } else if (vnfcInstance.getState() != null
-                  && vnfcInstance.getState().equals("failed")) {
+                  && vnfcInstance.getState().equalsIgnoreCase("failed")) {
                 removeMonitoredVnfcInstance(nsrId, vnfcInstance.getHostname());
                 continue;
               }
