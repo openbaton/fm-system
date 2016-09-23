@@ -125,14 +125,15 @@ public class PolicyManagerImpl implements PolicyManager {
     monitoringManager.stopMonitorNS(networkServiceRecord);
     highAvailabilityManager.stopConfigureRedundancy(networkServiceRecord.getId());
     ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(networkServiceRecord.getId());
-    if (mnsr != null)
+    if (mnsr != null) {
       for (String unSubscriptionId : mnsr.getUnSubscriptionIds())
         try {
           eventSubscriptionManger.unSubscribe(unSubscriptionId);
         } catch (SDKException e) {
           throw new MonitoringException(e.getMessage(), e);
         }
-    mnsrRepo.deleteByNsrId(networkServiceRecord.getId());
+      mnsrRepo.delete(mnsr);
+    }
     log.debug("Unmanaged nsr:" + networkServiceRecord.getName());
   }
 

@@ -9,6 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 public interface ManagedNetworkServiceRecordRepository
     extends CrudRepository<ManagedNetworkServiceRecord, String>,
         ManagedNetworkServiceRecordRepositoryCustom {
+
   ManagedNetworkServiceRecord findByNsrId(String nsrId);
 
   void deleteByNsrId(String nsrId);
