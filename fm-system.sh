@@ -19,10 +19,7 @@ _version=${version}
 _fmsystem_config_file=/etc/openbaton/fms.properties
 
 function compile {
-    ./gradlew build -x test 
-}
-function tests {
-    ./gradlew test
+    ./gradlew build
 }
 
 function clean {
@@ -78,6 +75,13 @@ function check_zabbix_plugin_up {
 		exit;
         fi
 }
+function usage {
+    echo -e "Open Baton Fault Management System\n"
+    echo -e "Usage:\n\t ./fm-system.sh [compile|start|stop|force-stop]"
+}
+function stop {
+    pkill -f fm-system-${_version}.jar
+}
 
 function start {
 
@@ -95,30 +99,29 @@ function start {
     fi
 }
 
+if [ $# -eq 0 ]
+   then
+        usage
+        exit 1
+fi
+
+
 declare -a cmds=($@)
 for (( i = 0; i <  ${#cmds[*]}; ++ i ))
 do
     case ${cmds[$i]} in
-        "clean" )
-            clean ;;
         "sc" )
             clean
             compile
             start ;;
         "start" )
             start ;;
-        "update" )
-            update ;;
+        "clean" )
+            clean ;;
         "stop" )
             stop ;;
-        "restart" )
-            restart ;;
         "compile" )
             compile ;;
-        "kill" )
-            kill ;;
-        "test" )
-            tests ;;
         * )
             usage
             end ;;
