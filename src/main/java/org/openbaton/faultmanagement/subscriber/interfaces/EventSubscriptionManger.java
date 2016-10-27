@@ -25,10 +25,11 @@ import org.openbaton.sdk.api.exception.SDKException;
  * Created by mob on 13.05.16.
  */
 public interface EventSubscriptionManger {
-  String subscribe(NetworkServiceRecord networkServiceRecord, Action action) throws SDKException;
+  String subscribe(NetworkServiceRecord networkServiceRecord, Action action)
+      throws SDKException, ClassNotFoundException;
 
   String subscribe(VirtualNetworkFunctionRecord virtualNetworkFunctionRecord, Action action)
-      throws SDKException;
+      throws SDKException, ClassNotFoundException;
 
-  void unSubscribe(String subscriptionId) throws SDKException;
+  void unSubscribe(String subscriptionId) throws SDKException, ClassNotFoundException;
 }

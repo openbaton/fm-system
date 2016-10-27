@@ -55,7 +55,7 @@ public class EventSubscriptionManagerImpl
 
   @Override
   public String subscribe(NetworkServiceRecord networkServiceRecord, Action action)
-      throws SDKException {
+      throws SDKException, ClassNotFoundException {
     EventEndpoint eventEndpoint =
         createEventEndpoint(
             "FM-nsr-" + action,
@@ -70,7 +70,7 @@ public class EventSubscriptionManagerImpl
 
   @Override
   public String subscribe(VirtualNetworkFunctionRecord virtualNetworkFunctionRecord, Action action)
-      throws SDKException {
+      throws SDKException, ClassNotFoundException {
     EventEndpoint eventEndpoint =
         createEventEndpoint(
             "FM-vnfr-" + action,
@@ -83,12 +83,13 @@ public class EventSubscriptionManagerImpl
     return id;
   }
 
-  private String sendSubscription(EventEndpoint eventEndpoint) throws SDKException {
+  private String sendSubscription(EventEndpoint eventEndpoint)
+      throws SDKException, ClassNotFoundException {
     return nfvoRequestor.subscribe(eventEndpoint);
   }
 
   @Override
-  public void unSubscribe(String id) throws SDKException {
+  public void unSubscribe(String id) throws SDKException, ClassNotFoundException {
     nfvoRequestor.unSubscribe(id);
   }
 
@@ -141,7 +142,7 @@ public class EventSubscriptionManagerImpl
           unSubscribe(unsubscriptionId);
         }
 
-    } catch (SDKException e) {
+    } catch (SDKException | ClassNotFoundException e) {
       log.error("The NFVO is not available for unsubscriptions: " + e.getMessage(), e);
     }
   }

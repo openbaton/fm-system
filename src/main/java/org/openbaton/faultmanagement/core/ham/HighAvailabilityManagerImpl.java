@@ -174,7 +174,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
     try {
       nfvoRequestorWrapper.createStandbyVNFCInstance(
           vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId(), vnfComponent);
-    } catch (SDKException e) {
+    } catch (SDKException | ClassNotFoundException e) {
       throw new HighAvailabilityException(e.getMessage(), e);
     }
   }

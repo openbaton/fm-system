@@ -28,7 +28,8 @@ import org.openbaton.sdk.api.exception.SDKException;
  */
 public interface PolicyManager {
   void manageNSR(NetworkServiceRecord networkServiceRecord)
-      throws SDKException, FaultManagementPolicyException, HighAvailabilityException;
+      throws SDKException, FaultManagementPolicyException, HighAvailabilityException,
+          ClassNotFoundException;
 
   void unManageNSR(NetworkServiceRecord networkServiceRecord) throws MonitoringException;
 
