@@ -122,7 +122,9 @@ public class EventSubscriptionManagerImpl
     unsubscriptionIdRELEASE_RESOURCES_FINISH =
         sendSubscription(eventEndpointReleaseResourcesFinish);
     log.info("Correctly registered to the NFVO");
-
+    log.debug("unsubscriptionIdINSTANTIATE_FINISH:" + unsubscriptionIdINSTANTIATE_FINISH);
+    log.debug(
+        "unsubscriptionIdRELEASE_RESOURCES_FINISH:" + unsubscriptionIdRELEASE_RESOURCES_FINISH);
     for (NetworkServiceRecord nsr : nfvoRequestor.getNsrs()) {
       policyManager.manageNSR(nsr);
     }
