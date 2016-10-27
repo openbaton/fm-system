@@ -60,7 +60,8 @@ public class PolicyManagerImpl implements PolicyManager {
 
   @Override
   public void manageNSR(NetworkServiceRecord nsr)
-      throws SDKException, FaultManagementPolicyException, HighAvailabilityException {
+      throws SDKException, FaultManagementPolicyException, HighAvailabilityException,
+          ClassNotFoundException {
     if (!nsrNeedsMonitoring(nsr)) {
       log.info("The NSR" + nsr.getName() + " does not need fault management");
       return;
@@ -130,7 +131,7 @@ public class PolicyManagerImpl implements PolicyManager {
       for (String unSubscriptionId : mnsr.getUnSubscriptionIds())
         try {
           eventSubscriptionManger.unSubscribe(unSubscriptionId);
-        } catch (SDKException e) {
+        } catch (SDKException | ClassNotFoundException e) {
           throw new MonitoringException(e.getMessage(), e);
         }
       mnsrRepo.delete(mnsr);
