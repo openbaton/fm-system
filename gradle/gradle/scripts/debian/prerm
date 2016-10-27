@@ -1,0 +1,68 @@
+#!/bin/sh
+
+##########################
+#### General Settings ####
+##########################
+
+set -e
+set -u
+#set -x # only for DEBUG
+
+# Make available the functions defined in /lib/lsb/init-functions
+. /lib/lsb/init-functions
+
+
+##########################
+#### Global Variables ####
+##########################
+
+USER="$(id -un 2>/dev/null || true)"
+
+OPENBATON_BASE=/usr
+OPENBATON_PLUGINS_FOLDER=${OPENBATON_BASE}/lib/openbaton/plugins
+OPENBATON_LOGS_FOLDER=/var/log/openbaton
+
+
+##############################
+#### Execution privileges ####
+##############################
+
+checkBinary () {
+    if command -v $1 >/dev/null 2>&1 ; then
+        log_success_msg "Checking for '$1'" 
+        return 0
+    else
+        log_failure_msg "Checking for '$1'"
+        return 1
+    fi
+}
+
+_ex='sh -c'
+if [ "${USER}" != 'root' ]; then
+    if checkBinary sudo; then
+        _ex='sudo -E sh -c'
+    elif checkBinary su; then
+        _ex='su -c'
+    fi
+fi
+
+
+########################################################
+#### Stop the Open Baton before the disinstallation ####
+########################################################
+
+stopNFVO () {
+    instance=$(ps aux | grep -v grep | grep "openbaton-" | grep ".jar" | wc -l)
+    if [ ${instance} -ne 0 ]; then
+        if $_ex 'systemctl stop openbaton-nfvo.service' >/dev/null 2>&1 ; then
+    	    log_success_msg "Stopping the Open Baton NVFO .."
+        elif $_ex 'stop openbaton-nfvo' >/dev/null 2>&1 ; then
+    	    log_success_msg "Stopping the Open Baton NVFO .."
+        else
+            log_failure_msg "Stopping the Open Baton NFVO"
+        fi
+    fi
+}
+
+stopNFVO
+
