@@ -1,0 +1,182 @@
+#!/bin/sh
+
+##########################
+#### General Settings ####
+##########################
+
+set -e
+set -u
+#set -x # only for DEBUG
+
+# Make available the functions defined in /lib/lsb/init-functions
+. /lib/lsb/init-functions
+
+# Set the soft limit for max open file desciptors
+ulimit -S -n 4096
+
+
+##########################
+#### Global Variables ####
+##########################
+
+USER="$(id -un 2>/dev/null || true)"
+
+OPENBATON_BASE=/usr
+OPENBATON_EXE_FOLDER=${OPENBATON_BASE}/bin
+OPENBATON_PLUGINS_FOLDER=${OPENBATON_BASE}/lib/openbaton/plugins
+TMPFOLDER=$(mktemp -d)
+
+CONFIGURE_RABBITMQ_FOR_OPENBATON_DEFAULT=true
+CONFIGURE_RABBITMQ_FOR_OPENBATON=${CONFIGURE_RABBITMQ_FOR_OPENBATON:-$CONFIGURE_RABBITMQ_FOR_OPENBATON_DEFAULT}
+
+OPENBATON_AUTOSTART_DEFAULT=true
+OPENBATON_AUTOSTART=${OPENBATON_AUTOSTART:-$OPENBATON_AUTOSTART_DEFAULT}
+
+DEBIAN_FRONTEND_DEFAULT=interactive
+DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-$DEBIAN_FRONTEND_DEFAULT}
+
+
+##############################
+#### Execution privileges ####
+##############################
+
+checkBinary () {
+    if command -v $1 >/dev/null 2>&1 ; then
+        log_success_msg "Checking for '$1'"
+        return 0
+    else
+        log_failure_msg "Checking for '$1'"
+        return 1
+    fi
+}
+
+_ex='sh -c'
+if [ "${USER}" != 'root' ]; then
+    if checkBinary sudo; then
+        _ex='sudo -E sh -c'
+    elif checkBinary su; then
+        _ex='su -c'
+    fi
+fi
+
+
+##################
+#### RabbitMQ ####
+##################
+
+configureRabbitMQ () {
+    # TODO: check rabbitmq-server is started
+    #if rabbitmq is running
+        result=$($_ex 'rabbitmqctl list_users' | grep '^admin' | wc -l)
+    	if [ ${result} -eq 0 ]; then
+            $_ex 'rabbitmqctl add_user admin openbaton'
+            $_ex 'rabbitmqctl set_user_tags admin administrator'
+            $_ex 'rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"'
+        fi
+        #### Workaround to enable rabbitmq management plugin ####
+        #$_ex 'rabbitmq-plugins enable rabbitmq_management'
+	    if [ -f /etc/rabbitmq/enabled_plugins ]; then
+            result=$(grep /etc/rabbitmq/enabled_plugins -e "[rabbitmq_management].")
+    	    if [ "${result}" != "[rabbitmq_management]." ]; then
+                $_ex 'echo "[rabbitmq_management]." >> /etc/rabbitmq/enabled_plugins'
+    	    fi
+        else
+	        $_ex 'echo "[rabbitmq_management]." > /etc/rabbitmq/enabled_plugins'
+        fi
+        ##########################################################
+        $_ex 'service rabbitmq-server restart'
+        if [ "$?" != "0" ]; then
+            log_failure_msg "rabbitmq is not running properly (check the problem in /var/log/rabbitmq)"
+            exit 1
+        fi
+    #fi    
+
+    # In case of "noninteractive" FRONTEND the default value will remain valid (rabbit ip: localhost ; rabbit mgmt port: 15672)
+    if [ "${DEBIAN_FRONTEND}" != "noninteractive" ]; then
+    	read -p "Enter the rabbitmq broker ip [localhost]: " brokerIp
+    	export brokerIp=${brokerIp}
+    	if [ "${brokerIp}" != "" ]; then
+            log_success_msg "Setting new broker ip: ${brokerIp}"
+	        $_ex 'sed -i "s/nfvo.rabbit.brokerIp = localhost/nfvo.rabbit.brokerIp = $brokerIp/g" /etc/openbaton/openbaton.properties'
+        fi
+
+    	read -p "Enter the rabbitmq management port [15672]: " managementPort
+    	export managementPort=${managementPort}
+    	if [ "${managementPort}" != "" ]; then
+            log_success_msg "Setting new management port: ${managementPort}"
+	        $_ex 'sed -i "s/nfvo.rabbit.management.port = 15672/nfvo.rabbit.management.port = $managementPort/g" /etc/openbaton/openbaton.properties'
+    	fi
+    fi
+}
+
+
+#############################
+#### VIM-Drivers Plugins ####
+#############################
+
+setPluginsFolder () {
+    export OPENBATON_PLUGINS_FOLDER="${OPENBATON_PLUGINS_FOLDER}"
+    $_ex 'sed -i "s~nfvo.plugin.installation-dir = ./plugins~nfvo.plugin.installation-dir = "${OPENBATON_PLUGINS_FOLDER}"~" /etc/openbaton/openbaton.properties'
+}
+
+
+################################################
+#### Configure Open Baton NFVO installation ####
+################################################
+
+setPassword () {
+    # In case of "noninteractive" FRONTEND the default value will remain valid (user: admin ; password: openbaton)
+    if [ "${DEBIAN_FRONTEND}" != "noninteractive" ]; then
+        # Turning echo on and off between password reading
+        stty -echo
+        read -p "Provide the new password for 'admin' user of Open Baton: " openbatonpswd ; echo
+        stty echo
+        if [ "${openbatonpswd}" != "" ]; then
+            export openbatonpswd=${openbatonpswd}
+            stty -echo
+            read -p "Repeat the password: " openbatonpswd2 ; echo
+            stty echo
+            export openbatonpswd2=${openbatonpswd2}
+            if [ "${openbatonpswd}" = "${openbatonpswd2}" ]; then
+                $_ex 'sed -i "s/# nfvo.security.admin.password\ =\ openbaton/nfvo.security.admin.password\ =\ $openbatonpswd/g" /etc/openbaton/openbaton.properties'
+                return
+            fi
+        else
+            setPassword
+        fi
+    fi
+}
+
+
+##############
+#### MAIN ####
+##############
+
+configure () {
+    log_success_msg "Configuring Open Baton NFVO installation .."
+
+    # Allow the use of the .deb package to install Open Baton with Docker (because of issues when installing and configuring RabbitMQ during a docker image build) 
+    # See documentation for more info
+    if [ "${CONFIGURE_RABBITMQ_FOR_OPENBATON}" = "true" ]; then
+        configureRabbitMQ
+    fi
+    setPluginsFolder
+    setPassword
+    $_ex "chmod a+x ${OPENBATON_EXE_FOLDER}/openbaton-nfvo"
+
+    log_success_msg "Open Baton NFVO installation completed"
+
+    # Allow the use of the .deb package to install Open Baton with Docker (the Docker file developer need to manage the starting of the NFVO in the Docker file) 
+    if [ "${OPENBATON_AUTOSTART}" = "true" ]; then
+        if $_ex 'systemctl start openbaton-nfvo.service' >/dev/null 2>&1 ; then
+            log_success_msg "Starting the Open Baton NFVO .."
+        elif $_ex 'start openbaton-nfvo' >/dev/null 2>&1 ; then
+            log_success_msg "Starting the Open Baton NFVO .."
+        else 
+            log_failure_msg "Starting the Open Baton NFVO"
+        fi
+    fi
+}
+
+
+configure
