@@ -15,13 +15,18 @@
  */
 
 ext {
-    debianDistribution = (applicationRelease) ? "release" : "snapshot"
     debianApplicationVersionFull = "${applicationVersionFull}".replaceAll("-", ".")
-    openbatonInstallDir = "/opt/openbaton"
+
+    baseName = 'openbaton'
+    componentName = "fms"
+    fullName = "${baseName}-${componentName}"
+    propertiesDir = '/etc/openbaton'
+    baseBinaryDir = '/usr/lib/openbaton'
+    jarSubpathName = "${componentName}".replaceAll("-", "/")
 }
 
 task makedeb(type: Deb, dependsOn: [jar, build]) { 
-    packageName = (applicationRelease) ? "openbaton-fms" : "openbaton-fms-nightly"
+    packageName = (applicationRelease) ? "${fullName}" : "${fullName}-nightly"
     version = debianApplicationVersionFull
     //release = 1 
     priority = 'optional'
@@ -36,20 +41,23 @@ task makedeb(type: Deb, dependsOn: [jar, build]) {
     preInstall file('gradle/gradle/scripts/debian/preinst')
     postInstall file('gradle/gradle/scripts/debian/postinst')
     preUninstall file('gradle/gradle/scripts/debian/prerm')
-    postUninstall file('gradle/gradle/scripts/debian/postrm')
 
     requires('openjdk-7-jre')
-    requires('rabbitmq-server')
-    requires('wget')
-    //requires('openbaton-plugins-zabbix')
+    requires('mysql-server')
 
     // Copy files from "from path" to "into path"
-    from('etc/fms.properties') 			                            { into '/etc/openbaton/' }                 // properties file
-    from(jar.outputs.files) 				                        { into '/usr/lib/openbaton/' }             // jar file
-    from('gradle/gradle/scripts/openbaton-fms') 	                { into '/usr/bin/'}                        // executable to run the FMS
-    from('gradle/gradle/scripts/openbaton-fms') 	                { into '/etc/init.d/'}                     // executable to run the FMs as a service (SysV)
-    from('gradle/gradle/scripts/openbaton-fms.conf') 	            { into '/etc/init/'}                       // conf file to run the FMS as a service (Upstart)
-    from('gradle/gradle/scripts/systemd/openbaton-fms.service') 	{ into '/usr/lib/systemd/system/'}         // executable to run the FMS as a service (Systemd)
-    from('gradle/gradle/scripts/systemd/fms.env') 	                { into '/usr/lib/openbaton/systemd/'}      // environment file to run the FMS as a service (Systemd)
-    from('gradle/gradle/scripts/systemd/fms.preexecstart') 	        { into '/usr/lib/openbaton/systemd/'}      // preexecstart file to run the FMS as a service (Systemd)
+    from("etc/fms.properties") {                                                                                                // properties file
+        into "/etc/openbaton/" 
+        rename ("fms.properties","${fullName}.properties")
+    }
+    from(jar.outputs.files) {                                                                                                   // jar file
+        into "${baseBinaryDir}/${jarSubpathName}" 
+        rename("(.*)", "${fullName}-${version}.jar")
+    }
+    from("gradle/gradle/scripts/${fullName}") 	                    { into "/usr/bin/"}                                         // executable to run the Component
+    from("gradle/gradle/scripts/${fullName}") 	                    { into "/etc/init.d/"}                                      // executable to run the Component as a service (SysV)
+    from("gradle/gradle/scripts/${fullName}.conf") 	                { into "/etc/init/"}                                        // conf file to run the Component as a service (Upstart)
+    from("gradle/gradle/scripts/systemd/${fullName}.service") 	    { into "/usr/lib/systemd/system/"}                          // executable to run the Component as a service (Systemd)
+    from("gradle/gradle/scripts/systemd/${fullName}.env") 	        { into "/usr/lib/openbaton/systemd/env/"}                   // environment file to run the Component as a service (Systemd)
+    from('gradle/gradle/scripts/systemd/${fullName}.preexecstart')  { into "/usr/lib/openbaton/systemd/preexecstart/"}          // preexecstart file to run the Component as a service (Systemd)
 }
