@@ -16,6 +16,7 @@
 
 plugins {
     id "com.github.sherter.google-java-format" version "0.3.2"
+    id "nebula.os-package" version "2.2.6"
 }
 
 apply plugin: 'java'
@@ -32,6 +33,9 @@ repositories {
         url "https://repository.jboss.org"
     }
 }
+
+apply from: 'gradle/gradle/git.helpers.gradle'
+apply from: 'gradle/gradle/command.line.helper.gradle'
 
 project.ext{
     //------------------------------------------------//
@@ -52,10 +56,19 @@ project.ext{
      * Application Related Version
      */
     applicationVersion = version
-    applicationVersionDebian = "1";
+
+    applicationRelease = isApplicationRelease()
+    applicationDate = new Date()
+    applicationRevision = getRevision()
+
+    applicationVersionSnapshot = (!applicationRelease) ? ".${asUTC(applicationDate, 'yyyyMMdd')}.git${applicationRevision}" : ""
+    applicationVersionFull = "${applicationVersion}${applicationVersionSnapshot}"
+
+    //------------------------------------------------//
 }
 
 apply from: 'gradle/run.application.java.gradle'
+apply from: 'gradle/gradle/packaging.fms.debian.gradle'
 
 dependencies {
 
