@@ -44,6 +44,7 @@ task makedeb(type: Deb, dependsOn: [jar, build]) {
 
     requires('openjdk-7-jre')
     requires('mysql-server')
+    requires('openbaton-plugin-monitoring-zabbix')
 
     // Copy files from "from path" to "into path"
     from("etc/fms.properties") {                                                                                                // properties file
