@@ -38,7 +38,7 @@ OPENBATON_COMPONENT_SYSTEMD_ENV_FILE=/usr/lib/openbaton/systemd/env/openbaton-fm
 #### Main ####
 ##############
 
-preExecStart () {
+pre_exec_start () {
     OSTYPE=$(uname)
 
     ####################
@@ -57,36 +57,6 @@ preExecStart () {
         exit 1
     fi
     sed -i "s/OPENBATON_COMPONENT_JAR_FILE_NAME_VERSIONED=.*/OPENBATON_COMPONENT_JAR_FILE_NAME_VERSIONED=${openbaton_component_jar_file_name_versioned}/g" ${OPENBATON_COMPONENT_SYSTEMD_ENV_FILE}
-
-
-    ###################
-    #### RabbitMQ #####
-    ###################
-
-    # Check and eventually starts rabbitmq-server
-    if [ ${OSTYPE} = "Linux" ]; then
-        instance=$(ps aux | grep -v grep | grep rabbitmq | grep server | wc -l)
-        if [ ${instance} -eq 0 ]; then
-            log_warning_msg "rabbit is not running, let's try to start it"
-            # Start rabbitmq            
-            $(rabbitmq-server -detached)
-            if (( $? != 0 )); then
-                log_failure_msg "rabbitmq is not running properly (check the problem in /var/log/rabbitmq.log)"
-                exit 1
-            fi
-        fi
-    elif [ "$OSTYPE" = "Darwin" ]; then
-        instance=$(ps aux | grep -v grep | grep rabbitmq | grep server | wc -l)
-        if [ ${instance} -eq 0 ]; then
-            log_warning_msg "rabbitmq is not running, let's try to start it"
-            # Start rabbitmq            
-            $(rabbitmq-server -detached)
-            if [ $? -ne 0 ]; then
-                log_failure_msg "rabbitmq is not running properly (check the problem in /var/log/rabbitmq.log)"
-                exit 1
-            fi
-        fi
-    fi
 }
 
-preExecStart
+pre_exec_start
