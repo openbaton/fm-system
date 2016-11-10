@@ -160,7 +160,9 @@ rule "A VNF alarm is updated"
         RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(),"");
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
         recoveryAction.setNsrId(vnfr.getParent_ns_id());
-        logger.debug("Recovery action in progress! :"+recoveryAction);
+
+
+        logger.debug("Recovery action in progress!! :"+recoveryAction);
 end
 
 
