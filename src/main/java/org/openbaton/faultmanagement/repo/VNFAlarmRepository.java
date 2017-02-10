@@ -19,9 +19,7 @@ package org.openbaton.faultmanagement.repo;
 import org.openbaton.catalogue.mano.common.monitoring.VNFAlarm;
 import org.springframework.data.repository.CrudRepository;
 
-/**
- * Created by mob on 26.10.15.
- */
+/** Created by mob on 26.10.15. */
 public interface VNFAlarmRepository
     extends CrudRepository<VNFAlarm, String>, VNFAlarmRepositoryCustom {
   //List<Alarm> findByThresholdIdAndPerceivedSeverity(String thresholdId, PerceivedSeverity perceivedSeverity);

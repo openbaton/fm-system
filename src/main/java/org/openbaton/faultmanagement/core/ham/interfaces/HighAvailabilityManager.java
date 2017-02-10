@@ -22,9 +22,7 @@ import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.faultmanagement.core.ham.exceptions.HighAvailabilityException;
 
-/**
- * Created by mob on 11.01.16.
- */
+/** Created by mob on 11.01.16. */
 public interface HighAvailabilityManager {
   void configureRedundancy(NetworkServiceRecord nsr) throws HighAvailabilityException;
 

@@ -23,9 +23,7 @@ import org.openbaton.faultmanagement.core.ham.exceptions.HighAvailabilityExcepti
 import org.openbaton.faultmanagement.core.pm.exceptions.FaultManagementPolicyException;
 import org.openbaton.sdk.api.exception.SDKException;
 
-/**
- * Created by mob on 30.10.15.
- */
+/** Created by mob on 30.10.15. */
 public interface PolicyManager {
   void manageNSR(NetworkServiceRecord networkServiceRecord)
       throws SDKException, FaultManagementPolicyException, HighAvailabilityException,

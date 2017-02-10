@@ -16,6 +16,8 @@
 
 package org.openbaton.faultmanagement.requestor;
 
+import java.util.List;
+import javax.annotation.PostConstruct;
 import org.openbaton.catalogue.mano.descriptor.VNFComponent;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
@@ -33,9 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import java.util.List;
 
 @Service
 public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
@@ -82,7 +81,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
           projectId = project.getId();
         }
       }
-      if (projectId == null) throw new SDKException("Project not found");
+      if (projectId == null) throw new SDKException("Project not found", null, null);
       nfvoRequestor.setProjectId(projectId);
     }
   }

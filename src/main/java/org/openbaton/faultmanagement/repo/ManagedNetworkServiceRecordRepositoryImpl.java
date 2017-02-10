@@ -16,19 +16,15 @@
 
 package org.openbaton.faultmanagement.repo;
 
-import org.openbaton.catalogue.nfvo.VNFCDependencyParameters;
+import java.util.ArrayList;
+import java.util.List;
 import org.openbaton.faultmanagement.catalogue.ManagedNetworkServiceRecord;
 import org.openbaton.faultmanagement.catalogue.ThresholdHostnames;
 import org.openbaton.faultmanagement.catalogue.VduPmJobs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Created by mob on 28/06/16.
- */
+/** Created by mob on 28/06/16. */
 @Transactional(readOnly = true)
 public class ManagedNetworkServiceRecordRepositoryImpl
     implements ManagedNetworkServiceRecordRepositoryCustom {

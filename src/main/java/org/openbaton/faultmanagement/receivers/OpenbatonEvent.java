@@ -17,13 +17,10 @@
 package org.openbaton.faultmanagement.receivers;
 
 import com.google.gson.JsonObject;
+import java.io.Serializable;
 import org.openbaton.catalogue.nfvo.Action;
 
-import java.io.Serializable;
-
-/**
- * Created by mob on 30.11.15.
- */
+/** Created by mob on 30.11.15. */
 public class OpenbatonEvent implements Serializable {
   private Action action;
 

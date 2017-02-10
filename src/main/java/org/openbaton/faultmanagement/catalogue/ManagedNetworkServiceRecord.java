@@ -16,14 +16,11 @@
 
 package org.openbaton.faultmanagement.catalogue;
 
+import java.util.*;
+import javax.persistence.*;
 import org.openbaton.catalogue.util.IdGenerator;
 
-import javax.persistence.*;
-import java.util.*;
-
-/**
- * Created by mob on 29.10.15.
- */
+/** Created by mob on 29.10.15. */
 @Entity
 public class ManagedNetworkServiceRecord {
   @Id private String id;

@@ -16,9 +16,7 @@
 
 package org.openbaton.faultmanagement.catalogue;
 
-/**
- * Created by mob on 12.02.16.
- */
+/** Created by mob on 12.02.16. */
 public enum RecoveryActionStatus {
   FINISHED,
   IN_PROGRESS,

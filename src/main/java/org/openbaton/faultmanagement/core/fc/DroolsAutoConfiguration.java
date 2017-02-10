@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.core.fc;
 
+import java.io.IOException;
 import org.kie.api.KieBase;
 import org.kie.api.KieBaseConfiguration;
 import org.kie.api.KieServices;
@@ -36,11 +37,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
-import java.io.IOException;
-
-/**
- * Created by mob on 18.01.16.
- */
+/** Created by mob on 18.01.16. */
 @Configuration
 public class DroolsAutoConfiguration {
 

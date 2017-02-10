@@ -59,12 +59,7 @@ function check_mysql {
         if [ "${result}" -eq "0" ]; then
                 echo "mysql service running..."
         else
-                read -p "mysql is down, would you like to start it ([y]/n):" yn
-                case $yn in
-                        [Yy]* ) start_mysql_osx ; break;;
-                        [Nn]* ) exit;;
-                        * ) start_mysql_osx;;
-                esac
+                echo "mysql is down, or it has been not possible to test the status"
         fi
     fi
 }

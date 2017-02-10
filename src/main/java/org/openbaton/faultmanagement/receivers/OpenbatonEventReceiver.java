@@ -31,9 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * Created by mob on 23.03.16.
- */
+/** Created by mob on 23.03.16. */
 @Service
 public class OpenbatonEventReceiver {
   private static final Logger logger = LoggerFactory.getLogger(OpenbatonEventReceiver.class);

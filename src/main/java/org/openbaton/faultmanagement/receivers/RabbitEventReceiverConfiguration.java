@@ -18,7 +18,7 @@ package org.openbaton.faultmanagement.receivers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.openbaton.faultmanagement.receivers.OpenbatonEventReceiver;
+import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
@@ -35,11 +35,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
-
-/**
- * Created by mob on 23.03.16.
- */
+/** Created by mob on 23.03.16. */
 @Configuration
 @ComponentScan("org.openbaton.faultmanagement.core.fc")
 public class RabbitEventReceiverConfiguration {
@@ -160,7 +156,7 @@ public class RabbitEventReceiverConfiguration {
       ConnectionFactory connectionFactory,
       @Qualifier("getDeletionQueue") Queue queue,
       @Qualifier("setDeletionMessageListenerAdapter")
-      MessageListenerAdapter messageListenerAdapter) {
+          MessageListenerAdapter messageListenerAdapter) {
     logger.debug("Created MessageContainer for NSR Deletion event");
     SimpleMessageListenerContainer res = new SimpleMessageListenerContainer();
     res.setConnectionFactory(connectionFactory);

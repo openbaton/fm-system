@@ -38,9 +38,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
-/**
- * Created by mob on 13.05.16.
- */
+/** Created by mob on 13.05.16. */
 @Service
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 public class EventSubscriptionManagerImpl

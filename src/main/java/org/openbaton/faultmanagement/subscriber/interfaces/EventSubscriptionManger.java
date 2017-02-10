@@ -21,9 +21,7 @@ import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
 import org.openbaton.sdk.api.exception.SDKException;
 
-/**
- * Created by mob on 13.05.16.
- */
+/** Created by mob on 13.05.16. */
 public interface EventSubscriptionManger {
   String subscribe(NetworkServiceRecord networkServiceRecord, Action action)
       throws SDKException, ClassNotFoundException;

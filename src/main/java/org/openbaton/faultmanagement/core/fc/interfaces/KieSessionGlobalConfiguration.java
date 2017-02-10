@@ -16,7 +16,5 @@
 
 package org.openbaton.faultmanagement.core.fc.interfaces;
 
-/**
- * Created by mob on 21.01.16.
- */
+/** Created by mob on 21.01.16. */
 public interface KieSessionGlobalConfiguration {}
