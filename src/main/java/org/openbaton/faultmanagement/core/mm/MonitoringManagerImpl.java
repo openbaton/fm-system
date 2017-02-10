@@ -79,7 +79,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
     try {
       monitoringPluginCaller =
           new MonitoringPluginCaller(
-              nfvoIp, nfvoUsr, nfvoPwd, nfvoPort, "zabbix-plugin", "zabbix", "15672", 120000);
+              nfvoIp, nfvoUsr, nfvoPwd, 5672, "zabbix-plugin", "zabbix", "15672", 120000);
     } catch (TimeoutException | IOException e) {
       log.error(e.getMessage(), e);
     } catch (NotFoundException e) {
