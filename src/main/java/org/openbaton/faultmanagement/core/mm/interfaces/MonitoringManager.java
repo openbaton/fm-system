@@ -19,11 +19,7 @@ package org.openbaton.faultmanagement.core.mm.interfaces;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.exceptions.MonitoringException;
 
-import java.util.List;
-
-/**
- * Created by mob on 04.11.15.
- */
+/** Created by mob on 04.11.15. */
 public interface MonitoringManager {
   void startMonitorNS(NetworkServiceRecord networkServiceRecord);
 

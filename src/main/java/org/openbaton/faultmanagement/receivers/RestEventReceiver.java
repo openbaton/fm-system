@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.receivers;
 
+import javax.validation.Valid;
 import org.kie.api.runtime.KieSession;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmNotification;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedNotification;
@@ -23,8 +24,8 @@ import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAl
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 import org.openbaton.catalogue.mano.common.monitoring.VRAlarm;
-import org.openbaton.faultmanagement.receivers.interfaces.EventReceiver;
 import org.openbaton.faultmanagement.core.pm.interfaces.PolicyManager;
+import org.openbaton.faultmanagement.receivers.interfaces.EventReceiver;
 import org.openbaton.faultmanagement.repo.VNFAlarmRepository;
 import org.openbaton.faultmanagement.repo.VRAlarmRepository;
 import org.slf4j.Logger;
@@ -34,11 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-
-/**
- * Created by mob on 09.11.15.
- */
+/** Created by mob on 09.11.15. */
 @RestController
 public class RestEventReceiver implements EventReceiver {
 

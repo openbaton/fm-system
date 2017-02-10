@@ -16,6 +16,8 @@
 
 package org.openbaton.faultmanagement.core.pm;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
@@ -37,12 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Created by mob on 29.10.15.
- */
+/** Created by mob on 29.10.15. */
 @Service
 public class PolicyManagerImpl implements PolicyManager {
 

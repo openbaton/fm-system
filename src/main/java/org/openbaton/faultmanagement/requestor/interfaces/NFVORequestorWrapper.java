@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.requestor.interfaces;
 
+import java.util.List;
 import org.openbaton.catalogue.mano.descriptor.VNFComponent;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
@@ -23,14 +24,9 @@ import org.openbaton.catalogue.mano.record.VNFCInstance;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.EventEndpoint;
 import org.openbaton.exceptions.NotFoundException;
-import org.openbaton.sdk.NFVORequestor;
 import org.openbaton.sdk.api.exception.SDKException;
 
-import java.util.List;
-
-/**
- * Created by mob on 11.01.16.
- */
+/** Created by mob on 11.01.16. */
 public interface NFVORequestorWrapper {
   NetworkServiceRecord getNsr(String nsrId) throws ClassNotFoundException, SDKException;
 

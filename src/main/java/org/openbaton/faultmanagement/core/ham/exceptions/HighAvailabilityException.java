@@ -16,9 +16,7 @@
 
 package org.openbaton.faultmanagement.core.ham.exceptions;
 
-/**
- * Created by mob on 11.01.16.
- */
+/** Created by mob on 11.01.16. */
 public class HighAvailabilityException extends Exception {
   public HighAvailabilityException() {}
 

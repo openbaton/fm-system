@@ -16,9 +16,7 @@
 
 package org.openbaton.faultmanagement.core.pm.exceptions;
 
-/**
- * Created by mob on 29.10.15.
- */
+/** Created by mob on 29.10.15. */
 public class FaultManagementPolicyException extends Exception {
   public FaultManagementPolicyException() {}
 

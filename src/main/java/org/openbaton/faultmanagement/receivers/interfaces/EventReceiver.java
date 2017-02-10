@@ -22,9 +22,7 @@ import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAl
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 
-/**
- * Created by mob on 09.11.15.
- */
+/** Created by mob on 09.11.15. */
 public interface EventReceiver {
   Alarm receiveVnfNewAlarm(VNFAlarmNotification vnfAlarm);
 

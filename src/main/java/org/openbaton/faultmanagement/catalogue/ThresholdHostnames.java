@@ -16,14 +16,11 @@
 
 package org.openbaton.faultmanagement.catalogue;
 
+import java.util.List;
+import javax.persistence.*;
 import org.openbaton.catalogue.util.IdGenerator;
 
-import javax.persistence.*;
-import java.util.List;
-
-/**
- * Created by mob on 27/06/16.
- */
+/** Created by mob on 27/06/16. */
 @Entity
 public class ThresholdHostnames {
   @Id private String id;

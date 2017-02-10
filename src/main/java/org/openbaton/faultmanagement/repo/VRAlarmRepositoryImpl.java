@@ -21,9 +21,7 @@ import org.openbaton.catalogue.mano.common.monitoring.VRAlarm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Created by mob on 31.01.16.
- */
+/** Created by mob on 31.01.16. */
 @Transactional(readOnly = true)
 public class VRAlarmRepositoryImpl implements VRAlarmRepositoryCustom {
 

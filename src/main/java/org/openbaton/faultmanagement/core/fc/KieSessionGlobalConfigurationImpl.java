@@ -16,14 +16,14 @@
 
 package org.openbaton.faultmanagement.core.fc;
 
+import javax.annotation.PostConstruct;
 import org.kie.api.runtime.KieSession;
-
 import org.openbaton.faultmanagement.core.fc.interfaces.KieSessionGlobalConfiguration;
-import org.openbaton.faultmanagement.requestor.interfaces.NFVORequestorWrapper;
+import org.openbaton.faultmanagement.core.ham.interfaces.HighAvailabilityManager;
 import org.openbaton.faultmanagement.core.pm.interfaces.PolicyManager;
 import org.openbaton.faultmanagement.repo.VNFAlarmRepository;
-import org.openbaton.faultmanagement.core.ham.interfaces.HighAvailabilityManager;
 import org.openbaton.faultmanagement.repo.VRAlarmRepository;
+import org.openbaton.faultmanagement.requestor.interfaces.NFVORequestorWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +31,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-
-/**
- * Created by mob on 21.01.16.
- */
+/** Created by mob on 21.01.16. */
 @Service
 public class KieSessionGlobalConfigurationImpl
     implements KieSessionGlobalConfiguration, ApplicationListener<ContextClosedEvent> {

@@ -20,9 +20,7 @@ import org.openbaton.catalogue.mano.common.faultmanagement.VNFAlarmStateChangedN
 import org.openbaton.catalogue.mano.common.faultmanagement.VirtualizedResourceAlarmStateChangedNotification;
 import org.openbaton.catalogue.mano.common.monitoring.Alarm;
 
-/**
- * Created by mob on 16.11.15.
- */
+/** Created by mob on 16.11.15. */
 public interface FaultCorrelatorManager {
   void newVnfAlarm(Alarm vnfAlarm);
 

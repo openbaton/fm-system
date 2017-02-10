@@ -16,6 +16,10 @@
 
 package org.openbaton.faultmanagement.core.mm;
 
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.*;
+import javax.annotation.PostConstruct;
 import org.openbaton.catalogue.mano.common.faultmanagement.Criteria;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFCSelector;
 import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
@@ -31,9 +35,9 @@ import org.openbaton.exceptions.MonitoringException;
 import org.openbaton.exceptions.NotFoundException;
 import org.openbaton.faultmanagement.catalogue.ManagedNetworkServiceRecord;
 import org.openbaton.faultmanagement.catalogue.ThresholdHostnames;
+import org.openbaton.faultmanagement.core.mm.interfaces.MonitoringManager;
 import org.openbaton.faultmanagement.repo.ManagedNetworkServiceRecordRepository;
 import org.openbaton.faultmanagement.requestor.interfaces.NFVORequestorWrapper;
-import org.openbaton.faultmanagement.core.mm.interfaces.MonitoringManager;
 import org.openbaton.monitoring.interfaces.MonitoringPluginCaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +46,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
-
-/**
- * Created by mob on 04.11.15.
- */
+/** Created by mob on 04.11.15. */
 @Service
 @ConfigurationProperties
 public class MonitoringManagerImpl implements MonitoringManager {
@@ -64,11 +61,25 @@ public class MonitoringManagerImpl implements MonitoringManager {
   @Value("${fms.monitoringcheck:60}")
   private String monitoringCheck;
 
+  @Value("${nfvo-usr:}")
+  private String nfvoUsr;
+
+  @Value("${nfvo-pwd:}")
+  private String nfvoPwd;
+
+  @Value("${nfvo.ip:}")
+  private String nfvoIp;
+
+  @Value("${nfvo.port:8080}")
+  private int nfvoPort;
+
   @PostConstruct
   public void init() throws NotFoundException {
     futures = new HashMap<>();
     try {
-      monitoringPluginCaller = new MonitoringPluginCaller("zabbix", "zabbix-plugin");
+      monitoringPluginCaller =
+          new MonitoringPluginCaller(
+              nfvoIp, nfvoUsr, nfvoPwd, nfvoPort, "zabbix-plugin", "zabbix", "15672", 120000);
     } catch (TimeoutException | IOException e) {
       log.error(e.getMessage(), e);
     } catch (NotFoundException e) {

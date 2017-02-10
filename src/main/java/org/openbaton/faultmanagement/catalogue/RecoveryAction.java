@@ -20,9 +20,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
- * Created by mob on 22.01.16.
- */
+/** Created by mob on 22.01.16. */
 public class RecoveryAction {
   private RecoveryActionType recoveryActionType;
   private String vnfmEndpoint;
