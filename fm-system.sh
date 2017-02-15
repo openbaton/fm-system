@@ -17,6 +17,7 @@ source ./gradle.properties
 
 _version=${version}
 _fmsystem_config_file=/etc/openbaton/fms.properties
+_app_name=fm-system
 
 function compile {
     ./gradlew build
@@ -27,9 +28,9 @@ function clean {
 }
 
 function check_already_running {
-        result=$(ps au | grep -v grep | grep fault-management-system | wc -l);
-        if [ "${result}" -ne "0" ]; then
-                echo "The fault-management-system is already running.."
+	local is_app_running=$(ps aux | grep -v grep |  grep "$_app_name" | grep jar | wc -l )
+        if [ "$is_app_running" -ne "0" ]; then
+		echo "$_app_name is already running.."
 		exit;
         fi
 }
@@ -42,31 +43,15 @@ function start_mysql_linux {
 }
 
 function check_mysql {
-    if [[ "$OSTYPE" == "linux-gnu" ]]; then
-	result=$(pgrep mysql | wc -l);
+	result=$(pgrep mysql | wc -l 2>/dev/null);
         if [ ${result} -eq 0 ]; then
-                read -p "mysql is down, would you like to start it ([y]/n):" yn
-		case $yn in
-			[Yy]* ) start_mysql_linux ; break;;
-			[Nn]* ) echo "you can't proceed withuot having mysql up and running" 
-				exit;;
-			* ) start_mysql_linux;;
-		esac
+		echo "mysql is down, or it was not be possible to check the status. ($_app_name needs mysql)"
         fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-	mysqladmin status
-	result=$?
-        if [ "${result}" -eq "0" ]; then
-                echo "mysql service running..."
-        else
-                echo "mysql is down, or it has been not possible to test the status"
-        fi
-    fi
 }
 function check_zabbix_plugin_up {
-        result=$(ps au | grep -v grep | grep zabbix-plugin | wc -l);
+        result=$(ps au | grep -v grep | grep openbaton-plugin-monitoring-zabbix | wc -l);
         if [ "${result}" -eq "0" ]; then
-                echo "The zabbix-plugin is not running. The fault management system cannot start"
+                echo "The openbaton-plugin-monitoring-zabbix is not running. $_app_name cannot start"
 		exit;
         fi
 }
@@ -75,7 +60,7 @@ function usage {
     echo -e "Usage:\n\t ./fm-system.sh [compile|start|stop|force-stop]"
 }
 function stop {
-    pkill -f fm-system-${_version}.jar
+    pkill -f $_app_name-${_version}.jar
 }
 
 function start {
@@ -90,7 +75,7 @@ function start {
     check_zabbix_plugin_up
     if [ 0 -eq $? ]
         then
-	    java -jar "build/libs/fm-system-$_version.jar" --spring.config.location=file:${_fmsystem_config_file}
+	    java -jar "build/libs/$_app_name-$_version.jar" --spring.config.location=file:${_fmsystem_config_file}
     fi
 }
 
