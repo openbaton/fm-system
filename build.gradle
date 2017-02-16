@@ -74,6 +74,7 @@ project.ext{
 
 apply from: 'gradle/run.application.java.gradle'
 apply from: 'gradle/gradle/packaging.fms.debian.gradle'
+apply from: 'gradle/gradle/git.release.gradle'
 
 dependencies {
 
