@@ -57,7 +57,7 @@ function check_zabbix_plugin_up {
 }
 function usage {
     echo -e "Open Baton Fault Management System\n"
-    echo -e "Usage:\n\t ./fm-system.sh [compile|start|stop|force-stop]"
+    echo -e "Usage:\n\t ./fm-system.sh [compile|start|stop]"
 }
 function stop {
     pkill -f $_app_name-${_version}.jar
@@ -103,8 +103,7 @@ do
         "compile" )
             compile ;;
         * )
-            usage
-            end ;;
+            usage;;
     esac
     if [[ $? -ne 0 ]]; 
     then
