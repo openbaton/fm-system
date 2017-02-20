@@ -61,17 +61,17 @@ public class MonitoringManagerImpl implements MonitoringManager {
   @Value("${fms.monitoringcheck:60}")
   private String monitoringCheck;
 
-  @Value("${nfvo-usr:}")
-  private String nfvoUsr;
+  @Value("${spring.rabbitmq.username:}")
+  private String rabbitmqUsr;
 
-  @Value("${nfvo-pwd:}")
-  private String nfvoPwd;
+  @Value("${spring.rabbitmq.password:}")
+  private String rabbitmqPwd;
 
-  @Value("${nfvo.ip:}")
-  private String nfvoIp;
+  @Value("${spring.rabbitmq.host:}")
+  private String rabbitmqIp;
 
-  @Value("${nfvo.port:8080}")
-  private int nfvoPort;
+  @Value("${spring.rabbitmq.port:}")
+  private String rabbitmqPort;
 
   @PostConstruct
   public void init() throws NotFoundException {
@@ -79,7 +79,14 @@ public class MonitoringManagerImpl implements MonitoringManager {
     try {
       monitoringPluginCaller =
           new MonitoringPluginCaller(
-              nfvoIp, nfvoUsr, nfvoPwd, 5672, "zabbix-plugin", "zabbix", "15672", 120000);
+              rabbitmqIp,
+              rabbitmqUsr,
+              rabbitmqPwd,
+              5672,
+              "zabbix-plugin",
+              "zabbix",
+              rabbitmqPort,
+              120000);
     } catch (TimeoutException | IOException e) {
       log.error(e.getMessage(), e);
     } catch (NotFoundException e) {
