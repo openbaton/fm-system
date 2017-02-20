@@ -43,8 +43,8 @@ OPENBATON_NFVO_CONFIG_FILE="openbaton-nfvo.properties"
 
 OPENBATON_NFVO_IP_DEFAULT=localhost
 
-OPENBATON_MYSQL_USER_DEFAULT=fmsuser
-OPENBATON_MYSQL_USER_PASSWORD_DEFAULT=changeme
+OPENBATON_FMS_MYSQL_USER_DEFAULT=fmsuser
+OPENBATON_FMS_MYSQL_USER_PASSWORD_DEFAULT=changeme
 OPENBATON_MYSQL_ROOT_PASSWORD_DEFAULT=root
 
 OPENBATON_COMPONENT_AUTOSTART_DEFAULT=true
@@ -114,11 +114,11 @@ configure_mysql () {
     fi
 
     # Set the MySQL user
-    export openbaton_fms_mysql_user=${openbaton_fms_mysql_user:-$OPENBATON_MYSQL_USER_DEFAULT}
+    export openbaton_fms_mysql_user=${openbaton_fms_mysql_user:-$OPENBATON_FMS_MYSQL_USER_DEFAULT}
     sed -i "s|spring.datasource.username\s*=.*|spring.datasource.username=${openbaton_fms_mysql_user}|g" ${OPENBATON_BASE_CONFIG_DIR}/${OPENBATON_COMPONENT_CONFIG_FILE}
 
     # Set the MySQL user's password
-    export openbaton_fms_mysql_user_password=${openbaton_fms_mysql_user_password:-$OPENBATON_MYSQL_USER_PASSWORD_DEFAULT}
+    export openbaton_fms_mysql_user_password=${openbaton_fms_mysql_user_password:-$OPENBATON_FMS_MYSQL_USER_PASSWORD_DEFAULT}
     sed -i "s|spring.datasource.password\s*=.*|spring.datasource.password=${openbaton_fms_mysql_user_password}|g" ${OPENBATON_BASE_CONFIG_DIR}/${OPENBATON_COMPONENT_CONFIG_FILE}
 
     result=$(ps aux | grep -v 'grep' | grep 'mysql' | wc -l)
