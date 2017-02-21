@@ -100,6 +100,9 @@ Now, you can finally compile and start the FM System.
 
 # How to use Open Baton FM
 
+Open Baton FM is a rule-driven tool. The rules define when to generate an alarm and how to react. The rule for generating the alarm is called fault management policy (see the next section). 
+The rule for defining how to react upon alarms is a Drools Rule. Once such rules are in place, Open Baton FM follows the following workflow.      
+
 ![Fault management system use case][fault-management-system-use-case]
 
 The actions are listed below:
