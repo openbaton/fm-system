@@ -24,17 +24,19 @@ Once the prerequisites are met, you need to execute the following steps.
 ## Create the database
 
 In order to create the database be sure you have installed [mysql server][mysql-installation-guide] as already mentioned in the requirements section. 
-You need root access to mysql-server in order to create a new database called faultmanagement. Once you access the database, execute the following operation: 
+You need root access to mysql-server in order to create a new database called faultmanagement. Once you access into mysql, execute the following operation: 
 
 ```bash
-mysql create database faultmanagement;
+create database faultmanagement;
 ```
 
-Once the database has been created, you should create a user which will be used by the FM system to access and store data on the database. If you decide to use the `root` user you can skip this step, but you need to modify the fms.properties file accordingly as defined in next section. 
+Once the database has been created, you should create a user which will be used by the FM system to access and store data on the database. If you decide to use the `root` user you can skip this step, but you need to modify the fms.properties file accordingly as defined in the next section. 
 By default username and password are set with the following values in the fms.properties properties file (see next section if you plan to use a different user and passord): 
 
 * username=fmsuser
 * password=changeme
+
+Grant the access to the database "faultmanagement", to the user, running the following command:
 
 ```bash
 GRANT ALL PRIVILEGES ON faultmanagement.* TO fmsuser@'%' IDENTIFIED BY 'changeme';
@@ -42,7 +44,7 @@ GRANT ALL PRIVILEGES ON faultmanagement.* TO fmsuser@'%' IDENTIFIED BY 'changeme
 
 ## Modify fms.properties file in order to use different credentials for the database 
 
-In the folder etc of this project, there is a file called fms.properties containing all the default properties values used by the FM system. 
+In the folder "etc" of this project, there is a file called fms.properties containing all the default properties values used by the FM system. 
 
 In order to use different credentials, you need to modify the following DB properties: 
 
@@ -52,7 +54,7 @@ spring.datasource.username=fmsuser
 spring.datasource.password=changeme
 ```
 
-In case your DB is running remotely, you can specifcy a different host instead of localhost in the following property (be careful to have port 3306 open and accessible from remote): 
+In case your DB is running remotely, you can specifcy a different host, instead of localhost, in the following property (be careful to have port 3306 open and accessible from remote): 
 
 ```bash
 spring.datasource.url=jdbc:mysql://localhost:3306/faultmanagement
@@ -60,7 +62,7 @@ spring.datasource.url=jdbc:mysql://localhost:3306/faultmanagement
 
 ## Additional configurion options 
 
-As already mentioned in the previous section, in the folder etc of this project, there is a file called fms.properties containing all the default properties values used by the FM system.
+As already mentioned in the previous section, in the folder "etc" of this project, there is a file called fms.properties containing all the default properties values used by the FM system.
 You should update this file in order to make it work with your NFVO instance. Change the Open Baton related properties section: 
 
 ```bash
@@ -74,9 +76,9 @@ nfvo-pwd=openbaton
 ```
 
 
-## Checkout the source code of the project and compile it
+## Checkout the source code of the project, compile and run it
 
-you can clone this repository and compile it using Gradle and launch it:  
+You can clone this repository with this command:
 
 ```bash  
 git clone https://github.com/openbaton/fm-system.git
