@@ -34,7 +34,7 @@ Once the database has been created, you should create a user which will be used 
 By default username and password are set with the following values in the fms.properties properties file (see next section if you plan to use a different user and passord): 
 
 * username=fmsuser
-* password:changeme
+* password=changeme
 
 ```bash
 GRANT ALL PRIVILEGES ON faultmanagement.* TO fmsuser@'%' IDENTIFIED BY 'changeme';
