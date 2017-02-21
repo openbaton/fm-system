@@ -70,6 +70,9 @@ public class MonitoringManagerImpl implements MonitoringManager {
   @Value("${spring.rabbitmq.host:}")
   private String rabbitmqIp;
 
+  @Value("${spring.rabbitmq.management.port:}")
+  private String rabbitmqManagementPort;
+
   @Value("${spring.rabbitmq.port:}")
   private String rabbitmqPort;
 
@@ -82,10 +85,10 @@ public class MonitoringManagerImpl implements MonitoringManager {
               rabbitmqIp,
               rabbitmqUsr,
               rabbitmqPwd,
-              5672,
+              Integer.parseInt(rabbitmqPort),
               "zabbix-plugin",
               "zabbix",
-              rabbitmqPort,
+              rabbitmqManagementPort,
               120000);
     } catch (TimeoutException | IOException e) {
       log.error(e.getMessage(), e);
