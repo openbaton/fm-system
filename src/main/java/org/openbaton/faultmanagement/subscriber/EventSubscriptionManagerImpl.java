@@ -27,11 +27,14 @@ import org.openbaton.faultmanagement.receivers.RabbitEventReceiverConfiguration;
 import org.openbaton.faultmanagement.repo.ManagedNetworkServiceRecordRepository;
 import org.openbaton.faultmanagement.requestor.interfaces.NFVORequestorWrapper;
 import org.openbaton.faultmanagement.subscriber.interfaces.EventSubscriptionManger;
+import org.openbaton.faultmanagement.utils.Utils;
 import org.openbaton.sdk.api.exception.SDKException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.Ordered;
@@ -41,6 +44,7 @@ import org.springframework.stereotype.Service;
 /** Created by mob on 13.05.16. */
 @Service
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
+@ConfigurationProperties
 public class EventSubscriptionManagerImpl
     implements EventSubscriptionManger, CommandLineRunner, ApplicationListener<ContextClosedEvent> {
 
@@ -50,6 +54,12 @@ public class EventSubscriptionManagerImpl
   private Logger log = LoggerFactory.getLogger(this.getClass());
   private String unsubscriptionIdINSTANTIATE_FINISH;
   private String unsubscriptionIdRELEASE_RESOURCES_FINISH;
+
+  @Value("${nfvo.ip:}")
+  private String nfvoIp;
+
+  @Value("${nfvo.port:8080}")
+  private String nfvoPort;
 
   @Override
   public String subscribe(NetworkServiceRecord networkServiceRecord, Action action)
@@ -101,8 +111,18 @@ public class EventSubscriptionManagerImpl
     return eventEndpoint;
   }
 
+  private void waitForNfvo() {
+    if (!Utils.isNfvoStarted(nfvoIp, nfvoPort)) {
+      log.error("After 150 sec the Nfvo is not started yet. Is there an error?");
+      System.exit(1);
+    }
+  }
+
   @Override
   public void run(String... args) throws Exception {
+
+    waitForNfvo();
+
     EventEndpoint eventEndpointInstantiateFinish =
         createEventEndpoint(
             "FM-nsr-INSTANTIATE_FINISH",
