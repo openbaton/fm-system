@@ -16,7 +16,6 @@
 
 package org.openbaton.faultmanagement.core.mm;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import javax.annotation.PostConstruct;
@@ -61,42 +60,13 @@ public class MonitoringManagerImpl implements MonitoringManager {
   @Value("${fms.monitoringcheck:60}")
   private String monitoringCheck;
 
-  @Value("${spring.rabbitmq.username:}")
-  private String rabbitmqUsr;
-
-  @Value("${spring.rabbitmq.password:}")
-  private String rabbitmqPwd;
-
-  @Value("${spring.rabbitmq.host:}")
-  private String rabbitmqIp;
-
-  @Value("${spring.rabbitmq.management.port:}")
-  private String rabbitmqManagementPort;
-
-  @Value("${spring.rabbitmq.port:}")
-  private String rabbitmqPort;
-
   @PostConstruct
   public void init() throws NotFoundException {
     futures = new HashMap<>();
-    try {
-      monitoringPluginCaller =
-          new MonitoringPluginCaller(
-              rabbitmqIp,
-              rabbitmqUsr,
-              rabbitmqPwd,
-              Integer.parseInt(rabbitmqPort),
-              "zabbix-plugin",
-              "zabbix",
-              rabbitmqManagementPort,
-              120000);
-    } catch (TimeoutException | IOException e) {
-      log.error(e.getMessage(), e);
-    } catch (NotFoundException e) {
-      log.error(e.getMessage(), e);
-      throw e;
-    }
-    log.debug("MonitoringPluginCaller obtained");
+  }
+
+  public void setMonitoringPluginCaller(MonitoringPluginCaller mpc) {
+    this.monitoringPluginCaller = mpc;
   }
 
   @Override

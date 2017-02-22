@@ -72,7 +72,7 @@ function start {
     
     check_already_running
     check_mysql
-    check_zabbix_plugin_up
+#    check_zabbix_plugin_up
     if [ 0 -eq $? ]
         then
 	    java -jar "build/libs/$_app_name-$_version.jar" --spring.config.location=file:${_fmsystem_config_file}
