@@ -134,6 +134,15 @@ configure_mysql () {
     mysql -uroot -p${mysql_root_password} -e "FLUSH PRIVILEGES;"
 }
 
+configure_new_installation () {
+    log_success_msg "Configuring Open Baton ${OPENBATON_COMPONENT_NAME_FANCY} installation .."
+    configure_rabbitmq
+    configure_nfvo
+    configure_mysql
+    chmod a+x ${OPENBATON_COMPONENT_EXE_DIR}/openbaton-${OPENBATON_COMPONENT_NAME}
+    log_success_msg "Open Baton ${OPENBATON_COMPONENT_NAME_FANCY} installation completed"
+}
+
 configure_for_upgrade () {
     ## Procedure to merge old and new properties files ##
 
@@ -175,15 +184,6 @@ configure_for_upgrade () {
     rm /tmp/${OPENBATON_COMPONENT_CONFIG_FILE}*
 
     log_success_msg "Upgrading Open Baton ${OPENBATON_COMPONENT_NAME_FANCY} installation .."
-}
-
-configure_new_installation () {
-    log_success_msg "Configuring Open Baton ${OPENBATON_COMPONENT_NAME_FANCY} installation .."
-    configure_rabbitmq
-    configure_nfvo
-    configure_mysql
-    chmod a+x ${OPENBATON_COMPONENT_EXE_DIR}/openbaton-${OPENBATON_COMPONENT_NAME}
-    log_success_msg "Open Baton ${OPENBATON_COMPONENT_NAME_FANCY} installation completed"
 }
 
 start_component () {
