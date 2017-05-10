@@ -36,6 +36,9 @@ OPENBATON_COMPONENT_NAME=fms
 
 OPENBATON_COMPONENT_JAR_FILE_NAME=openbaton-${OPENBATON_COMPONENT_NAME}
 
+OPENBATON_BASE_CONFIG_DIR=/etc/openbaton
+OPENBATON_COMPONENT_CONFIG_FILE=openbaton-${OPENBATON_COMPONENT_NAME}.properties
+
 
 ####################
 #### Open Baton ####
@@ -44,15 +47,15 @@ OPENBATON_COMPONENT_JAR_FILE_NAME=openbaton-${OPENBATON_COMPONENT_NAME}
 stop_running () {
     instance=$(ps aux | grep -v grep | grep "${OPENBATON_COMPONENT_JAR_FILE_NAME}" | grep "jar" | wc -l)
     if [ ${instance} -ne 0 ]; then
-       if systemctl stop openbaton-${OPENBATON_COMPONENT_NAME}.service >/dev/null 2>&1 ; then
-           log_success_msg "Stopping the Open Baton ${OPENBATON_COMPONENT_NAME_FANCY} .."
-       elif service openbaton-${OPENBATON_COMPONENT_NAME} stop >/dev/null 2>&1 ; then
-           log_success_msg "Stopping the Open Baton ${OPENBATON_COMPONENT_NAME} .."
-       elif stop openbaton-${OPENBATON_COMPONENT_NAME} >/dev/null 2>&1 ; then
-           log_success_msg "Stopping the Open Baton ${OPENBATON_COMPONENT_NAME} .."
-       else
-           log_failure_msg "Stopping the Open Baton ${OPENBATON_COMPONENT_NAME}"
-       fi
+        if systemctl stop openbaton-${OPENBATON_COMPONENT_NAME}.service >/dev/null 2>&1 ; then
+            log_success_msg "Stopping the Open Baton ${OPENBATON_COMPONENT_NAME_FANCY} .."
+        elif service openbaton-${OPENBATON_COMPONENT_NAME} stop >/dev/null 2>&1 ; then
+            log_success_msg "Stopping the Open Baton ${OPENBATON_COMPONENT_NAME_FANCY} .."
+        elif stop openbaton-${OPENBATON_COMPONENT_NAME} >/dev/null 2>&1 ; then
+            log_success_msg "Stopping the Open Baton ${OPENBATON_COMPONENT_NAME_FANCY} .."
+        else
+            log_failure_msg "Stopping the Open Baton ${OPENBATON_COMPONENT_NAME_FANCY}"
+        fi
     fi
 }
 
