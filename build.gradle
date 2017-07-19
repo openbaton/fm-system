@@ -102,7 +102,8 @@ dependencies {
     compile group: 'org.hibernate', name: 'hibernate-entitymanager', version: '5.1.0.Final'
 
     compile 'commons-dbcp:commons-dbcp:1.4'
-    compile 'mysql:mysql-connector-java:5.1.35'
+    //compile 'mysql:mysql-connector-java:5.1.35'
+    compile group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '1.6.2'
     compile 'org.aspectj:aspectjweaver:1.8.7'
 
     compile 'org.springframework:spring-jdbc'
