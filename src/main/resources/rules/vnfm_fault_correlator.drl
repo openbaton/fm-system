@@ -86,7 +86,7 @@ rule "Recovery action still in progress"
         a : VRAlarm( )
         RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
     then
-        logger.warn("Received vr Alarm bu a recovery action is still in progress");
+        logger.warn("Received vr Alarm but a recovery action is still in progress");
 end
 
 rule "A VR alarm is cleared"

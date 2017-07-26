@@ -58,7 +58,7 @@ public class OpenbatonEventReceiver {
       boolean isNSRManaged = policyManager.isNSRManaged(nsr.getId());
       if (isNSRManaged) {
         if (openbatonEvent.getAction() == Action.HEAL) {
-          logger.debug("Recoveri action finished on nsr:" + nsr.getId());
+          logger.debug("Recovery action finished on nsr:" + nsr.getId());
           recoveryActionFinishedOnNsr(nsr.getId());
         }
       } else policyManager.manageNSR(nsr);
@@ -73,7 +73,14 @@ public class OpenbatonEventReceiver {
     try {
       openbatonEvent = getOpenbatonEvent(message);
       logger.debug("Received VNF event with action: " + openbatonEvent.getAction());
-      //VirtualNetworkFunctionRecord vnfr = getVnfrFromPayload(openbatonEvent.getPayload());
+      VirtualNetworkFunctionRecord vnfr = getVnfrFromPayload(openbatonEvent.getPayload());
+      boolean isNSRManaged = policyManager.isNSRManaged(vnfr.getParent_ns_id());
+      if (isNSRManaged) {
+        if (openbatonEvent.getAction() == Action.HEAL) {
+          logger.debug("Recovery action finished on vnfr:" + vnfr.getName());
+          recoveryActionFinishedOnVnfr(vnfr.getId());
+        }
+      }
     } catch (Exception e) {
       if (logger.isDebugEnabled()) logger.error(e.getMessage(), e);
       else logger.error(e.getMessage());
