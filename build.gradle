@@ -18,12 +18,10 @@ plugins {
     id 'com.github.sherter.google-java-format' version '0.5'
     id 'net.researchgate.release' version '2.3.4'
     id 'nebula.os-package' version '2.2.6'
-    //id 'org.springframework.boot' version '1.4.3.RELEASE'
+    id 'org.springframework.boot' version '1.5.0.RELEASE'
 }
 
-apply plugin: 'java'
-apply from: 'gradle/application.java.gradle'
-
+apply plugin: 'application'
 
 repositories {
     mavenCentral()
@@ -41,6 +39,7 @@ repositories {
 
 apply from: 'gradle/gradle/git.helpers.gradle'
 apply from: 'gradle/gradle/command.line.helper.gradle'
+apply from: 'gradle/application.java.gradle'
 
 project.ext{
     //------------------------------------------------//
@@ -49,13 +48,6 @@ project.ext{
      */
     mainClass = 'org.openbaton.faultmanagement.Application'
     openbatonVersion = '3.2.1-SNAPSHOT'
-    //------------------------------------------------//
-    //------------------------------------------------//
-    /**
-     * Spring Related Variables
-     */
-    springVersion = '4.2.2.RELEASE'
-    springBootVersion = '1.4.0.RELEASE'
     //------------------------------------------------//
     //------------------------------------------------//
     /**
@@ -73,7 +65,7 @@ project.ext{
     //------------------------------------------------//
 }
 
-apply from: 'gradle/run.application.java.gradle'
+//apply from: 'gradle/run.application.java.gradle'
 apply from: 'gradle/gradle/packaging.fms.debian.gradle'
 apply from: 'gradle/gradle/git.release.gradle'
 
@@ -82,24 +74,21 @@ dependencies {
     /**
      * Spring dependencies
     */
-    compile 'org.springframework.boot:spring-boot:'+ springBootVersion
-    compile 'org.springframework.boot:spring-boot-starter-logging:'+ springBootVersion
-
+    compile 'org.springframework.boot:spring-boot-starter-logging'
 
     //Rest Annotation in RestRegister
-    compile 'org.springframework.boot:spring-boot-starter-web:' + springBootVersion
-
+    compile 'org.springframework.boot:spring-boot-starter-web'
 
     //fc dependencies start
 
     //Rest Annotation in AlarmReceiverImpl
-    compile 'org.springframework.boot:spring-boot-starter-websocket:' + springBootVersion
+    compile 'org.springframework.boot:spring-boot-starter-websocket'
 
     // CrudRepository
-    //compile 'org.springframework.data:spring-data-jpa:1.9.4.RELEASE'
-    compile group: 'org.springframework.data', name: 'spring-data-jpa', version: '1.10.2.RELEASE'
+    //compile 'org.springframework.data:spring-data-jpa'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
     //compile 'org.hibernate:hibernate-entitymanager:4.3.10.Final'
-    compile group: 'org.hibernate', name: 'hibernate-entitymanager', version: '5.1.0.Final'
+    //compile group: 'org.hibernate', name: 'hibernate-core', version: '5.1.0.Final'
 
     compile 'commons-dbcp:commons-dbcp:1.4'
     //compile 'mysql:mysql-connector-java:5.1.35'
@@ -107,13 +96,13 @@ dependencies {
     compile 'org.aspectj:aspectjweaver:1.8.7'
 
     compile 'org.springframework:spring-jdbc'
-    compile 'org.springframework.boot:spring-boot-starter-jdbc:' + springBootVersion
+    compile 'org.springframework.boot:spring-boot-starter-jdbc'
 
     //NFVO Requestor
     compile 'org.openbaton:sdk:' + openbatonVersion
 
     //RABBIT
-    compile 'org.springframework.boot:spring-boot-starter-amqp:' + springBootVersion
+    compile 'org.springframework.boot:spring-boot-starter-amqp'
 
     //Drools
     compile 'org.kie:kie-spring:6.3.0.Final'
