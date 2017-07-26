@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.core.ham.interfaces;
 
+import java.util.ArrayList;
 import org.openbaton.catalogue.mano.descriptor.VNFComponent;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
@@ -27,7 +28,10 @@ public interface HighAvailabilityManager {
   void configureRedundancy(NetworkServiceRecord nsr) throws HighAvailabilityException;
 
   void createStandByVNFC(
-      VNFComponent vnfComponent, VirtualNetworkFunctionRecord vnfr, VirtualDeploymentUnit vdu)
+      VNFComponent vnfComponent,
+      VirtualNetworkFunctionRecord vnfr,
+      VirtualDeploymentUnit vdu,
+      ArrayList<String> vimInstanceNames)
       throws HighAvailabilityException;
 
   void switchToStandby(String vnfrId, String failedVnfcInstanceId) throws HighAvailabilityException;

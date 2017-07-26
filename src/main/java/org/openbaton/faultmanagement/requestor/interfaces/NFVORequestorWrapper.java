@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.requestor.interfaces;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.openbaton.catalogue.mano.descriptor.VNFComponent;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
@@ -55,7 +56,11 @@ public interface NFVORequestorWrapper {
       throws SDKException, ClassNotFoundException;
 
   void createStandbyVNFCInstance(
-      String nsrId, String vnfrId, String vduId, VNFComponent vnfComponent)
+      String nsrId,
+      String vnfrId,
+      String vduId,
+      VNFComponent vnfComponent,
+      ArrayList<String> vimInstanceNames)
       throws SDKException, ClassNotFoundException;
 
   void switchToStandby(

@@ -16,10 +16,7 @@
 
 package org.openbaton.faultmanagement.core.ham;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -165,11 +162,14 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
   }
 
   public void createStandByVNFC(
-      VNFComponent vnfComponent, VirtualNetworkFunctionRecord vnfr, VirtualDeploymentUnit vdu)
+      VNFComponent vnfComponent,
+      VirtualNetworkFunctionRecord vnfr,
+      VirtualDeploymentUnit vdu,
+      ArrayList<String> vimInstanceNames)
       throws HighAvailabilityException {
     try {
       nfvoRequestorWrapper.createStandbyVNFCInstance(
-          vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId(), vnfComponent);
+          vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId(), vnfComponent, vimInstanceNames);
     } catch (SDKException | ClassNotFoundException e) {
       throw new HighAvailabilityException(e.getMessage(), e);
     }
@@ -262,7 +262,9 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
                 VNFComponent vnfComponent_new = getVNFComponent(vdu);
 
                 log.debug("Creating standby vnfc instance");
-                createStandByVNFC(vnfComponent_new, vnfr, vdu);
+                log.debug("VNF component to send:" + vnfComponent_new);
+                createStandByVNFC(
+                    vnfComponent_new, vnfr, vdu, (ArrayList<String>) vdu.getVimInstanceName());
                 log.debug("Creating standby vnfc instance message sent");
               }
             }

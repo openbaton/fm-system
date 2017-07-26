@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.requestor;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import org.openbaton.catalogue.mano.descriptor.VNFComponent;
@@ -173,12 +174,18 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
 
   @Override
   public void createStandbyVNFCInstance(
-      String nsrId, String vnfrId, String vduId, VNFComponent vnfComponent)
+      String nsrId,
+      String vnfrId,
+      String vduId,
+      VNFComponent vnfComponent,
+      ArrayList<String> vimInstanceNames)
       throws SDKException, ClassNotFoundException {
     setProjectId();
+    log.debug("sending: vnf component: " + vnfComponent);
+    log.debug("sending: vimInstanceNames: " + vimInstanceNames);
     nfvoRequestor
         .getNetworkServiceRecordAgent()
-        .createVNFCInstanceInStandby(nsrId, vnfrId, vduId, vnfComponent);
+        .createVNFCInstanceInStandby(nsrId, vnfrId, vduId, vnfComponent, vimInstanceNames);
   }
 
   @Override
