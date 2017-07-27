@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+buildscript {
+    repositories { mavenCentral() }
+    dependencies { classpath("se.transmode.gradle:gradle-docker:1.2") }
+}
 
 plugins {
     id 'com.github.sherter.google-java-format' version '0.5'
@@ -22,6 +26,7 @@ plugins {
 }
 
 apply plugin: 'application'
+apply plugin: 'docker'
 
 repositories {
     mavenCentral()
@@ -67,6 +72,7 @@ project.ext{
 
 //apply from: 'gradle/run.application.java.gradle'
 apply from: 'gradle/gradle/packaging.fms.debian.gradle'
+apply from: 'gradle/gradle/packaging.fms.docker.gradle'
 apply from: 'gradle/gradle/git.release.gradle'
 
 dependencies {
