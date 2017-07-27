@@ -90,7 +90,6 @@ rule "Ignore VR alarms of null VNFC Instances and delete alarms in database"
         not VNFCInstance() from nfvoRequestorWrapper.getVNFCInstance(managedObject)
     then
         logger.debug("Ignored an alarm from a null instance: "+managedObject);
-        //vrAlarmRepository.removeByManagedObject(managedObject);
         delete(a);
 end
 
@@ -102,7 +101,6 @@ rule "Ignore  VirtualizedResourceAlarmStateChangedNotification of failed or null
         not VNFCInstance() from nfvoRequestorWrapper.getVNFCInstance(hostname)
     then
         logger.debug("Ignored a VRalarm state changed from a null instance: "+hostname);
-        //vrAlarmRepository.removeByManagedObject(hostname);
         delete(notification);
 end
 
