@@ -44,7 +44,7 @@ repositories {
 
 apply from: 'gradle/gradle/git.helpers.gradle'
 apply from: 'gradle/gradle/command.line.helper.gradle'
-apply from: 'gradle/application.java.gradle'
+//apply from: 'gradle/application.java.gradle'
 
 project.ext{
     //------------------------------------------------//
@@ -70,7 +70,6 @@ project.ext{
     //------------------------------------------------//
 }
 
-//apply from: 'gradle/run.application.java.gradle'
 apply from: 'gradle/gradle/packaging.fms.debian.gradle'
 apply from: 'gradle/gradle/packaging.fms.docker.gradle'
 apply from: 'gradle/gradle/git.release.gradle'
