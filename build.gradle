@@ -44,7 +44,6 @@ repositories {
 
 apply from: 'gradle/gradle/git.helpers.gradle'
 apply from: 'gradle/gradle/command.line.helper.gradle'
-//apply from: 'gradle/application.java.gradle'
 
 project.ext{
     //------------------------------------------------//
@@ -75,11 +74,6 @@ apply from: 'gradle/gradle/packaging.fms.docker.gradle'
 apply from: 'gradle/gradle/git.release.gradle'
 
 dependencies {
-
-    /**
-     * Spring dependencies
-    */
-    compile 'org.springframework.boot:spring-boot-starter-logging'
 
     //Rest Annotation in RestRegister
     compile 'org.springframework.boot:spring-boot-starter-web'
