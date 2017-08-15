@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.core.pm;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
@@ -58,7 +59,7 @@ public class PolicyManagerImpl implements PolicyManager {
   @Override
   public void manageNSR(NetworkServiceRecord nsr)
       throws SDKException, FaultManagementPolicyException, HighAvailabilityException,
-          ClassNotFoundException {
+          ClassNotFoundException, FileNotFoundException {
     if (!nsrNeedsMonitoring(nsr)) {
       log.info("The NSR" + nsr.getName() + " does not need fault management");
       return;
@@ -130,7 +131,7 @@ public class PolicyManagerImpl implements PolicyManager {
       for (String unSubscriptionId : mnsr.getUnSubscriptionIds())
         try {
           eventSubscriptionManger.unSubscribe(unSubscriptionId);
-        } catch (SDKException | ClassNotFoundException e) {
+        } catch (SDKException | ClassNotFoundException | FileNotFoundException e) {
           throw new MonitoringException(e.getMessage(), e);
         }
       mnsrRepo.delete(mnsr);
@@ -150,7 +151,7 @@ public class PolicyManagerImpl implements PolicyManager {
 
   @Override
   public VRFaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     for (NetworkServiceRecord nsr : nfvoRequestorWrapper.getNsrs()) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
         for (VirtualDeploymentUnit vdu : vnfr.getVdu())
@@ -162,7 +163,8 @@ public class PolicyManagerImpl implements PolicyManager {
     return null;
   }
 
-  public String getVnfrIdByPolicyId(String policyId) throws SDKException, ClassNotFoundException {
+  public String getVnfrIdByPolicyId(String policyId)
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     for (NetworkServiceRecord nsr : nfvoRequestorWrapper.getNsrs()) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
         for (VirtualDeploymentUnit vdu : vnfr.getVdu())
