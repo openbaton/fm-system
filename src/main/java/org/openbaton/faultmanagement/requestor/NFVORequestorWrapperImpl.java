@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.requestor;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
@@ -60,6 +61,9 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   @Value("${server.port:}")
   private String fmsPort;
 
+  @Value("${fms.key.file.path:/etc/openbaton/service-key}")
+  private String keyFilePath;
+
   private String projectId;
 
   @PostConstruct
@@ -68,13 +72,25 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       log.error("The NFVO IP address must not be null!");
       throw new IllegalArgumentException("The NFVO IP address must not be null!");
     }
-    this.nfvoRequestor = new NFVORequestor(nfvoUsr, nfvoPwd, null, false, nfvoIp, nfvoPort, "1");
+    try {
+      this.nfvoRequestor =
+          new NFVORequestor("fm-system", "", nfvoIp, nfvoPort, "1", false, keyFilePath);
+    } catch (SDKException e) {
+      log.error(e.getMessage(), e);
+      System.exit(1);
+    }
   }
 
   private void setProjectId() throws ClassNotFoundException, SDKException {
     if (projectId == null || projectId.isEmpty()) {
       log.debug("Trying to connect to the NFVO...");
-      List<Project> projects = nfvoRequestor.getProjectAgent().findAll();
+      List<Project> projects = null;
+      try {
+        projects = nfvoRequestor.getProjectAgent().findAll();
+      } catch (FileNotFoundException e) {
+        log.error(e.getMessage(), e);
+        System.exit(1);
+      }
       log.debug("found " + projects.size() + " projects");
 
       for (Project project : projects) {
@@ -88,20 +104,22 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   }
 
   @Override
-  public NetworkServiceRecord getNsr(String nsrId) throws ClassNotFoundException, SDKException {
+  public NetworkServiceRecord getNsr(String nsrId)
+      throws ClassNotFoundException, SDKException, FileNotFoundException {
     setProjectId();
     return nfvoRequestor.getNetworkServiceRecordAgent().findById(nsrId);
   }
 
   @Override
-  public List<NetworkServiceRecord> getNsrs() throws ClassNotFoundException, SDKException {
+  public List<NetworkServiceRecord> getNsrs()
+      throws ClassNotFoundException, SDKException, FileNotFoundException {
     setProjectId();
     return nfvoRequestor.getNetworkServiceRecordAgent().findAll();
   }
 
   @Override
   public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId, String vnfrId)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     setProjectId();
     return nfvoRequestor
         .getNetworkServiceRecordAgent()
@@ -110,7 +128,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
 
   @Override
   public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String vnfrId)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     for (NetworkServiceRecord nsr : getNsrs()) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
         if (vnfr.getId().equals(vnfrId)) return vnfr;
@@ -121,7 +139,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
 
   @Override
   public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecordFromVNFCHostname(
-      String hostname) throws SDKException, ClassNotFoundException {
+      String hostname) throws SDKException, ClassNotFoundException, FileNotFoundException {
     List<NetworkServiceRecord> nsrs = getNsrs();
     for (NetworkServiceRecord nsr : nsrs) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
@@ -157,7 +175,8 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   }
 
   @Override
-  public String subscribe(EventEndpoint eventEndpoint) throws SDKException, ClassNotFoundException {
+  public String subscribe(EventEndpoint eventEndpoint)
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     setProjectId();
     EventEndpoint response = nfvoRequestor.getEventAgent().create(eventEndpoint);
     return response.getId();
@@ -165,7 +184,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
 
   @Override
   public void deleteVnfcInstance(String nsrId, String vnfrId, String vduId, String vnfcInstanceId)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     setProjectId();
     nfvoRequestor
         .getNetworkServiceRecordAgent()
@@ -179,7 +198,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       String vduId,
       VNFComponent vnfComponent,
       ArrayList<String> vimInstanceNames)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     setProjectId();
     log.debug("sending: vnf component: " + vnfComponent);
     log.debug("sending: vimInstanceNames: " + vimInstanceNames);
@@ -191,7 +210,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   @Override
   public void switchToStandby(
       String nsrId, String vnfrId, String vduId, String vnfcId, VNFCInstance failedVnfcInstance)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     setProjectId();
     nfvoRequestor
         .getNetworkServiceRecordAgent()
@@ -199,14 +218,15 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   }
 
   @Override
-  public void unSubscribe(String id) throws SDKException, ClassNotFoundException {
+  public void unSubscribe(String id)
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     setProjectId();
     nfvoRequestor.getEventAgent().delete(id);
   }
 
   public void executeHeal(
       String nsrid, String vnfrId, String vduId, String failedVnfcInstanceId, String cause)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     NFVMessage nfvMessage = getHealMessage(cause);
     setProjectId();
     nfvoRequestor
@@ -222,7 +242,8 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   }
 
   @Override
-  public VNFCInstance getVNFCInstance(String hostname) throws SDKException, ClassNotFoundException {
+  public VNFCInstance getVNFCInstance(String hostname)
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
 
     List<NetworkServiceRecord> nsrs = getNsrs();
     for (NetworkServiceRecord nsr : nsrs) {
@@ -239,7 +260,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
 
   @Override
   public VNFCInstance getVNFCInstanceById(String VnfcId)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
 
     List<NetworkServiceRecord> nsrs = getNsrs();
     for (NetworkServiceRecord nsr : nsrs) {

@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.core.pm.interfaces;
 
+import java.io.FileNotFoundException;
 import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.exceptions.MonitoringException;
@@ -27,7 +28,7 @@ import org.openbaton.sdk.api.exception.SDKException;
 public interface PolicyManager {
   void manageNSR(NetworkServiceRecord networkServiceRecord)
       throws SDKException, FaultManagementPolicyException, HighAvailabilityException,
-          ClassNotFoundException;
+          ClassNotFoundException, FileNotFoundException;
 
   void unManageNSR(NetworkServiceRecord networkServiceRecord) throws MonitoringException;
 
@@ -38,9 +39,10 @@ public interface PolicyManager {
   boolean isAManagedAlarm(String triggerId);
 
   VRFaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId)
-      throws SDKException, ClassNotFoundException;
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
   String getPolicyIdByThresholdId(String triggerId);
 
-  String getVnfrIdByPolicyId(String policyId) throws SDKException, ClassNotFoundException;
+  String getVnfrIdByPolicyId(String policyId)
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 }
