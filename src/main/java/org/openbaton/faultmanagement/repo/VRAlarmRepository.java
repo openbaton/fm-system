@@ -20,7 +20,6 @@ import java.util.List;
 import org.openbaton.catalogue.mano.common.monitoring.AlarmState;
 import org.openbaton.catalogue.mano.common.monitoring.VRAlarm;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 /** Created by mob on 31.01.16. */
 public interface VRAlarmRepository
@@ -30,7 +29,4 @@ public interface VRAlarmRepository
   List<VRAlarm> findByManagedObjectAndAlarmStateNot(String managedObject, AlarmState alarmState);
 
   VRAlarm findFirstByThresholdId(String thresholdId);
-
-  @Transactional
-  List<VRAlarm> removeByManagedObject(String managedObject);
 }
