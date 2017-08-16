@@ -14,8 +14,8 @@ The technical requirements are:
 
 - Zabbix plugin running (see the [doc of Zabbix plugin][zabbix-plugin-doc])
 - Mysql server installed and running
-- Open Baton 3.2.x running
-- Generic VNFM 3.2.x running
+- Open Baton 4.0.0 running
+- Generic VNFM 4.0.0 running
 
 # How to install Open Baton FM
 
