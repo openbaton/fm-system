@@ -26,7 +26,6 @@ public class VRAlarmRepositoryImpl implements VRAlarmRepositoryCustom {
 
   @Autowired private VRAlarmRepository vrAlarmRepository;
 
-  @Override
   @Transactional
   public VRAlarm changeAlarmState(String thresholdId, AlarmState alarmState) {
     VRAlarm vrAlarm = vrAlarmRepository.findFirstByThresholdId(thresholdId);

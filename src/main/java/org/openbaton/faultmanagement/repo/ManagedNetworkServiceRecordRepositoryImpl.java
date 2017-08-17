@@ -32,7 +32,6 @@ public class ManagedNetworkServiceRecordRepositoryImpl
   @Autowired VduPmJobsRepository vduPmJobsRepository;
   @Autowired ThresholdHostnamesRepository thresholdHostnamesRepository;
 
-  @Override
   @Transactional
   public ManagedNetworkServiceRecord addPmJobId(String nsrId, String vduId, String pmJobId) {
     ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsrId);
@@ -54,7 +53,6 @@ public class ManagedNetworkServiceRecordRepositoryImpl
     return mnsr;
   }
 
-  @Override
   @Transactional
   public ManagedNetworkServiceRecord addThresholdHostnames(
       String nsrId, String thresholdId, ThresholdHostnames thresholdHostnames) {
@@ -66,7 +64,6 @@ public class ManagedNetworkServiceRecordRepositoryImpl
     return mnsr;
   }
 
-  @Override
   @Transactional
   public String addUnsubscriptionId(String nsrId, String unSubscriptionId) {
     ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsrId);
@@ -76,7 +73,6 @@ public class ManagedNetworkServiceRecordRepositoryImpl
     return unSubscriptionId;
   }
 
-  @Override
   @Transactional
   public ManagedNetworkServiceRecord addFmPolicyId(
       String nsrId, String thresholdId, String fmPolicyId) {
@@ -87,7 +83,6 @@ public class ManagedNetworkServiceRecordRepositoryImpl
     return mnsr;
   }
 
-  @Override
   @Transactional
   public ManagedNetworkServiceRecord addVnfTriggerId(String nsrId, String thresholdId) {
     ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsrId);
