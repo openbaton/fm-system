@@ -50,7 +50,6 @@ project.ext{
     /**
      * gradle Related Vars
      */
-    mainClass = 'org.openbaton.faultmanagement.Application'
     openbatonVersion = '4.0.1-SNAPSHOT'
     //------------------------------------------------//
     //------------------------------------------------//
