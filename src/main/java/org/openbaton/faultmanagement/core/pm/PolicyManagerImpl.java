@@ -65,12 +65,12 @@ public class PolicyManagerImpl implements PolicyManager {
       return;
     }
     log.info("The NSR" + nsr.getName() + " needs fault management monitoring");
-    List<VirtualNetworkFunctionRecord> vnfrRequiringFaultManagement =
-        getVnfrRequiringFaultManagement(nsr);
-    for (VirtualNetworkFunctionRecord vnfr : vnfrRequiringFaultManagement)
+    for (VirtualNetworkFunctionRecord vnfr : getVnfrRequiringFaultManagement(nsr))
+      // subscribe for HEAL method
       eventSubscriptionManger.subscribe(vnfr, Action.HEAL);
     saveManagedNetworkServiceRecord(nsr);
 
+    // subscribe for SWITCH TO STANDBY
     eventSubscriptionManger.subscribe(nsr, Action.HEAL);
     monitoringManager.startMonitorNS(nsr);
     highAvailabilityManager.configureRedundancy(nsr);
