@@ -262,7 +262,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
                 //Creating a new component to add into the vdu
                 VNFComponent vnfComponent_new = getVNFComponent(vdu);
 
-                log.debug("Creating standby vnfc instance");
+                log.info("Creating standby vnfc instance");
                 log.debug("VNF component to send:" + vnfComponent_new);
                 createStandByVNFC(
                     vnfComponent_new, vnfr, vdu, (ArrayList<String>) vdu.getVimInstanceName());
