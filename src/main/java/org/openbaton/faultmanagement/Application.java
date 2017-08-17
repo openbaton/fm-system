@@ -23,10 +23,10 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 /** Created by mob on 09.11.15. */
 @SpringBootApplication
 @EntityScan(
-        basePackages = {
-                "org.openbaton.catalogue.mano.common.monitoring",
-                "org.openbaton.faultmanagement.catalogue"
-        }
+  basePackages = {
+    "org.openbaton.catalogue.mano.common.monitoring",
+    "org.openbaton.faultmanagement.catalogue"
+  }
 )
 public class Application {
   public static void main(String[] args) {
