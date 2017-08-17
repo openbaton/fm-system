@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Created by mob on 28/06/16. */
-@Transactional(readOnly = true)
 public class ManagedNetworkServiceRecordRepositoryImpl
     implements ManagedNetworkServiceRecordRepositoryCustom {
 
@@ -61,7 +60,7 @@ public class ManagedNetworkServiceRecordRepositoryImpl
       String nsrId, String thresholdId, ThresholdHostnames thresholdHostnames) {
     ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsrId);
     if (mnsr != null) {
-      thresholdHostnamesRepository.save(thresholdHostnames);
+      thresholdHostnames = thresholdHostnamesRepository.save(thresholdHostnames);
       mnsr.getHostnames().put(thresholdId, thresholdHostnames);
     }
     return mnsr;
