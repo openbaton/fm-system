@@ -20,7 +20,7 @@ import org.openbaton.faultmanagement.core.ham.interfaces.HighAvailabilityManager
 global org.slf4j.Logger logger
 global HighAvailabilityManager highAvailabilityManager
 
-declare RecoveryActionStatus
+declare RecoveryAction
  @role(event)
  @expires(1m)
 end
