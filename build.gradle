@@ -22,7 +22,7 @@ plugins {
     id 'com.github.sherter.google-java-format' version '0.5'
     id 'net.researchgate.release' version '2.3.4'
     id 'nebula.os-package' version '2.2.6'
-    id 'org.springframework.boot' version '1.5.0.RELEASE'
+    id 'org.springframework.boot' version '1.5.6.RELEASE'
 }
 
 apply plugin: 'application'
@@ -36,7 +36,6 @@ repositories {
     maven {
         url 'https://oss.sonatype.org/content/repositories/snapshots/'
     }
-    // fc dependency
     maven {
         url 'https://repository.jboss.org'
     }
@@ -44,14 +43,15 @@ repositories {
 
 apply from: 'gradle/gradle/git.helpers.gradle'
 apply from: 'gradle/gradle/command.line.helper.gradle'
+apply from: 'gradle/gradle/packaging.fms.docker.gradle'
+apply from: 'gradle/gradle/git.release.gradle'
 
 project.ext{
     //------------------------------------------------//
     /**
      * gradle Related Vars
      */
-    mainClass = 'org.openbaton.faultmanagement.Application'
-    openbatonVersion = '4.0.0'
+    openbatonVersion = '4.0.1-SNAPSHOT'
     //------------------------------------------------//
     //------------------------------------------------//
     /**
@@ -68,38 +68,23 @@ project.ext{
 
     //------------------------------------------------//
 }
-
 apply from: 'gradle/gradle/packaging.fms.debian.gradle'
-apply from: 'gradle/gradle/packaging.fms.docker.gradle'
-apply from: 'gradle/gradle/git.release.gradle'
 
 dependencies {
 
-    //Rest Annotation in RestRegister
     compile 'org.springframework.boot:spring-boot-starter-web'
-
-    //fc dependencies start
-
-    // CrudRepository
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'org.springframework.boot:spring-boot-starter-amqp'
 
-    compile 'org.mariadb.jdbc:mariadb-java-client:1.6.2'
-
-    //NFVO Requestor and monitoring caller
     compile 'org.openbaton:sdk:' + openbatonVersion
     compile 'org.openbaton:monitoring:' + openbatonVersion
 
-    //RABBIT
-    compile 'org.springframework.boot:spring-boot-starter-amqp'
-
-    //Drools
     compile 'org.kie:kie-spring:6.3.0.Final'
-    // fc dependencies end
 
-    //Gson
     compile 'com.google.code.gson:gson:2.4'
 
-    //Testing Service in Spring (see PolicyManagerTest)
+    runtime 'org.mariadb.jdbc:mariadb-java-client:1.6.2'
+
     testCompile 'junit:junit:4.12'
 }
 

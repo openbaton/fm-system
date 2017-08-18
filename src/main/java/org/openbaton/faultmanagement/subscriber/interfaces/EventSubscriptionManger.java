@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.subscriber.interfaces;
 
+import java.io.FileNotFoundException;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
@@ -26,16 +27,17 @@ import org.openbaton.sdk.api.exception.SDKException;
 /** Created by mob on 13.05.16. */
 public interface EventSubscriptionManger {
   String subscribe(NetworkServiceRecord networkServiceRecord, Action action)
-      throws SDKException, ClassNotFoundException;
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
   void subscribeToNFVO()
       throws SDKException, ClassNotFoundException, HighAvailabilityException,
-          FaultManagementPolicyException;
+          FaultManagementPolicyException, FileNotFoundException;
 
   void unSubscribeToNFVO() throws SDKException, ClassNotFoundException;
 
   String subscribe(VirtualNetworkFunctionRecord virtualNetworkFunctionRecord, Action action)
-      throws SDKException, ClassNotFoundException;
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
-  void unSubscribe(String subscriptionId) throws SDKException, ClassNotFoundException;
+  void unSubscribe(String subscriptionId)
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 }
