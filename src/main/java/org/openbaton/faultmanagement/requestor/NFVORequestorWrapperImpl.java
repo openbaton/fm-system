@@ -58,6 +58,9 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   @Value("${nfvo.port:8080}")
   private String nfvoPort;
 
+  @Value("${nfvo.ssl.enabled:false}")
+  private boolean sslEnabled;
+
   @Value("${server.port:}")
   private String fmsPort;
 
@@ -74,7 +77,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
     }
     try {
       this.nfvoRequestor =
-          new NFVORequestor("fm-system", "", nfvoIp, nfvoPort, "1", false, keyFilePath);
+          new NFVORequestor("fm-system", "", nfvoIp, nfvoPort, "1", sslEnabled, keyFilePath);
     } catch (SDKException e) {
       log.error(e.getMessage(), e);
       System.exit(1);
