@@ -16,10 +16,13 @@
 
 package org.openbaton.faultmanagement.requestor;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import org.apache.commons.io.FileUtils;
 import org.openbaton.catalogue.mano.descriptor.VNFComponent;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
@@ -75,9 +78,21 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       log.error("The NFVO IP address must not be null!");
       throw new IllegalArgumentException("The NFVO IP address must not be null!");
     }
+
+    // get the private key
+    String serviceKey = "";
+    File serviceKeyFile = new File(keyFilePath);
+    try {
+      serviceKey = FileUtils.readFileToString(serviceKeyFile, "UTF-8");
+    } catch (IOException e) {
+      if (log.isDebugEnabled())
+        log.error("Problem to read the service key in the path: " + keyFilePath, e);
+      else log.error("Problem to read the service key in the path: " + keyFilePath);
+      System.exit(1);
+    }
     try {
       this.nfvoRequestor =
-          new NFVORequestor("fm-system", "", nfvoIp, nfvoPort, "1", sslEnabled, keyFilePath);
+          new NFVORequestor("fm-system", "", nfvoIp, nfvoPort, "1", sslEnabled, serviceKey);
     } catch (SDKException e) {
       log.error(e.getMessage(), e);
       System.exit(1);

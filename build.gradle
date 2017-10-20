@@ -51,7 +51,7 @@ project.ext{
     /**
      * gradle Related Vars
      */
-    openbatonVersion = '4.0.1-SNAPSHOT'
+    openbatonVersion = '5.0.0-RC1'
     //------------------------------------------------//
     //------------------------------------------------//
     /**
@@ -80,7 +80,7 @@ dependencies {
     compile 'org.openbaton:monitoring:' + openbatonVersion
 
     compile 'org.kie:kie-spring:6.3.0.Final'
-
+    compile 'commons-io:commons-io:2.4'
     compile 'com.google.code.gson:gson:2.4'
 
     runtime 'org.mariadb.jdbc:mariadb-java-client:1.6.2'
