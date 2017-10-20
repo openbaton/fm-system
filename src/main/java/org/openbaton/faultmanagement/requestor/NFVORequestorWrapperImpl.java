@@ -43,13 +43,13 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   private static final Logger log = LoggerFactory.getLogger(NFVORequestorWrapperImpl.class);
   private NFVORequestor nfvoRequestor;
 
-  @Value("${nfvo-usr:}")
+  @Value("${nfvo-usr:admin}")
   private String nfvoUsr;
 
-  @Value("${nfvo-pwd:}")
+  @Value("${nfvo-pwd:openbaton}")
   private String nfvoPwd;
 
-  @Value("${nfvo.ip:}")
+  @Value("${nfvo.ip:localhost}")
   private String nfvoIp;
 
   @Value("${nfvo.project.name:default}")
@@ -61,7 +61,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   @Value("${nfvo.ssl.enabled:false}")
   private boolean sslEnabled;
 
-  @Value("${server.port:}")
+  @Value("${server.port:9000}")
   private String fmsPort;
 
   @Value("${fms.service.key:}")
