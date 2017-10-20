@@ -67,8 +67,8 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   @Value("${server.port:}")
   private String fmsPort;
 
-  @Value("${fms.key.file.path:/etc/openbaton/openbaton-fms-service-key}")
-  private String keyFilePath;
+  @Value("${fms.service.key:}")
+  private String serviceKey;
 
   private String projectId;
 
@@ -78,21 +78,13 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       log.error("The NFVO IP address must not be null!");
       throw new IllegalArgumentException("The NFVO IP address must not be null!");
     }
-
-    // get the private key
-    String serviceKey = "";
-    File serviceKeyFile = new File(keyFilePath);
-    try {
-      serviceKey = FileUtils.readFileToString(serviceKeyFile, "UTF-8");
-    } catch (IOException e) {
-      if (log.isDebugEnabled())
-        log.error("Problem to read the service key in the path: " + keyFilePath, e);
-      else log.error("Problem to read the service key in the path: " + keyFilePath);
+    if (serviceKey == null || serviceKey.isEmpty()) {
+      log.error("Service key is null. Please get the service key from the NFVO and copy it to the property fms.service.key");
       System.exit(1);
     }
     try {
       this.nfvoRequestor =
-          new NFVORequestor("fm-system", "", nfvoIp, nfvoPort, "1", sslEnabled, serviceKey);
+          new NFVORequestor("fm-system", "", nfvoIp, nfvoPort, "1", sslEnabled, serviceKey.trim());
     } catch (SDKException e) {
       log.error(e.getMessage(), e);
       System.exit(1);
