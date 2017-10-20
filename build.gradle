@@ -81,7 +81,7 @@ dependencies {
 
     compile 'org.kie:kie-spring:6.3.0.Final'
     compile 'commons-io:commons-io:2.4'
-    compile 'com.google.code.gson:gson:2.8'
+    compile 'com.google.code.gson:gson:2.8.0'
 
     runtime 'org.mariadb.jdbc:mariadb-java-client:1.6.2'
 
