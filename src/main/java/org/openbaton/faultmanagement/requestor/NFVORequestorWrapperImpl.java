@@ -67,7 +67,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   @Value("${server.port:}")
   private String fmsPort;
 
-  @Value("${fms.key.file.path:/etc/openbaton/service-key}")
+  @Value("${fms.key.file.path:/etc/openbaton/openbaton-fms-service-key}")
   private String keyFilePath;
 
   private String projectId;
