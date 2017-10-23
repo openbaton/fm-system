@@ -19,6 +19,8 @@ package org.openbaton.faultmanagement.core.pm;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
 import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
@@ -150,12 +152,12 @@ public class PolicyManagerImpl implements PolicyManager {
   }
 
   @Override
-  public VRFaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId)
+  public FaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId)
       throws SDKException, ClassNotFoundException, FileNotFoundException {
     for (NetworkServiceRecord nsr : nfvoRequestorWrapper.getNsrs()) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
         for (VirtualDeploymentUnit vdu : vnfr.getVdu())
-          for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
+          for (FaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
             if (vnffmp != null && vnffmp.getId().equals(vnfFMPolicyId)) return vnffmp;
           }
       }
@@ -168,7 +170,7 @@ public class PolicyManagerImpl implements PolicyManager {
     for (NetworkServiceRecord nsr : nfvoRequestorWrapper.getNsrs()) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
         for (VirtualDeploymentUnit vdu : vnfr.getVdu())
-          for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
+          for (FaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
             if (vnffmp != null && vnffmp.getId().equals(policyId)) return vnfr.getId();
           }
       }

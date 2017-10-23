@@ -18,6 +18,7 @@ package org.openbaton.faultmanagement.requestor;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import org.openbaton.catalogue.mano.descriptor.VNFComponent;
@@ -80,6 +81,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
           "Service key is null. Please get the service key from the NFVO and copy it to the property fms.service.key");
       System.exit(1);
     }
+    log.debug("service-key lenght: "+serviceKey.length());
     try {
       this.nfvoRequestor =
           new NFVORequestor("fm-system", "", nfvoIp, nfvoPort, "1", sslEnabled, serviceKey.trim());
