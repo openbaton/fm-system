@@ -29,6 +29,7 @@ apply plugin: 'application'
 apply plugin: 'docker'
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven {
         url 'https://oss.sonatype.org/content/repositories/releases/'
@@ -51,7 +52,7 @@ project.ext{
     /**
      * gradle Related Vars
      */
-    openbatonVersion = '5.0.0-RC1'
+    openbatonVersion = '5.0.0-RC2-SNAPSHOT'
     //------------------------------------------------//
     //------------------------------------------------//
     /**
@@ -78,6 +79,7 @@ dependencies {
 
     compile 'org.openbaton:sdk:' + openbatonVersion
     compile 'org.openbaton:monitoring:' + openbatonVersion
+    compile 'org.openbaton:catalogue:' + openbatonVersion
 
     compile 'org.kie:kie-spring:6.3.0.Final'
     compile 'commons-io:commons-io:2.4'
@@ -89,17 +91,3 @@ dependencies {
 }
 
 compileJava.dependsOn tasks.googleJavaFormat
-
-
-
-
-
-
-
-
-
-
-
-
-
-
