@@ -5,21 +5,72 @@
 
 [![Build Status](https://travis-ci.org/openbaton/fm-system.svg?branch=master)](https://travis-ci.org/openbaton/fm-system)
 
-# Open Baton FM
-The Open Baton FM project is a module of the NFVO Openbaton. It manages the alarms coming from the VIM and executes actions through the NFVO.
+# Open Baton FM System
+The Open Baton FM System (`fm-system`) is an external component of the NFVO Open Baton. It manages the alarms coming from the VIM and executes actions through the NFVO.  
+
+The `fm-system` is implemented as a [Spring Boot application][spring-boot]. It runs as an external component and communicate with the NFVO via Open Baton's SDK and RabbitMQ.  
+
+In the following 
 
 # Technical Requirements
 
-The technical requirements are:  
+* Preconfigured Open Baton environment (NFVO, VNFMs, VIM drivers)
+* Running Zabbix server
+* Preconfgiured and running Zabbix plugin (see the [doc of Zabbix plugin][zabbix-plugin-doc])
+* Mysql server installed and running
 
-- Zabbix plugin running (see the [doc of Zabbix plugin][zabbix-plugin-doc])
-- Mysql server installed and running
-- Open Baton 4.0.0 running
-- Generic VNFM 4.0.0 running
+# How to install Open Baton FM System
 
-# How to install Open Baton FM
+There are two options available for the installation of the `fm-system`. Installation based on the Debian package or on the source code (which is suggested for development). 
 
-Once the prerequisites are met, you need to execute the following steps.
+## Installation via Debian package
+
+When using the Debian package you need to add the apt-repository of Open Baton to your local environment with the following command if not yet done:
+ 
+```bash
+wget -O - http://get.openbaton.org/keys/public.gpg.key | apt-key add -
+echo "deb http://get.openbaton.org/repos/apt/debian/ stable main" >> /etc/apt/sources.list
+```
+
+Once you added the repo to your environment you should update the list of repos by executing:
+
+```bash
+apt-get update
+```
+
+Now you can install the `fm-system` by executing:
+
+```bash
+apt-get install openbaton-fms
+```
+
+## Installation from the source code
+
+The latest stable version of the Open Baton FM System can be cloned from this [repository][fms-repo] by executing the following command:
+
+```bash
+git clone https://github.com/openbaton/fm-system.git
+```
+
+Once this is done, go inside the cloned folder and make use of the provided script to compile the project as done below:
+
+```bash
+./fm-system.sh compile
+```
+
+# Manual configuration of the Open Baton FM System
+
+This chapter describes what needs to be done before starting the Open Baton FM System.
+
+## Configuration file
+
+The configuration file must be copied to `/etc/openbaton/fms.properties` by executing the following command from inside the repository folder:
+
+```bash
+cp etc/fms.properties /etc/openbaton/fms.properties
+```
+
+If done, check out the following chapter in order to understand the configuration parameters.
 
 ## Create the database
 
@@ -31,7 +82,7 @@ create database faultmanagement;
 ```
 
 Once the database has been created, you should create a user which will be used by the FM system to access and store data on the database. If you decide to use the `root` user you can skip this step, but you need to modify the fms.properties file accordingly as defined in the next section. 
-By default username and password are set with the following values in the fms.properties properties file (see next section if you plan to use a different user and passord): 
+By default username and password are set with the following values in the fms.properties properties file (see next section if you plan to use a different user and password): 
 
 * username=fmsuser
 * password=changeme
@@ -44,9 +95,7 @@ GRANT ALL PRIVILEGES ON faultmanagement.* TO fmsuser@'%' IDENTIFIED BY 'changeme
 
 ## Modify fms.properties file in order to use different credentials for the database 
 
-In the folder "etc" of this project, there is a file called fms.properties containing all the default properties values used by the FM system. 
-
-In order to use different credentials, you need to modify the following DB properties: 
+In order to use different credentials, you need to modify the following properties: 
 
 ```bash
 # DB properties
@@ -54,15 +103,14 @@ spring.datasource.username=fmsuser
 spring.datasource.password=changeme
 ```
 
-In case your DB is running remotely, you can specifcy a different host, instead of localhost, in the following property (be careful to have port 3306 open and accessible from remote): 
+In case your database is running remotely, you can specify a different host, instead of localhost, in the following property (be careful to have port 3306 open and accessible from remote): 
 
 ```bash
 spring.datasource.url=jdbc:mysql://localhost:3306/faultmanagement
 ```
 
-## Additional configurion options 
+## Additional configuration options 
 
-As already mentioned in the previous section, in the folder "etc" of this project, there is a file called fms.properties containing all the default properties values used by the FM system.
 You should update this file in order to make it work with your NFVO instance. Change the Open Baton related properties section: 
 
 ```bash
@@ -73,32 +121,44 @@ nfvo.ip=localhost
 nfvo.port=8080
 nfvo-usr=admin
 nfvo-pwd=openbaton
+nfvo.project.name=default
+nfvo.ssl.enabled=false
 ```
 
+# Starting the Open Baton FM System
 
-## Checkout the source code of the project, compile and run it
+How to start the Open Baton FM System depends of the way you installed this component.
 
-You can clone this repository with this command:
+### Debian packages
 
-```bash  
-git clone https://github.com/openbaton/fm-system.git
+If you installed the Open Baton FM System with the Debian packages you can start it with the following command:
+
+```bash
+openbaton-fms start
 ```
 
-The configuration file is etc/fms.properties, you have to copy it in the Open Baton etc folder ( /etc/openbaton ). You can do it typing the following command 
+For stopping it you can just type:
 
-```bash  
-cd fm-system
-cp etc/fms.properties /etc/openbaton/fms.properties
+```bash
+openbaton-fms stop
 ```
 
-Now, you can finally compile and start the FM System. 
+### Source code
 
-```bash  
-./fm-system.sh compile start
+If you are using the source code you can start the Open Baton FM System easily by using the provided script with the following command:
+
+```bash
+./fm-system.sh start
 ```
 
+For stopping you can use:
+```bash
+./fm-system.sh stop
+```
 
-# How to use Open Baton FM
+**Note** Since the Open Baton FM System subscribes to specific events towards the NFVO, you should take care about that the NFVO is already running when starting the Open Baton FM System.
+
+# How to use Open Baton FM System
 
 Open Baton FM is a rule-driven tool. The rules define when to generate an alarm and how to react. The rule for generating the alarm is called fault management policy (see the next section). 
 The rule for defining how to react upon alarms is a Drools Rule. Once such rules are in place, Open Baton FM follows the following workflow.      
@@ -111,7 +171,6 @@ The actions are listed below:
 | ------------------- | --------------  | 
 | Heal   |  The VNFM executes the scripts in the Heal lifecycle event (in the VNFD). The message contains the cause of the fault, which can be used in the scripts. 
 | Switch to stanby VNFC (Stateless)   |  If the VDU requires redoundancy active-passive, there will be a component VNFC* in standby mode. This action consists in: activate the VNFC*, route all signalling and data flow(s) for VNFC to VNFC*, deactivate VNFC
-| Switch to stanby VNFC (Stateful)    |  To investigate. Refer on ETSI GS NFV-REL 001 v1.1.1 (2015-01) Chapter 11.2.1 
 
 ## Write a fault management policy
 
@@ -336,7 +395,8 @@ following guidelines
 # Support
 The Open Baton project provides community support through the Open Baton Public Mailing List and through StackOverflow using the tags openbaton.
 
-
+[spring-boot]:http://projects.spring.io/spring-boot/
+[fms-repo]:https://github.com/openbaton/fm-system
 [openbaton]: http://openbaton.org
 [openbaton-doc]: http://openbaton.org/documentation
 [openbaton-github]: http://github.org/openbaton
