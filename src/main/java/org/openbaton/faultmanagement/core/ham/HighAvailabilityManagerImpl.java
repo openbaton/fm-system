@@ -267,8 +267,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
 
                 ArrayList<String> vimInstanceNames = new ArrayList<>();
                 vimInstanceNames.addAll(vdu.getVimInstanceName());
-                createStandByVNFC(
-                    vnfComponent_new, vnfr, vdu, vimInstanceNames);
+                createStandByVNFC(vnfComponent_new, vnfr, vdu, vimInstanceNames);
                 log.debug("Creating standby vnfc instance message sent");
               }
             }

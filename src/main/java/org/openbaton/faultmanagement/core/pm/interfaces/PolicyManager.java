@@ -17,7 +17,6 @@
 package org.openbaton.faultmanagement.core.pm.interfaces;
 
 import java.io.FileNotFoundException;
-
 import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.exceptions.MonitoringException;
