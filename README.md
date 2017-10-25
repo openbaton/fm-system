@@ -16,7 +16,7 @@ In the following
 
 * Preconfigured Open Baton environment (NFVO, VNFMs, VIM drivers)
 * Running Zabbix server
-* Preconfgiured and running Zabbix plugin (see the [doc of Zabbix plugin][zabbix-plugin-doc])
+* Preconfigured and running Zabbix plugin (see the [doc of Zabbix plugin][zabbix-plugin-doc])
 * Mysql server installed and running
 
 # How to install Open Baton FM System
@@ -28,10 +28,10 @@ There are two options available for the installation of the `fm-system`. Install
 When using the Debian package you need to add the apt-repository of Open Baton to your local environment with the following command if not yet done:
  
 ```bash
-wget -O - http://get.openbaton.org/keys/public.gpg.key | apt-key add -
-echo "deb http://get.openbaton.org/repos/apt/debian/ stable main" >> /etc/apt/sources.list
+wget -O - http://get.openbaton.org/keys/openbaton.public.key | apt-key add -
+echo "deb http://get.openbaton.org/repos/openbaton/xenial/release xenial main" >> /etc/apt/sources.list
 ```
-
+Replace \<dist\> with **trusty**, **xenial** or **jessie** depending on the distribution you are using.  
 Once you added the repo to your environment you should update the list of repos by executing:
 
 ```bash
@@ -43,6 +43,10 @@ Now you can install the `fm-system` by executing:
 ```bash
 apt-get install openbaton-fms
 ```
+
+**Note**: During the installation you will be prompted for entering the IP address of the host of the Zabbix Plugin, make sure this IP can be reached by the Zabbix Server host.
+
+After the installation, the `fm-system` is already configured and running.
 
 ## Installation from the source code
 
@@ -58,7 +62,9 @@ Once this is done, go inside the cloned folder and make use of the provided scri
 ./fm-system.sh compile
 ```
 
-# Manual configuration of the Open Baton FM System
+The installation from the source code requires manual configuration before running the `fm-system`, which is explained in the following section.
+
+## Manual configuration of the Open Baton FM System
 
 This chapter describes what needs to be done before starting the Open Baton FM System.
 
@@ -70,7 +76,7 @@ The configuration file must be copied to `/etc/openbaton/fms.properties` by exec
 cp etc/fms.properties /etc/openbaton/fms.properties
 ```
 
-If done, check out the following chapter in order to understand the configuration parameters.
+In the following sections, we will refer to this configuration file as `fms.properties`. 
 
 ## Create the database
 
@@ -81,7 +87,7 @@ You need root access to mysql-server in order to create a new database called fa
 create database faultmanagement;
 ```
 
-Once the database has been created, you should create a user which will be used by the FM system to access and store data on the database. If you decide to use the `root` user you can skip this step, but you need to modify the fms.properties file accordingly as defined in the next section. 
+Once the database has been created, you should create a user which will be used by the FM system to access and store data on the database. If you decide to use the **root** user you can skip this step, but you need to modify the `fms.properties` file accordingly as defined in the next section. 
 By default username and password are set with the following values in the fms.properties properties file (see next section if you plan to use a different user and password): 
 
 * username=fmsuser
@@ -97,7 +103,7 @@ GRANT ALL PRIVILEGES ON faultmanagement.* TO fmsuser@'%' IDENTIFIED BY 'changeme
 
 In order to use different credentials, you need to modify the following properties: 
 
-```bash
+```properties
 # DB properties
 spring.datasource.username=fmsuser
 spring.datasource.password=changeme
@@ -105,15 +111,15 @@ spring.datasource.password=changeme
 
 In case your database is running remotely, you can specify a different host, instead of localhost, in the following property (be careful to have port 3306 open and accessible from remote): 
 
-```bash
+```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/faultmanagement
 ```
 
-## Additional configuration options 
+## Additional configuration for the NFVO
 
 You should update this file in order to make it work with your NFVO instance. Change the Open Baton related properties section: 
 
-```bash
+```properties
 ################################################
 ####### Open Baton Related properties ##########
 ################################################
@@ -123,6 +129,22 @@ nfvo-usr=admin
 nfvo-pwd=openbaton
 nfvo.project.name=default
 nfvo.ssl.enabled=false
+```
+## Configure the Service key
+
+The `fm-system` authenticates to the NFVO through a service key which has to be set in the properties. You need to obtain the service key from the dashboard of the NFVO, 
+in particular you can set the service key with the following instructions:
+* Go to Admin->Services
+* Click on "Enable a new Service"
+* Input the name "fm-system"
+* Click on Role
+* Select "*" in the Project checkbox
+* Click Save
+* Open the downloaded file
+* Copy the service key in the `fms.properties`:
+
+```properties
+fms.service.key=
 ```
 
 # Starting the Open Baton FM System
@@ -156,7 +178,7 @@ For stopping you can use:
 ./fm-system.sh stop
 ```
 
-**Note** Since the Open Baton FM System subscribes to specific events towards the NFVO, you should take care about that the NFVO is already running when starting the Open Baton FM System.
+**Note** Since the Open Baton FM System subscribes to specific events towards the NFVO, you should take care about that the NFVO is already running when starting the `fm-system`.
 
 # How to use Open Baton FM System
 
@@ -197,7 +219,7 @@ The fault management policy need to be present in the VNFD, in particular in the
 ```
 Description of the fault management policy:  
 
-| Property              | Derscription     
+| Property              | Description     
 | ------------------- | --------------  
 | name   |  The name of the fault management policy.
 | isVNFAlarm   |  if the alarm is of type VNF
@@ -207,10 +229,10 @@ Description of the fault management policy:
 
 Description of the criteria:  
 
-| Property              | Derscription     
+| Property              | Description     
 | ------------------- | --------------  
 | parameter_ref | Reference to a monitoring parameter in the VDU. (see below how to define monitoring parameters)
-| function | The function to apply to the parameter. ( last(0) means the last value available of the parameter). Since currently only Zabbix is supported, look at the [Zabbix documentation][zabbix-functions] for the all available funcitons. 
+| function | The function to apply to the parameter. ( last(0) means the last value available of the parameter). Since currently only Zabbix is supported, look at the [Zabbix documentation][zabbix-functions] for the all available functions. 
 |vnfc_selector | select if the criteria is met when all VNFC components cross the thresold (all) or at least one (at_least_one)
 | comparison_operator | comparison operator for the threshold
 |threshold | value of the threshold to compare against the parameter_ref value
@@ -232,22 +254,7 @@ You can specify every parameter available for the [Zabbix Agent][zabbix-agent-it
 
 ## How the HEAL method works
 
-The Heal VNF operation is a method of the VNF lifecycle management interface described in the ETSI [NFV MANO] specification. Here is reported the description and the notes about this method:
-
-```
-Description: this operation is used to request appropriate correction actions in reaction to a failure.
-Notes: This assumes operational behaviour for healing actions by VNFM has been described in the VNFD. An example might be switching between active and standby mode.
-```
-
-In the ETSI draft "NFV-IFA007v040" at [this][etsi-draft-Or-VNFM] page, the Heal VNF message is defined as:
-
-```
-vnfInstanceId : Identifies the VNF instance requiring a healing action.
-cause : Indicates the reason why a healing procedure is required.
-```
-
-The fault management system as soon as gets an alarm from the VIM, 
-it checks if the alarm is referred to a VNF and it sends the Heal VNF message to the NFVO which forward it to the respective VNFM.
+The `fm-system` as soon as it gets an alarm from the VIM, it checks if the alarm is referred to a VNF and it sends the Heal VNF message to the NFVO which forward it to the respective VNFM.
 The VNFM executes in the failed VNFC the scripts in the HEAL lifecycle event.
 Here an example of the heal script you can use:
 
@@ -277,7 +284,7 @@ The variable $cause is specified in the Drools rule. In our case is "serviceDown
 
 The Open Baton FM is a rule-based system. Such rules are specified in Drools language and processed by the Drools engine in the Open Baton FM.
 An example rule is the following:
-```
+```drools
 rule "Save a VNFAlarm"
     when
         vnfAlarm : VNFAlarm()
@@ -290,7 +297,7 @@ end
 This rule saves a VNFAlarm in the database.
 The following rule executes the HEAL action once a VNFAlarm is received.
 
-```
+```drools
 rule "Got a critical VNF Alarm and execute the HEAL action"
 
     when
@@ -322,7 +329,7 @@ end
 
 ## How the Switch to Standby works
 
-The Switch to Standby action can be performed by the Open Baton FM once a VNFC in stanby is present in the VNF. It consists in switch the service from a VNFC to the VNFC in stanby automatically.
+The Switch to Standby action can be performed by the Open Baton FM once a VNFC in standby is present in the VNF. It consists in switch the service from a VNFC to the VNFC in stanby automatically.
 In order to have a VNFC in standby, such information must be included in the VNFD, in particular in the VDU, as the following:
 
 ```
