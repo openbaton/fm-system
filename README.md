@@ -70,13 +70,13 @@ This chapter describes what needs to be done before starting the Open Baton FM S
 
 ## Configuration file
 
-The configuration file must be copied to `/etc/openbaton/fms.properties` by executing the following command from inside the repository folder:
+The configuration file must be copied to `/etc/openbaton/openbaton-fms.properties` by executing the following command from inside the repository folder:
 
 ```bash
-cp etc/fms.properties /etc/openbaton/fms.properties
+cp etc/openbaton-fms.properties /etc/openbaton/openbaton-fms.properties
 ```
 
-In the following sections, we will refer to this configuration file as `fms.properties`. 
+In the following sections, we will refer to this configuration file as `openbaton-fms.properties`. 
 
 ## Create the database
 
@@ -87,8 +87,8 @@ You need root access to mysql-server in order to create a new database called fa
 create database faultmanagement;
 ```
 
-Once the database has been created, you should create a user which will be used by the FM system to access and store data on the database. If you decide to use the **root** user you can skip this step, but you need to modify the `fms.properties` file accordingly as defined in the next section. 
-By default username and password are set with the following values in the fms.properties properties file (see next section if you plan to use a different user and password): 
+Once the database has been created, you should create a user which will be used by the FM system to access and store data on the database. If you decide to use the **root** user you can skip this step, but you need to modify the `openbaton-fms.properties` file accordingly as defined in the next section. 
+By default username and password are set with the following values in the `openbaton-fms.properties` properties file (see next section if you plan to use a different user and password): 
 
 * username=fmsuser
 * password=changeme
@@ -99,7 +99,7 @@ Grant the access to the database "faultmanagement", to the user, running the fol
 GRANT ALL PRIVILEGES ON faultmanagement.* TO fmsuser@'%' IDENTIFIED BY 'changeme';
 ```
 
-## Modify fms.properties file in order to use different credentials for the database 
+## Modify openbaton-fms.properties file in order to use different credentials for the database 
 
 In order to use different credentials, you need to modify the following properties: 
 
@@ -141,7 +141,7 @@ in particular you can set the service key with the following instructions:
 * Select "*" in the Project checkbox
 * Click Save
 * Open the downloaded file
-* Copy the service key in the `fms.properties`:
+* Copy the service key in the `openbaton-fms.properties`:
 
 ```properties
 fms.service.key=
