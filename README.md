@@ -29,7 +29,7 @@ When using the Debian package you need to add the apt-repository of Open Baton t
  
 ```bash
 wget -O - http://get.openbaton.org/keys/openbaton.public.key | apt-key add -
-echo "deb http://get.openbaton.org/repos/openbaton/xenial/release xenial main" >> /etc/apt/sources.list
+echo "deb http://get.openbaton.org/repos/openbaton/<dist>/release <dist> main" >> /etc/apt/sources.list
 ```
 Replace \<dist\> with **trusty**, **xenial** or **jessie** depending on the distribution you are using.  
 Once you added the repo to your environment you should update the list of repos by executing:
