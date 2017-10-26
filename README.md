@@ -3,7 +3,7 @@
   Copyright © 2015-2016 [Open Baton](http://openbaton.org). 
   Licensed under [Apache v2 License](http://www.apache.org/licenses/LICENSE-2.0).
 
-[![Build Status](https://travis-ci.org/openbaton/openbaton-fms.svg?branch=master)](https://travis-ci.org/openbaton/openbaton-fms)
+[![Build Status](https://travis-ci.org/openbaton/fm-system.svg?branch=master)](https://travis-ci.org/openbaton/fm-system)
 
 # Open Baton Fault Management System
 The Open Baton Fault Management System (`openbaton-fms`) is an external component of the NFVO Open Baton. It manages the alarms coming from the VIM and executes actions through the NFVO.  
