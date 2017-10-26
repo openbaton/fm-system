@@ -3,12 +3,12 @@
   Copyright © 2015-2016 [Open Baton](http://openbaton.org). 
   Licensed under [Apache v2 License](http://www.apache.org/licenses/LICENSE-2.0).
 
-[![Build Status](https://travis-ci.org/openbaton/fm-system.svg?branch=master)](https://travis-ci.org/openbaton/fm-system)
+[![Build Status](https://travis-ci.org/openbaton/openbaton-fms.svg?branch=master)](https://travis-ci.org/openbaton/openbaton-fms)
 
-# Open Baton FM System
-The Open Baton FM System (`fm-system`) is an external component of the NFVO Open Baton. It manages the alarms coming from the VIM and executes actions through the NFVO.  
+# Open Baton Fault Management System
+The Open Baton Fault Management System (`openbaton-fms`) is an external component of the NFVO Open Baton. It manages the alarms coming from the VIM and executes actions through the NFVO.  
 
-The `fm-system` is implemented as a [Spring Boot application][spring-boot]. It runs as an external component and communicate with the NFVO via Open Baton's SDK and RabbitMQ.  
+The `openbaton-fms` is implemented as a [Spring Boot application][spring-boot]. It runs as an external component and communicate with the NFVO via Open Baton's SDK and RabbitMQ.  
 
 In the following 
 
@@ -21,7 +21,7 @@ In the following
 
 # How to install Open Baton FM System
 
-There are two options available for the installation of the `fm-system`. Installation based on the Debian package or on the source code (which is suggested for development). 
+There are two options available for the installation of the `openbaton-fms`. Installation based on the Debian package or on the source code (which is suggested for development). 
 
 ## Installation via Debian package
 
@@ -38,7 +38,7 @@ Once you added the repo to your environment you should update the list of repos 
 apt-get update
 ```
 
-Now you can install the `fm-system` by executing:
+Now you can install the `openbaton-fms` by executing:
 
 ```bash
 apt-get install openbaton-fms
@@ -46,23 +46,23 @@ apt-get install openbaton-fms
 
 **Note**: During the installation you will be prompted for entering the IP address of the host of the Zabbix Plugin, make sure this IP can be reached by the Zabbix Server host.
 
-After the installation, the `fm-system` is already configured and running.
+After the installation, the `openbaton-fms` is already configured and running.
 
 ## Installation from the source code
 
 The latest stable version of the Open Baton FM System can be cloned from this [repository][fms-repo] by executing the following command:
 
 ```bash
-git clone https://github.com/openbaton/fm-system.git
+git clone https://github.com/openbaton/openbaton-fms.git
 ```
 
 Once this is done, go inside the cloned folder and make use of the provided script to compile the project as done below:
 
 ```bash
-./fm-system.sh compile
+./openbaton-fms.sh compile
 ```
 
-The installation from the source code requires manual configuration before running the `fm-system`, which is explained in the following section.
+The installation from the source code requires manual configuration before running the `openbaton-fms`, which is explained in the following section.
 
 ## Manual configuration of the Open Baton FM System
 
@@ -132,11 +132,11 @@ nfvo.ssl.enabled=false
 ```
 ## Configure the Service key
 
-The `fm-system` authenticates to the NFVO through a service key which has to be set in the properties. You need to obtain the service key from the dashboard of the NFVO, 
+The `openbaton-fms` authenticates to the NFVO through a service key which has to be set in the properties. You need to obtain the service key from the dashboard of the NFVO, 
 in particular you can set the service key with the following instructions:
 * Go to Admin->Services
 * Click on "Enable a new Service"
-* Input the name "fm-system"
+* Input the name "openbaton-fms"
 * Click on Role
 * Select "*" in the Project checkbox
 * Click Save
@@ -170,15 +170,15 @@ openbaton-fms stop
 If you are using the source code you can start the Open Baton FM System easily by using the provided script with the following command:
 
 ```bash
-./fm-system.sh start
+./openbaton-fms.sh start
 ```
 
 For stopping you can use:
 ```bash
-./fm-system.sh stop
+./openbaton-fms.sh stop
 ```
 
-**Note** Since the Open Baton FM System subscribes to specific events towards the NFVO, you should take care about that the NFVO is already running when starting the `fm-system`.
+**Note** Since the Open Baton FM System subscribes to specific events towards the NFVO, you should take care about that the NFVO is already running when starting the `openbaton-fms`.
 
 # How to use Open Baton FM System
 
@@ -254,7 +254,7 @@ You can specify every parameter available for the [Zabbix Agent][zabbix-agent-it
 
 ## How the HEAL method works
 
-The `fm-system` as soon as it gets an alarm from the VIM, it checks if the alarm is referred to a VNF and it sends the Heal VNF message to the NFVO which forward it to the respective VNFM.
+The `openbaton-fms` as soon as it gets an alarm from the VIM, it checks if the alarm is referred to a VNF and it sends the Heal VNF message to the NFVO which forward it to the respective VNFM.
 The VNFM executes in the failed VNFC the scripts in the HEAL lifecycle event.
 Here an example of the heal script you can use:
 
@@ -354,7 +354,9 @@ OpenBaton is an open source project providing a comprehensive implementation of 
 
 Open Baton is a ETSI NFV MANO compliant framework. Open Baton was part of the OpenSDNCore (www.opensdncore.org) project started almost three years ago by Fraunhofer FOKUS with the objective of providing a compliant implementation of the ETSI NFV specification. 
 
-Open Baton is easily extensible. It integrates with OpenStack, and provides a plugin mechanism for supporting additional VIM types. It supports Network Service management either using a generic VNFM or interoperating with VNF-specific VNFM. It uses different mechanisms (REST or PUB/SUB) for interoperating with the VNFMs. It integrates with additional components for the runtime management of a Network Service. For instance, it provides autoscaling and fault management based on monitoring information coming from the the monitoring system available at the NFVI level.
+Open Baton is easily extensible. It integrates with OpenStack, and provides a plugin mechanism for supporting additional VIM types. It supports Network Service management either using a generic VNFM or interoperating with VNF-specific VNFM. 
+It uses different mechanisms (REST or PUB/SUB) for interoperating with the VNFMs. It integrates with additional components for the runtime management of a Network Service. 
+For instance, it provides autoscaling and fault management based on monitoring information coming from the the monitoring system available at the NFVI level.
 
 # Source Code and documentation
 
@@ -403,7 +405,7 @@ following guidelines
 The Open Baton project provides community support through the Open Baton Public Mailing List and through StackOverflow using the tags openbaton.
 
 [spring-boot]:http://projects.spring.io/spring-boot/
-[fms-repo]:https://github.com/openbaton/fm-system
+[fms-repo]:https://github.com/openbaton/openbaton-fms
 [openbaton]: http://openbaton.org
 [openbaton-doc]: http://openbaton.org/documentation
 [openbaton-github]: http://github.org/openbaton
