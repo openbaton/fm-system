@@ -46,7 +46,7 @@ apt-get install openbaton-fms
 
 **Note**: During the installation you will be prompted for entering the IP address of the host of the Zabbix Plugin, make sure this IP can be reached by the Zabbix Server host.
 
-After the installation, the `openbaton-fms` is already configured and running.
+After the installation, the `openbaton-fms` will be already configured and running.
 
 ## Installation from the source code
 
@@ -194,9 +194,9 @@ The actions are listed below:
 | Heal   |  The VNFM executes the scripts in the Heal lifecycle event (in the VNFD). The message contains the cause of the fault, which can be used in the scripts. 
 | Switch to stanby VNFC (Stateless)   |  If the VDU requires redoundancy active-passive, there will be a component VNFC* in standby mode. This action consists in: activate the VNFC*, route all signalling and data flow(s) for VNFC to VNFC*, deactivate VNFC
 
-## Write a fault management policy
+## Write a fault management policy for triggering the HEAL action
 
-The fault management policy need to be present in the VNFD, in particular in the VDU. This is an example of fault management policy:
+The fault management policy needs to be present in the VNFD, in particular in the VDU. This is an example of fault management policy:
 
 ```json
 "fault_management_policy":[
@@ -217,6 +217,8 @@ The fault management policy need to be present in the VNFD, in particular in the
     }
 ]
 ```
+
+The parameter `isVNFAlarm=true` tells the `openbaton-fms` that the alarm is of type VNF, and at default it will execute the HEAL action.
 Description of the fault management policy:  
 
 | Property              | Description     
@@ -254,8 +256,8 @@ You can specify every parameter available for the [Zabbix Agent][zabbix-agent-it
 
 ## How the HEAL method works
 
-The `openbaton-fms` as soon as it gets an alarm from the VIM, it checks if the alarm is referred to a VNF and it sends the Heal VNF message to the NFVO which forward it to the respective VNFM.
-The VNFM executes in the failed VNFC the scripts in the HEAL lifecycle event.
+The `openbaton-fms` as soon as it gets an alarm from the VIM, it checks if the alarm is referred to a VNF ("isVNFAlarm": true) and it sends the Heal VNF message to the NFVO which forwards it to the respective VNFM.
+The VNFM will then execute, in the failed VNFC, the scripts in the HEAL lifecycle event.
 Here an example of the heal script you can use:
 
 ```bash
