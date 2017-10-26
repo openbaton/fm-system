@@ -17,7 +17,7 @@ source ./gradle.properties
 
 _version=${version}
 _fmsystem_config_file=/etc/openbaton/fms.properties
-_app_name=fm-system
+_app_name=openbaton-fms
 
 function compile {
     ./gradlew build
@@ -57,7 +57,7 @@ function check_zabbix_plugin_up {
 }
 function usage {
     echo -e "Open Baton Fault Management System\n"
-    echo -e "Usage:\n\t ./fm-system.sh [compile|start|stop]"
+    echo -e "Usage:\n\t ./openbaton-fms.sh [compile|start|stop]"
 }
 function stop {
     pkill -f $_app_name-${_version}.jar
