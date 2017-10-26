@@ -16,7 +16,7 @@
 source ./gradle.properties
 
 _version=${version}
-_fmsystem_config_file=/etc/openbaton/fms.properties
+_fmsystem_config_file=/etc/openbaton/openbaton-fms.properties
 _app_name=openbaton-fms
 
 function compile {
