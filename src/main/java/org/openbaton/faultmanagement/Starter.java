@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 @ConfigurationProperties
-public class Starter implements CommandLineRunner, ApplicationListener<ContextClosedEvent> {
+//public class Starter implements CommandLineRunner, ApplicationListener<ContextClosedEvent> {
 
   @Autowired private EventSubscriptionManger eventSubscriptionManger;
   @Autowired private MonitoringManager monitoringManager;
