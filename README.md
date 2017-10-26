@@ -8,7 +8,10 @@
 # Open Baton Fault Management System
 The Open Baton Fault Management System (`openbaton-fms`) is an external component of the NFVO Open Baton. It manages the alarms coming from the VIM and executes actions through the NFVO.  
 
-The `openbaton-fms` is implemented as a [Spring Boot application][spring-boot]. It runs as an external component and communicate with the NFVO via Open Baton's SDK and RabbitMQ.  
+The `openbaton-fms` is implemented as a [Spring Boot application][spring-boot]. 
+It runs as an external component and communicate with the NFVO via Open Baton's SDK and RabbitMQ.  
+
+Before starting this component you need to ensure that the [technical requirements](#technical-requirements) are met and proceed with the [installation guide](#how-to-install-open-baton-fm-system).
 
 # Technical Requirements
 
