@@ -57,10 +57,10 @@ The latest stable version of the Open Baton FM System can be cloned from this [r
 git clone https://github.com/openbaton/openbaton-fms.git
 ```
 
-Once this is done, go inside the cloned folder and make use of the provided script to compile the project as done below:
+Once this is done, go inside the cloned folder and install the project as done below:
 
 ```bash
-./openbaton-fms.sh compile
+./gradlew installDist
 ```
 
 The installation from the source code requires manual configuration before running the `openbaton-fms`, which is explained in the following section.
@@ -74,7 +74,7 @@ This chapter describes what needs to be done before starting the Open Baton FM S
 The configuration file must be copied to `/etc/openbaton/openbaton-fms.properties` by executing the following command from inside the repository folder:
 
 ```bash
-cp etc/openbaton-fms.properties /etc/openbaton/openbaton-fms.properties
+cp src/main/resources/application.properties /etc/openbaton/openbaton-fms.properties
 ```
 
 In the following sections, we will refer to this configuration file as `openbaton-fms.properties`. 
@@ -168,22 +168,26 @@ openbaton-fms stop
 
 ### Source code
 
-If you are using the source code you can start the Open Baton FM System easily by using the provided script with the following command:
+If you are using the source code you can start the Open Baton FM System easily with the following command from inside the repository folder:
 
 ```bash
-./openbaton-fms.sh start
+cd build/install/openbaton-fms
+./bin/openbaton-fms start --spring.config.location=file:/etc/openbaton/openbaton-fms.properties
 ```
 
 For stopping you can use:
 ```bash
-./openbaton-fms.sh stop
+./bin/openbaton-fms stop
 ```
+
+The can use the `openbaton-fms` in the following ways:
+
 
 **Note** Since the Open Baton FM System subscribes to specific events towards the NFVO, you should take care about that the NFVO is already running when starting the `openbaton-fms`.
 
 # How to use Open Baton FM System
 
-Open Baton FM is a rule-driven tool. The rules define when to generate an alarm and how to react. The rule for generating the alarm is called fault management policy (see the next section). 
+Open Baton FMS is a rule-driven tool. The rules define when to generate an alarm and how to react. The rule for generating the alarm is called fault management policy (see the next section). 
 The rule for defining how to react upon alarms is a Drools Rule. Once such rules are in place, Open Baton FM follows the following workflow.      
 
 ![Fault management system use case][fault-management-system-use-case]

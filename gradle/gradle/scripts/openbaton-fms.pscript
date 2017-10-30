@@ -138,7 +138,16 @@ status () {
 
 usage () {
     echo $APP_NAME
-    echo "Usage: openbaton-fms [status|start|stop|force-stop|restart]"
+    echo "Usage: openbaton-fms COMMAND [OPTIONS]"
+    echo ""
+    echo "COMMANDS:"
+    echo "start OPTION [OPTION, ..]"
+    echo "status"
+    echo "stop"
+    echo "force-stop"
+    echo ""
+    echo "OPTIONS:"
+    echo "--<property>:<value>  specifies the key and value of a property in the config file, for example: --spring.config.location=file:<PATH TO THE CONFIG FILE>"
 }
 
 ##
@@ -156,9 +165,6 @@ case ${FIRST_APP_ARG} in
         start ;;
     "stop" )
         stop ;;
-    "restart" )
-        stop
-        start;;
     "status" )
         status ;;
     "force-stop" )
