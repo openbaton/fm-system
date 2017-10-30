@@ -16,16 +16,27 @@
 source ./gradle.properties
 
 _version=${version}
-_fmsystem_config_file=/etc/openbaton/openbaton-fms.properties
+_config_file=/etc/openbaton/openbaton-fms.properties
 _app_name=openbaton-fms
+_screen_name="openbaton"
 
-function compile {
-    ./gradlew build
+function checkBinary {
+  if command -v $1 >/dev/null 2>&1; then
+     return 0
+   else
+     echo >&2 "FAILED."
+     return 1
+   fi
 }
 
-function clean {
-    ./gradlew clean
-}
+_ex='sh -c'
+if [ "$_user" != 'root' ]; then
+    if checkBinary sudo; then
+        _ex='sudo -E sh -c'
+    elif checkBinary su; then
+        _ex='su -c'
+    fi
+fi
 
 function check_already_running {
 	local is_app_running=$(ps aux | grep -v grep |  grep "$_app_name" | grep jar | wc -l )
@@ -34,13 +45,6 @@ function check_already_running {
 		exit;
         fi
 }
-function start_mysql_osx {
-    sudo /usr/local/mysql/support-files/mysql.server start
-}
-
-function start_mysql_linux {
-    sudo service mysql start
-}
 
 function check_mysql {
 	result=$(pgrep mysql | wc -l 2>/dev/null);
@@ -48,6 +52,7 @@ function check_mysql {
 		echo "mysql is down, or it was not be possible to check the status. ($_app_name needs mysql)"
         fi
 }
+
 function check_zabbix_plugin_up {
         result=$(ps au | grep -v grep | grep openbaton-plugin-monitoring-zabbix | wc -l);
         if [ "${result}" -eq "0" ]; then
@@ -57,26 +62,43 @@ function check_zabbix_plugin_up {
 }
 function usage {
     echo -e "Open Baton Fault Management System\n"
-    echo -e "Usage:\n\t ./openbaton-fms.sh [compile|start|stop]"
+    echo -e "Usage:\n\t ./openbaton-fms.sh [compile|start|start_fg|stop]"
 }
+
+function compile {
+    ./gradlew build -x test
+}
+
+function clean {
+    ./gradlew clean
+}
+
 function stop {
     pkill -f $_app_name-${_version}.jar
 }
 
-function start {
-
+function start_checks {
+    check_already_running
+    check_mysql
     if [ ! -d build/  ]
         then
             compile
     fi
-    
-    check_already_running
-    check_mysql
-#    check_zabbix_plugin_up
-    if [ 0 -eq $? ]
-        then
-	    java -jar "build/libs/$_app_name-$_version.jar" --spring.config.location=file:${_fmsystem_config_file}
+}
+
+function start {
+    start_checks
+    screen_exists=$(screen -ls | grep ${_screen_name} | wc -l);
+    if [ "${screen_exists}" -eq 0 ]; then
+        screen -c screenrc -d -m -S ${_screen_name} -t ${_app_name} java -jar "build/libs/${_app_name}-$_version.jar" --spring.config.location=file:${_config_file}
+    else
+        screen -S $_screen_name -p 0 -X screen -t ${_app_name} java -jar "build/libs/${_app_name}-$_version.jar" --spring.config.location=file:${_config_file}
     fi
+}
+
+function start_fg {
+    start_checks
+    java -jar "build/libs/${_app_name}-$_version.jar" --spring.config.location=file:${_config_file}
 }
 
 if [ $# -eq 0 ]
@@ -96,6 +118,8 @@ do
             start ;;
         "start" )
             start ;;
+        "start_fg" )
+            start_fg ;;
         "clean" )
             clean ;;
         "stop" )
