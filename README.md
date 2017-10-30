@@ -180,9 +180,6 @@ For stopping you can use:
 ./bin/openbaton-fms stop
 ```
 
-The can use the `openbaton-fms` in the following ways:
-
-
 **Note** Since the Open Baton FM System subscribes to specific events towards the NFVO, you should take care about that the NFVO is already running when starting the `openbaton-fms`.
 
 # How to use Open Baton FM System

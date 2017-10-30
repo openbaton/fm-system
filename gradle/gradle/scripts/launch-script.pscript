@@ -1,5 +1,6 @@
-APP_NAME="Open Baton FM System"
+APP_NAME="openbaton-fms"
 PID_FILE=~/.openbaton-fms.pid
+LOG_FILE=/var/log/openbaton/openbaton-fms.log
 ###################
 
 FIRST_APP_ARG=$(echo $APP_ARGS | awk '{print $1;}' | sed "s/'//g")
@@ -125,6 +126,11 @@ force_stop () {
 	fi
 }
 
+start_fg () {
+    configure
+    echo "Starting $APP_NAME"
+    $JAVACMD $START_ARGUMENTS
+}
 
 status () {
     IS_RUNNING="$(check_running)"
@@ -137,17 +143,17 @@ status () {
 }
 
 usage () {
-    echo $APP_NAME
-    echo "Usage: openbaton-fms COMMAND [OPTIONS]"
+    echo "Usage: $APP_NAME COMMAND [OPTIONS]"
     echo ""
     echo "COMMANDS:"
-    echo "start OPTION [OPTION, ..]"
+    echo "start     OPTION [OPTION, ..]"
+    echo "start_fg  OPTION [OPTION, ..]"
     echo "status"
     echo "stop"
-    echo "force-stop"
+    echo "force_stop"
     echo ""
     echo "OPTIONS:"
-    echo "--<property>:<value>  specifies the key and value of a property in the config file, for example: --spring.config.location=file:<PATH TO THE CONFIG FILE>"
+    echo "--<property>:<value>  key and value of a property in the config file, e.g. --spring.config.location=file:<PATH TO THE CONFIG FILE>)"
 }
 
 ##
@@ -167,8 +173,10 @@ case ${FIRST_APP_ARG} in
         stop ;;
     "status" )
         status ;;
-    "force-stop" )
+    "force_stop" )
         force_stop ;;
+    "start_fg" )
+        start_fg ;;
      *)
         usage;;
 esac

@@ -31,7 +31,7 @@ startScripts {
 
         def unixTextTmp = ""
         def unixText = unixFile.text
-        def unixDaemonScript = new File("${rootProject.projectDir}/gradle/gradle/scripts/openbaton-fms.pscript").text
+        def unixDaemonScript = new File("${rootProject.projectDir}/gradle/gradle/scripts/launch-script.pscript").text
 
         unixText.readLines().each {
             line ->
