@@ -172,7 +172,7 @@ If you are using the source code you can start the Open Baton FM System easily w
 
 ```bash
 cd build/install/openbaton-fms
-./bin/openbaton-fms start --spring.config.location=file:/etc/openbaton/openbaton-fms.properties
+./bin/openbaton-fms start
 ```
 
 For stopping you can use:
