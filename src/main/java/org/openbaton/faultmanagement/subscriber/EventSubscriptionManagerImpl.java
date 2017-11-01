@@ -57,7 +57,7 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger {
             action,
             RabbitEventReceiverConfiguration.queueName_eventInstatiateFinish);
     eventEndpoint.setNetworkServiceId(networkServiceRecord.getId());
-    String id = sendSubscription(eventEndpoint);
+    String id = sendSubscription(networkServiceRecord.getProjectId(), eventEndpoint);
     mnsrRepo.addUnsubscriptionId(networkServiceRecord.getId(), id);
     return id;
   }
@@ -72,9 +72,14 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger {
             action,
             RabbitEventReceiverConfiguration.queueName_vnfEvents);
     eventEndpoint.setVirtualNetworkFunctionId(virtualNetworkFunctionRecord.getId());
-    String id = sendSubscription(eventEndpoint);
+    String id = sendSubscription(virtualNetworkFunctionRecord.getProjectId(), eventEndpoint);
     mnsrRepo.addUnsubscriptionId(virtualNetworkFunctionRecord.getParent_ns_id(), id);
     return id;
+  }
+
+  private String sendSubscription(String projectId, EventEndpoint eventEndpoint)
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
+    return nfvoRequestor.subscribe(projectId, eventEndpoint);
   }
 
   private String sendSubscription(EventEndpoint eventEndpoint)

@@ -55,6 +55,9 @@ public interface NFVORequestorWrapper {
 
   VirtualDeploymentUnit getVDU(VirtualNetworkFunctionRecord vnfr, String vnfcInstaceId);
 
+  String subscribe(String projectId, EventEndpoint eventEndpoint)
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
+
   String subscribe(EventEndpoint eventEndpoint)
       throws SDKException, ClassNotFoundException, FileNotFoundException;
 
