@@ -137,7 +137,7 @@ The `openbaton-fms` authenticates to the NFVO through a service key which has to
 in particular you can set the service key with the following instructions:
 * Go to Admin->Services
 * Click on "Enable a new Service"
-* Input the name "openbaton-fms"
+* Input the name "fms"
 * Click on Role
 * Select "*" in the Project checkbox
 * Click Save
