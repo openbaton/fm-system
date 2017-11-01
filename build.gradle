@@ -22,13 +22,14 @@ plugins {
     id 'com.github.sherter.google-java-format' version '0.5'
     id 'net.researchgate.release' version '2.3.4'
     id 'nebula.os-package' version '2.2.6'
-    id 'org.springframework.boot' version '1.5.6.RELEASE'
+    id 'org.springframework.boot' version '1.5.8.RELEASE'
 }
 
 apply plugin: 'application'
 apply plugin: 'docker'
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven {
         url 'https://oss.sonatype.org/content/repositories/releases/'
@@ -42,6 +43,7 @@ repositories {
 }
 
 apply from: 'gradle/gradle/git.helpers.gradle'
+apply from: 'gradle/gradle/distribution.gradle'
 apply from: 'gradle/gradle/command.line.helper.gradle'
 apply from: 'gradle/gradle/packaging.fms.docker.gradle'
 apply from: 'gradle/gradle/git.release.gradle'
@@ -51,7 +53,7 @@ project.ext{
     /**
      * gradle Related Vars
      */
-    openbatonVersion = '4.0.1-SNAPSHOT'
+    openbatonVersion = '5.0.0-RC3'
     //------------------------------------------------//
     //------------------------------------------------//
     /**
@@ -78,10 +80,10 @@ dependencies {
 
     compile 'org.openbaton:sdk:' + openbatonVersion
     compile 'org.openbaton:monitoring:' + openbatonVersion
+    compile 'org.openbaton:catalogue:' + openbatonVersion
 
     compile 'org.kie:kie-spring:6.3.0.Final'
-
-    compile 'com.google.code.gson:gson:2.4'
+    compile 'com.google.code.gson:gson:2.8.0'
 
     runtime 'org.mariadb.jdbc:mariadb-java-client:1.6.2'
 
@@ -89,17 +91,3 @@ dependencies {
 }
 
 compileJava.dependsOn tasks.googleJavaFormat
-
-
-
-
-
-
-
-
-
-
-
-
-
-

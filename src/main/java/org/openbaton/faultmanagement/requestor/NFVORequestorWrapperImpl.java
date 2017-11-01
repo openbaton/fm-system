@@ -44,23 +44,26 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   private static final Logger log = LoggerFactory.getLogger(NFVORequestorWrapperImpl.class);
   private NFVORequestor nfvoRequestor;
 
-  @Value("${nfvo-usr:}")
+  @Value("${nfvo-usr:admin}")
   private String nfvoUsr;
 
-  @Value("${nfvo-pwd:}")
+  @Value("${nfvo-pwd:openbaton}")
   private String nfvoPwd;
 
-  @Value("${nfvo.ip:}")
+  @Value("${nfvo.ip:localhost}")
   private String nfvoIp;
 
   @Value("${nfvo.port:8080}")
   private String nfvoPort;
 
-  @Value("${server.port:}")
+  @Value("${nfvo.ssl.enabled:false}")
+  private boolean sslEnabled;
+
+  @Value("${server.port:9000}")
   private String fmsPort;
 
-  @Value("${fms.key.file.path:/etc/openbaton/service-key}")
-  private String keyFilePath;
+  @Value("${fms.service.key:}")
+  private String serviceKey;
 
   private String projectId;
 
@@ -70,11 +73,18 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       log.error("The NFVO IP address must not be null!");
       throw new IllegalArgumentException("The NFVO IP address must not be null!");
     }
+    if (serviceKey == null || serviceKey.isEmpty()) {
+      log.error(
+          "Service key is null. Please get the service key from the NFVO and copy it to the property fms.service.key");
+      System.exit(1);
+    }
+    log.debug("service-key lenght: " + serviceKey.length());
     try {
       this.nfvoRequestor =
-              new NFVORequestor("fm-system", "", nfvoIp, nfvoPort, "1", false, keyFilePath);
+          new NFVORequestor("fms", "", nfvoIp, nfvoPort, "1", sslEnabled, serviceKey.trim());
     } catch (SDKException e) {
-      log.error(e.getMessage(), e);
+      if (log.isDebugEnabled()) log.error(e.getMessage(), e);
+      else log.error(e.getMessage());
       System.exit(1);
     }
   }
@@ -96,7 +106,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       }
     } catch (SDKException e) {
       log.warn("Problem while fetching existing NSRs from the NFVO", e);
-    } catch (ClassNotFoundException | FileNotFoundException e) {
+    } catch (FileNotFoundException e) {
       log.error(e.getMessage(), e);
     }
     return projectId;
@@ -112,7 +122,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       }
     } catch (SDKException e) {
       log.warn("Problem while fetching existing NSRs from the NFVO", e);
-    } catch (ClassNotFoundException | FileNotFoundException e) {
+    } catch (FileNotFoundException e) {
       log.error(e.getMessage(), e);
     }
     log.debug("Get " + nsrs.size() + " nsrs");
@@ -194,7 +204,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       }
     } catch (SDKException e) {
       log.warn("Problem while fetching existing NSRs from the NFVO", e);
-    } catch (ClassNotFoundException | FileNotFoundException e) {
+    } catch (FileNotFoundException e) {
       log.error(e.getMessage(), e);
     }
     return subscriptionId;

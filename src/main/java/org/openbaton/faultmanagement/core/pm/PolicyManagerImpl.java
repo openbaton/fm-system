@@ -19,7 +19,7 @@ package org.openbaton.faultmanagement.core.pm;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
+import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
@@ -106,9 +106,8 @@ public class PolicyManagerImpl implements PolicyManager {
       for (VirtualDeploymentUnit vdu : vnfr.getVdu())
         if (vdu.getFault_management_policy() != null
             && !vdu.getFault_management_policy().isEmpty()) {
-          if (vdu.getMonitoring_parameter() != null && !vdu.getMonitoring_parameter().isEmpty()) {
-            if (vdu.getHigh_availability() != null) return true;
-          }
+          if (vdu.getMonitoring_parameter() != null && !vdu.getMonitoring_parameter().isEmpty())
+            return true;
         }
     }
     return false;
@@ -150,12 +149,12 @@ public class PolicyManagerImpl implements PolicyManager {
   }
 
   @Override
-  public VRFaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId)
+  public FaultManagementPolicy getVNFFaultManagementPolicy(String vnfFMPolicyId)
       throws SDKException, ClassNotFoundException, FileNotFoundException {
     for (NetworkServiceRecord nsr : nfvoRequestorWrapper.getNsrs()) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
         for (VirtualDeploymentUnit vdu : vnfr.getVdu())
-          for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
+          for (FaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
             if (vnffmp != null && vnffmp.getId().equals(vnfFMPolicyId)) return vnffmp;
           }
       }
@@ -168,7 +167,7 @@ public class PolicyManagerImpl implements PolicyManager {
     for (NetworkServiceRecord nsr : nfvoRequestorWrapper.getNsrs()) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
         for (VirtualDeploymentUnit vdu : vnfr.getVdu())
-          for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
+          for (FaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
             if (vnffmp != null && vnffmp.getId().equals(policyId)) return vnfr.getId();
           }
       }
