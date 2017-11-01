@@ -143,7 +143,7 @@ rule "A VNF alarm is cleared"
         logger.debug("Current VNF alarms:"+alarms);
 end
 
-rule "A VNF alarm is updated"
+rule "A VNF alarm is updated and execute HEAL action"
 
     when
         vascn : VNFAlarmStateChangedNotification(  $vnfrId : resourceId, alarmState == AlarmState.UPDATED )

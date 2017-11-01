@@ -125,7 +125,6 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
     } catch (FileNotFoundException e) {
       log.error(e.getMessage(), e);
     }
-    log.debug("Get " + nsrs.size() + " nsrs");
     return nsrs;
   }
 

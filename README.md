@@ -128,7 +128,6 @@ nfvo.ip=localhost
 nfvo.port=8080
 nfvo-usr=admin
 nfvo-pwd=openbaton
-nfvo.project.name=default
 nfvo.ssl.enabled=false
 ```
 ## Configure the Service key
