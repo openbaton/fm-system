@@ -144,7 +144,7 @@ in particular you can set the service key with the following instructions:
 * Copy the service key in the `openbaton-fms.properties`:
 
 ```properties
-fms.service.key=
+fms.service.key=<SERVICE KEY>
 ```
 
 # Starting the Open Baton FM System
