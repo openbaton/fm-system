@@ -83,7 +83,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
     log.debug("service-key lenght: " + serviceKey.length());
     try {
       this.nfvoRequestor =
-          new NFVORequestor("fm-system", "", nfvoIp, nfvoPort, "1", sslEnabled, serviceKey.trim());
+          new NFVORequestor("fms", "", nfvoIp, nfvoPort, "1", sslEnabled, serviceKey.trim());
     } catch (SDKException e) {
       if (log.isDebugEnabled()) log.error(e.getMessage(), e);
       else log.error(e.getMessage());

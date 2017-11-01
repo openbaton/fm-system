@@ -149,20 +149,21 @@ rule "A VNF alarm is updated"
         vascn : VNFAlarmStateChangedNotification(  $vnfrId : resourceId, alarmState == AlarmState.UPDATED )
         vnfAlarmUpdated : VNFAlarm( perceivedSeverity == PerceivedSeverity.CRITICAL, vnfcIds : vnfcIds ) from vnfAlarmRepository.findFirstByVnfrId($vnfrId)
         vnfcId : String() from vnfcIds
+        vnfcInstance : VNFCInstance( hostname : hostname) from nfvoRequestorWrapper.getVNFCInstanceById(vnfcId)
     then
         logger.info("\tThis VNF alarm is updated :" + vnfAlarmRepository.changeAlarmState( $vnfrId, AlarmState.UPDATED));
 
         VirtualNetworkFunctionRecord vnfr = nfvoRequestorWrapper.getVirtualNetworkFunctionRecord(vnfAlarmUpdated.getVnfrId());
 
-        highAvailabilityManager.switchToStandby(vnfr.getId(),vnfcId);
-        logger.info("Switch to standby fired!");
+        highAvailabilityManager.executeHeal(vnfcInstance.getId(),"serviceDown");
+        logger.info("Heal fired!");
 
-        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.SWITCH_TO_STANDBY,vnfr.getEndpoint(),"");
+        RecoveryAction recoveryAction= new RecoveryAction(RecoveryActionType.HEAL,vnfr.getEndpoint(),"");
         recoveryAction.setStatus(RecoveryActionStatus.IN_PROGRESS);
         recoveryAction.setNsrId(vnfr.getParent_ns_id());
-
-
+        insert(recoveryAction);
         logger.debug("Recovery action in progress!! :"+recoveryAction);
+        delete(vascn);
 end
 
 
