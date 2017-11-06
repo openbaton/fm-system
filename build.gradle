@@ -77,6 +77,10 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
     compile 'org.springframework.boot:spring-boot-starter-amqp'
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+
+    // Dependency for registering to spring boot admin server
+    //compile group: 'de.codecentric', name: 'spring-boot-admin-starter-client', version: '1.5.4'
 
     compile 'org.openbaton:sdk:' + openbatonVersion
     compile 'org.openbaton:monitoring:' + openbatonVersion
