@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Created by mob on 28/06/16. */
-@Transactional(readOnly = true)
 public class ManagedNetworkServiceRecordRepositoryImpl
     implements ManagedNetworkServiceRecordRepositoryCustom {
 
@@ -33,7 +32,6 @@ public class ManagedNetworkServiceRecordRepositoryImpl
   @Autowired VduPmJobsRepository vduPmJobsRepository;
   @Autowired ThresholdHostnamesRepository thresholdHostnamesRepository;
 
-  @Override
   @Transactional
   public ManagedNetworkServiceRecord addPmJobId(String nsrId, String vduId, String pmJobId) {
     ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsrId);
@@ -55,19 +53,17 @@ public class ManagedNetworkServiceRecordRepositoryImpl
     return mnsr;
   }
 
-  @Override
   @Transactional
   public ManagedNetworkServiceRecord addThresholdHostnames(
       String nsrId, String thresholdId, ThresholdHostnames thresholdHostnames) {
     ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsrId);
     if (mnsr != null) {
-      thresholdHostnamesRepository.save(thresholdHostnames);
+      thresholdHostnames = thresholdHostnamesRepository.save(thresholdHostnames);
       mnsr.getHostnames().put(thresholdId, thresholdHostnames);
     }
     return mnsr;
   }
 
-  @Override
   @Transactional
   public String addUnsubscriptionId(String nsrId, String unSubscriptionId) {
     ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsrId);
@@ -77,7 +73,6 @@ public class ManagedNetworkServiceRecordRepositoryImpl
     return unSubscriptionId;
   }
 
-  @Override
   @Transactional
   public ManagedNetworkServiceRecord addFmPolicyId(
       String nsrId, String thresholdId, String fmPolicyId) {
@@ -88,7 +83,6 @@ public class ManagedNetworkServiceRecordRepositoryImpl
     return mnsr;
   }
 
-  @Override
   @Transactional
   public ManagedNetworkServiceRecord addVnfTriggerId(String nsrId, String thresholdId) {
     ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsrId);

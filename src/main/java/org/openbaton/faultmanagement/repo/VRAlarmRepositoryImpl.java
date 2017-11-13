@@ -22,12 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Created by mob on 31.01.16. */
-@Transactional(readOnly = true)
 public class VRAlarmRepositoryImpl implements VRAlarmRepositoryCustom {
 
   @Autowired private VRAlarmRepository vrAlarmRepository;
 
-  @Override
   @Transactional
   public VRAlarm changeAlarmState(String thresholdId, AlarmState alarmState) {
     VRAlarm vrAlarm = vrAlarmRepository.findFirstByThresholdId(thresholdId);

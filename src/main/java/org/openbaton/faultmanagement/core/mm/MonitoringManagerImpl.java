@@ -20,8 +20,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import javax.annotation.PostConstruct;
 import org.openbaton.catalogue.mano.common.faultmanagement.Criteria;
+import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
 import org.openbaton.catalogue.mano.common.faultmanagement.VNFCSelector;
-import org.openbaton.catalogue.mano.common.faultmanagement.VRFaultManagementPolicy;
 import org.openbaton.catalogue.mano.common.monitoring.ObjectSelection;
 import org.openbaton.catalogue.mano.common.monitoring.ThresholdDetails;
 import org.openbaton.catalogue.mano.common.monitoring.ThresholdType;
@@ -230,7 +230,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
               savePmJobId(nsrId, vdu.getId(), pmJobId);
             }
             if (vdu.getFault_management_policy() != null)
-              for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
+              for (FaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
                 String thresholdId;
                 for (Criteria criteria : vnffmp.getCriteria()) {
                   String performanceMetric = criteria.getParameter_ref();
@@ -257,8 +257,8 @@ public class MonitoringManagerImpl implements MonitoringManager {
                       mnsrRepo.addThresholdHostnames(
                           nsrId, thresholdId, new ThresholdHostnames(objs.getObjectInstanceIds()));
                       mnsrRepo.addFmPolicyId(nsrId, thresholdId, vnffmp.getId());
-
-                      if (vnffmp.isVNFAlarm()) {
+                      log.debug("is VNF alarm: " + vnffmp.isVNFAlarm());
+                      if (vnffmp.isVNFAlarm() != null && vnffmp.isVNFAlarm()) {
                         log.debug("VNF threshold id: " + thresholdId);
                         mnsrRepo.addVnfTriggerId(nsrId, thresholdId);
                       } else log.debug("VR threshold id: " + thresholdId);
@@ -275,10 +275,10 @@ public class MonitoringManagerImpl implements MonitoringManager {
                         thresholdId,
                         new ThresholdHostnames(objectSelection.getObjectInstanceIds()));
                     mnsrRepo.addFmPolicyId(nsrId, thresholdId, vnffmp.getId());
-                    if (vnffmp.isVNFAlarm()) {
+                    if (vnffmp.isVNFAlarm() != null && vnffmp.isVNFAlarm()) {
                       log.debug("VNF threshold id: " + thresholdId);
                       mnsrRepo.addVnfTriggerId(nsrId, thresholdId);
-                    }
+                    } else log.debug("VR threshold id: " + thresholdId);
                   }
                 }
               }
@@ -301,7 +301,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
       while (iterator.hasNext()) {
         String currentMonitoringParameter = iterator.next();
         if (vdu.getFault_management_policy() == null) break;
-        for (VRFaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
+        for (FaultManagementPolicy vnffmp : vdu.getFault_management_policy()) {
           for (Criteria c : vnffmp.getCriteria()) {
             if (c.getParameter_ref().equalsIgnoreCase(currentMonitoringParameter)
                 && vnffmp.getPeriod() != 0) {
@@ -315,9 +315,9 @@ public class MonitoringManagerImpl implements MonitoringManager {
     }
 
     private int getPeriodFromThreshold(
-        String mpwp, Set<VRFaultManagementPolicy> fault_management_policy)
+        String mpwp, Set<FaultManagementPolicy> fault_management_policy)
         throws MonitoringException {
-      for (VRFaultManagementPolicy vnffmp : fault_management_policy) {
+      for (FaultManagementPolicy vnffmp : fault_management_policy) {
         for (Criteria c : vnffmp.getCriteria()) {
           if (c.getParameter_ref().equalsIgnoreCase(mpwp)) {
             return vnffmp.getPeriod();
@@ -343,7 +343,7 @@ public class MonitoringManagerImpl implements MonitoringManager {
       ManagedNetworkServiceRecord mnsr = mnsrRepo.findByNsrId(nsr.getId());
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
         for (VirtualDeploymentUnit vdu : vnfr.getVdu())
-          for (VRFaultManagementPolicy fmp : vdu.getFault_management_policy()) {
+          for (FaultManagementPolicy fmp : vdu.getFault_management_policy()) {
             for (Map.Entry<String, String> entry : mnsr.getThresholdIdFmPolicyMap().entrySet()) {
               if (entry.getValue().equalsIgnoreCase(fmp.getId())) {
                 thresholdIdsToRemove.add(entry.getKey());

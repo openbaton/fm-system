@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.core.ham;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -107,7 +108,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
             }
           }
         }
-    } catch (SDKException | ClassNotFoundException e) {
+    } catch (SDKException | ClassNotFoundException | FileNotFoundException e) {
       throw new HighAvailabilityException(e.getMessage(), e);
     }
   }
@@ -120,7 +121,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
         for (VNFCInstance vnfcInstance : vdu.getVnfc_instance())
           if (vnfcInstance.getState() != null && vnfcInstance.getState().equalsIgnoreCase("failed"))
             return true;
-    } catch (SDKException | ClassNotFoundException e) {
+    } catch (SDKException | ClassNotFoundException | FileNotFoundException e) {
       throw new HighAvailabilityException(e.getMessage(), e);
     }
     return false;
@@ -170,7 +171,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
     try {
       nfvoRequestorWrapper.createStandbyVNFCInstance(
           vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId(), vnfComponent, vimInstanceNames);
-    } catch (SDKException | ClassNotFoundException e) {
+    } catch (SDKException | ClassNotFoundException | FileNotFoundException e) {
       throw new HighAvailabilityException(e.getMessage(), e);
     }
   }
@@ -189,7 +190,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
           vdu.getId(),
           standbyVnfcInstance.getId(),
           failedVnfcInstance);
-    } catch (SDKException | ClassNotFoundException e) {
+    } catch (SDKException | ClassNotFoundException | FileNotFoundException e) {
       throw new HighAvailabilityException(e.getMessage(), e);
     }
   }
@@ -206,7 +207,7 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
       VirtualDeploymentUnit vdu = findVduInVnfr(vnfr, failedVnfcInstanceId);
       nfvoRequestorWrapper.executeHeal(
           vnfr.getParent_ns_id(), vnfr.getId(), vdu.getId(), failedVnfcInstanceId, cause);
-    } catch (SDKException | ClassNotFoundException e) {
+    } catch (SDKException | ClassNotFoundException | FileNotFoundException e) {
       throw new HighAvailabilityException(e.getMessage(), e);
     }
   }
@@ -261,10 +262,12 @@ public class HighAvailabilityManagerImpl implements HighAvailabilityManager {
                 //Creating a new component to add into the vdu
                 VNFComponent vnfComponent_new = getVNFComponent(vdu);
 
-                log.debug("Creating standby vnfc instance");
+                log.info("Creating standby vnfc instance");
                 log.debug("VNF component to send:" + vnfComponent_new);
-                createStandByVNFC(
-                    vnfComponent_new, vnfr, vdu, (ArrayList<String>) vdu.getVimInstanceName());
+
+                ArrayList<String> vimInstanceNames = new ArrayList<>();
+                vimInstanceNames.addAll(vdu.getVimInstanceName());
+                createStandByVNFC(vnfComponent_new, vnfr, vdu, vimInstanceNames);
                 log.debug("Creating standby vnfc instance message sent");
               }
             }

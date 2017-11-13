@@ -22,13 +22,14 @@ plugins {
     id 'com.github.sherter.google-java-format' version '0.5'
     id 'net.researchgate.release' version '2.3.4'
     id 'nebula.os-package' version '2.2.6'
-    id 'org.springframework.boot' version '1.5.0.RELEASE'
+    id 'org.springframework.boot' version '1.5.8.RELEASE'
 }
 
 apply plugin: 'application'
 apply plugin: 'docker'
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven {
         url 'https://oss.sonatype.org/content/repositories/releases/'
@@ -36,22 +37,23 @@ repositories {
     maven {
         url 'https://oss.sonatype.org/content/repositories/snapshots/'
     }
-    // fc dependency
     maven {
         url 'https://repository.jboss.org'
     }
 }
 
 apply from: 'gradle/gradle/git.helpers.gradle'
+apply from: 'gradle/gradle/distribution.gradle'
 apply from: 'gradle/gradle/command.line.helper.gradle'
+apply from: 'gradle/gradle/packaging.fms.docker.gradle'
+apply from: 'gradle/gradle/git.release.gradle'
 
 project.ext{
     //------------------------------------------------//
     /**
      * gradle Related Vars
      */
-    mainClass = 'org.openbaton.faultmanagement.Application'
-    openbatonVersion = '4.0.0'
+    openbatonVersion = '5.0.0'
     //------------------------------------------------//
     //------------------------------------------------//
     /**
@@ -68,53 +70,24 @@ project.ext{
 
     //------------------------------------------------//
 }
-
 apply from: 'gradle/gradle/packaging.fms.debian.gradle'
-apply from: 'gradle/gradle/packaging.fms.docker.gradle'
-apply from: 'gradle/gradle/git.release.gradle'
 
 dependencies {
 
-    //Rest Annotation in RestRegister
     compile 'org.springframework.boot:spring-boot-starter-web'
-
-    //fc dependencies start
-
-    // CrudRepository
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-    compile 'org.mariadb.jdbc:mariadb-java-client:1.6.2'
-
-    //NFVO Requestor and monitoring caller
-    compile 'org.openbaton:sdk:' + openbatonVersion
-    compile 'org.openbaton:monitoring:' + openbatonVersion
-
-    //RABBIT
     compile 'org.springframework.boot:spring-boot-starter-amqp'
 
-    //Drools
+    compile 'org.openbaton:sdk:' + openbatonVersion
+    compile 'org.openbaton:monitoring:' + openbatonVersion
+    compile 'org.openbaton:catalogue:' + openbatonVersion
+
     compile 'org.kie:kie-spring:6.3.0.Final'
-    // fc dependencies end
+    compile 'com.google.code.gson:gson:2.8.0'
 
-    //Gson
-    compile 'com.google.code.gson:gson:2.4'
+    runtime 'org.mariadb.jdbc:mariadb-java-client:1.6.2'
 
-    //Testing Service in Spring (see PolicyManagerTest)
     testCompile 'junit:junit:4.12'
 }
 
 compileJava.dependsOn tasks.googleJavaFormat
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.subscriber;
 
+import java.io.FileNotFoundException;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.catalogue.mano.record.VirtualNetworkFunctionRecord;
 import org.openbaton.catalogue.nfvo.Action;
@@ -48,7 +49,7 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger {
 
   @Override
   public String subscribe(NetworkServiceRecord networkServiceRecord, Action action)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     EventEndpoint eventEndpoint =
         createEventEndpoint(
             "FM-nsr-" + action,
@@ -56,14 +57,14 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger {
             action,
             RabbitEventReceiverConfiguration.queueName_eventInstatiateFinish);
     eventEndpoint.setNetworkServiceId(networkServiceRecord.getId());
-    String id = sendSubscription(eventEndpoint);
+    String id = sendSubscription(networkServiceRecord.getProjectId(), eventEndpoint);
     mnsrRepo.addUnsubscriptionId(networkServiceRecord.getId(), id);
     return id;
   }
 
   @Override
   public String subscribe(VirtualNetworkFunctionRecord virtualNetworkFunctionRecord, Action action)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     EventEndpoint eventEndpoint =
         createEventEndpoint(
             "FM-vnfr-" + action,
@@ -71,18 +72,24 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger {
             action,
             RabbitEventReceiverConfiguration.queueName_vnfEvents);
     eventEndpoint.setVirtualNetworkFunctionId(virtualNetworkFunctionRecord.getId());
-    String id = sendSubscription(eventEndpoint);
+    String id = sendSubscription(virtualNetworkFunctionRecord.getProjectId(), eventEndpoint);
     mnsrRepo.addUnsubscriptionId(virtualNetworkFunctionRecord.getParent_ns_id(), id);
     return id;
   }
 
+  private String sendSubscription(String projectId, EventEndpoint eventEndpoint)
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
+    return nfvoRequestor.subscribe(projectId, eventEndpoint);
+  }
+
   private String sendSubscription(EventEndpoint eventEndpoint)
-      throws SDKException, ClassNotFoundException {
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     return nfvoRequestor.subscribe(eventEndpoint);
   }
 
   @Override
-  public void unSubscribe(String id) throws SDKException, ClassNotFoundException {
+  public void unSubscribe(String id)
+      throws SDKException, ClassNotFoundException, FileNotFoundException {
     nfvoRequestor.unSubscribe(id);
   }
 
@@ -98,7 +105,7 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger {
 
   public void subscribeToNFVO()
       throws ClassNotFoundException, SDKException, HighAvailabilityException,
-          FaultManagementPolicyException {
+          FaultManagementPolicyException, FileNotFoundException {
     EventEndpoint eventEndpointInstantiateFinish =
         createEventEndpoint(
             "FM-nsr-INSTANTIATE_FINISH",
@@ -136,6 +143,8 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger {
 
     } catch (SDKException | ClassNotFoundException e) {
       log.error("The NFVO is not available for unsubscriptions: " + e.getMessage(), e);
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
     }
   }
 }

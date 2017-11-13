@@ -5,21 +5,79 @@
 
 [![Build Status](https://travis-ci.org/openbaton/fm-system.svg?branch=master)](https://travis-ci.org/openbaton/fm-system)
 
-# Open Baton FM
-The Open Baton FM project is a module of the NFVO Openbaton. It manages the alarms coming from the VIM and executes actions through the NFVO.
+# Open Baton Fault Management System
+The Open Baton Fault Management System (`openbaton-fms`) is an external component of the NFVO Open Baton. It manages the alarms coming from the VIM and executes actions through the NFVO.  
+
+The `openbaton-fms` is implemented as a [Spring Boot application][spring-boot]. 
+It runs as an external component and communicate with the NFVO via Open Baton's SDK and RabbitMQ.  
+
+Before starting this component you need to ensure that the [technical requirements](#technical-requirements) are met and proceed with the [installation guide](#how-to-install-open-baton-fm-system).
 
 # Technical Requirements
 
-The technical requirements are:  
+* Preconfigured Open Baton environment (NFVO, VNFMs, VIM drivers)
+* Running Zabbix server
+* Preconfigured and running Zabbix plugin (see the [doc of Zabbix plugin][zabbix-plugin-doc])
+* Mysql server installed and running
 
-- Zabbix plugin running (see the [doc of Zabbix plugin][zabbix-plugin-doc])
-- Mysql server installed and running
-- Open Baton 4.0.0 running
-- Generic VNFM 4.0.0 running
+# How to install Open Baton FM System
 
-# How to install Open Baton FM
+There are two options available for the installation of the `openbaton-fms`. Installation based on the Debian package or on the source code (which is suggested for development). 
 
-Once the prerequisites are met, you need to execute the following steps.
+## Installation via Debian package
+
+When using the Debian package you need to add the apt-repository of Open Baton to your local environment with the following command if not yet done:
+ 
+```bash
+wget -O - http://get.openbaton.org/keys/openbaton.public.key | apt-key add -
+echo "deb http://get.openbaton.org/repos/openbaton/<dist>/release <dist> main" >> /etc/apt/sources.list
+```
+Replace \<dist\> with **trusty**, **xenial** or **jessie** depending on the distribution you are using.  
+Once you added the repo to your environment you should update the list of repos by executing:
+
+```bash
+apt-get update
+```
+
+Now you can install the `openbaton-fms` by executing:
+
+```bash
+apt-get install openbaton-fms
+```
+
+**Note**: During the installation you will be prompted for entering the IP address of the host of the Zabbix Plugin, make sure this IP can be reached by the Zabbix Server host.
+
+After the installation, the `openbaton-fms` will be already configured and running.
+
+## Installation from the source code
+
+The latest stable version of the Open Baton FM System can be cloned from this [repository][fms-repo] by executing the following command:
+
+```bash
+git clone https://github.com/openbaton/openbaton-fms.git
+```
+
+Once this is done, go inside the cloned folder and install the project as done below:
+
+```bash
+./gradlew installDist
+```
+
+The installation from the source code requires manual configuration before running the `openbaton-fms`, which is explained in the following section.
+
+## Manual configuration of the Open Baton FM System
+
+This chapter describes what needs to be done before starting the Open Baton FM System.
+
+## Configuration file
+
+The configuration file must be copied to `/etc/openbaton/openbaton-fms.properties` by executing the following command from inside the repository folder:
+
+```bash
+cp src/main/resources/application.properties /etc/openbaton/openbaton-fms.properties
+```
+
+In the following sections, we will refer to this configuration file as `openbaton-fms.properties`. 
 
 ## Create the database
 
@@ -30,8 +88,8 @@ You need root access to mysql-server in order to create a new database called fa
 create database faultmanagement;
 ```
 
-Once the database has been created, you should create a user which will be used by the FM system to access and store data on the database. If you decide to use the `root` user you can skip this step, but you need to modify the fms.properties file accordingly as defined in the next section. 
-By default username and password are set with the following values in the fms.properties properties file (see next section if you plan to use a different user and passord): 
+Once the database has been created, you should create a user which will be used by the FM system to access and store data on the database. If you decide to use the **root** user you can skip this step, but you need to modify the `openbaton-fms.properties` file accordingly as defined in the next section. 
+By default username and password are set with the following values in the `openbaton-fms.properties` properties file (see next section if you plan to use a different user and password): 
 
 * username=fmsuser
 * password=changeme
@@ -42,30 +100,27 @@ Grant the access to the database "faultmanagement", to the user, running the fol
 GRANT ALL PRIVILEGES ON faultmanagement.* TO fmsuser@'%' IDENTIFIED BY 'changeme';
 ```
 
-## Modify fms.properties file in order to use different credentials for the database 
+## Modify openbaton-fms.properties file in order to use different credentials for the database 
 
-In the folder "etc" of this project, there is a file called fms.properties containing all the default properties values used by the FM system. 
+In order to use different credentials, you need to modify the following properties: 
 
-In order to use different credentials, you need to modify the following DB properties: 
-
-```bash
+```properties
 # DB properties
 spring.datasource.username=fmsuser
 spring.datasource.password=changeme
 ```
 
-In case your DB is running remotely, you can specifcy a different host, instead of localhost, in the following property (be careful to have port 3306 open and accessible from remote): 
+In case your database is running remotely, you can specify a different host, instead of localhost, in the following property (be careful to have port 3306 open and accessible from remote): 
 
-```bash
+```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/faultmanagement
 ```
 
-## Additional configurion options 
+## Additional configuration for the NFVO
 
-As already mentioned in the previous section, in the folder "etc" of this project, there is a file called fms.properties containing all the default properties values used by the FM system.
 You should update this file in order to make it work with your NFVO instance. Change the Open Baton related properties section: 
 
-```bash
+```properties
 ################################################
 ####### Open Baton Related properties ##########
 ################################################
@@ -73,34 +128,62 @@ nfvo.ip=localhost
 nfvo.port=8080
 nfvo-usr=admin
 nfvo-pwd=openbaton
+nfvo.ssl.enabled=false
+```
+## Configure the Service key
+
+The `openbaton-fms` authenticates to the NFVO through a service key which has to be set in the properties. You need to obtain the service key from the dashboard of the NFVO, 
+in particular you can set the service key with the following instructions:
+* Go to Admin->Services
+* Click on "Enable a new Service"
+* Input the name "fms"
+* Click on Role
+* Select "*" in the Project checkbox
+* Click Save
+* Open the downloaded file
+* Copy the service key in the `openbaton-fms.properties`:
+
+```properties
+fms.service.key=<SERVICE KEY>
 ```
 
+# Starting the Open Baton FM System
 
-## Checkout the source code of the project, compile and run it
+How to start the Open Baton FM System depends of the way you installed this component.
 
-You can clone this repository with this command:
+### Debian packages
 
-```bash  
-git clone https://github.com/openbaton/fm-system.git
+If you installed the Open Baton FM System with the Debian packages you can start it with the following command:
+
+```bash
+openbaton-fms start
 ```
 
-The configuration file is etc/fms.properties, you have to copy it in the Open Baton etc folder ( /etc/openbaton ). You can do it typing the following command 
+For stopping it you can just type:
 
-```bash  
-cd fm-system
-cp etc/fms.properties /etc/openbaton/fms.properties
+```bash
+openbaton-fms stop
 ```
 
-Now, you can finally compile and start the FM System. 
+### Source code
 
-```bash  
-./fm-system.sh compile start
+If you are using the source code you can start the Open Baton FM System easily with the following command from inside the repository folder:
+
+```bash
+cd build/install/openbaton-fms
+./bin/openbaton-fms start
 ```
 
+For stopping you can use:
+```bash
+./bin/openbaton-fms stop
+```
 
-# How to use Open Baton FM
+**Note** Since the Open Baton FM System subscribes to specific events towards the NFVO, you should take care about that the NFVO is already running when starting the `openbaton-fms`.
 
-Open Baton FM is a rule-driven tool. The rules define when to generate an alarm and how to react. The rule for generating the alarm is called fault management policy (see the next section). 
+# How to use Open Baton FM System
+
+Open Baton FMS is a rule-driven tool. The rules define when to generate an alarm and how to react. The rule for generating the alarm is called fault management policy (see the next section). 
 The rule for defining how to react upon alarms is a Drools Rule. Once such rules are in place, Open Baton FM follows the following workflow.      
 
 ![Fault management system use case][fault-management-system-use-case]
@@ -111,11 +194,10 @@ The actions are listed below:
 | ------------------- | --------------  | 
 | Heal   |  The VNFM executes the scripts in the Heal lifecycle event (in the VNFD). The message contains the cause of the fault, which can be used in the scripts. 
 | Switch to stanby VNFC (Stateless)   |  If the VDU requires redoundancy active-passive, there will be a component VNFC* in standby mode. This action consists in: activate the VNFC*, route all signalling and data flow(s) for VNFC to VNFC*, deactivate VNFC
-| Switch to stanby VNFC (Stateful)    |  To investigate. Refer on ETSI GS NFV-REL 001 v1.1.1 (2015-01) Chapter 11.2.1 
 
-## Write a fault management policy
+## Write a fault management policy for triggering the HEAL action
 
-The fault management policy need to be present in the VNFD, in particular in the VDU. This is an example of fault management policy:
+The fault management policy needs to be present in the VNFD, in particular in the VDU. This is an example of fault management policy:
 
 ```json
 "fault_management_policy":[
@@ -136,9 +218,11 @@ The fault management policy need to be present in the VNFD, in particular in the
     }
 ]
 ```
+
+The parameter `isVNFAlarm=true` tells the `openbaton-fms` that the alarm is of type VNF, and at default it will execute the HEAL action.
 Description of the fault management policy:  
 
-| Property              | Derscription     
+| Property              | Description     
 | ------------------- | --------------  
 | name   |  The name of the fault management policy.
 | isVNFAlarm   |  if the alarm is of type VNF
@@ -148,10 +232,10 @@ Description of the fault management policy:
 
 Description of the criteria:  
 
-| Property              | Derscription     
+| Property              | Description     
 | ------------------- | --------------  
 | parameter_ref | Reference to a monitoring parameter in the VDU. (see below how to define monitoring parameters)
-| function | The function to apply to the parameter. ( last(0) means the last value available of the parameter). Since currently only Zabbix is supported, look at the [Zabbix documentation][zabbix-functions] for the all available funcitons. 
+| function | The function to apply to the parameter. ( last(0) means the last value available of the parameter). Since currently only Zabbix is supported, look at the [Zabbix documentation][zabbix-functions] for the all available functions. 
 |vnfc_selector | select if the criteria is met when all VNFC components cross the thresold (all) or at least one (at_least_one)
 | comparison_operator | comparison operator for the threshold
 |threshold | value of the threshold to compare against the parameter_ref value
@@ -173,23 +257,8 @@ You can specify every parameter available for the [Zabbix Agent][zabbix-agent-it
 
 ## How the HEAL method works
 
-The Heal VNF operation is a method of the VNF lifecycle management interface described in the ETSI [NFV MANO] specification. Here is reported the description and the notes about this method:
-
-```
-Description: this operation is used to request appropriate correction actions in reaction to a failure.
-Notes: This assumes operational behaviour for healing actions by VNFM has been described in the VNFD. An example might be switching between active and standby mode.
-```
-
-In the ETSI draft "NFV-IFA007v040" at [this][etsi-draft-Or-VNFM] page, the Heal VNF message is defined as:
-
-```
-vnfInstanceId : Identifies the VNF instance requiring a healing action.
-cause : Indicates the reason why a healing procedure is required.
-```
-
-The fault management system as soon as gets an alarm from the VIM, 
-it checks if the alarm is referred to a VNF and it sends the Heal VNF message to the NFVO which forward it to the respective VNFM.
-The VNFM executes in the failed VNFC the scripts in the HEAL lifecycle event.
+The `openbaton-fms` as soon as it gets an alarm from the VIM, it checks if the alarm is referred to a VNF ("isVNFAlarm": true) and it sends the Heal VNF message to the NFVO which forwards it to the respective VNFM.
+The VNFM will then execute, in the failed VNFC, the scripts in the HEAL lifecycle event.
 Here an example of the heal script you can use:
 
 ```bash
@@ -218,7 +287,7 @@ The variable $cause is specified in the Drools rule. In our case is "serviceDown
 
 The Open Baton FM is a rule-based system. Such rules are specified in Drools language and processed by the Drools engine in the Open Baton FM.
 An example rule is the following:
-```
+```drools
 rule "Save a VNFAlarm"
     when
         vnfAlarm : VNFAlarm()
@@ -231,7 +300,7 @@ end
 This rule saves a VNFAlarm in the database.
 The following rule executes the HEAL action once a VNFAlarm is received.
 
-```
+```drools
 rule "Got a critical VNF Alarm and execute the HEAL action"
 
     when
@@ -263,7 +332,7 @@ end
 
 ## How the Switch to Standby works
 
-The Switch to Standby action can be performed by the Open Baton FM once a VNFC in stanby is present in the VNF. It consists in switch the service from a VNFC to the VNFC in stanby automatically.
+The Switch to Standby action can be performed by the Open Baton FM once a VNFC in standby is present in the VNF. It consists in switch the service from a VNFC to the VNFC in stanby automatically.
 In order to have a VNFC in standby, such information must be included in the VNFD, in particular in the VDU, as the following:
 
 ```
@@ -288,7 +357,9 @@ OpenBaton is an open source project providing a comprehensive implementation of 
 
 Open Baton is a ETSI NFV MANO compliant framework. Open Baton was part of the OpenSDNCore (www.opensdncore.org) project started almost three years ago by Fraunhofer FOKUS with the objective of providing a compliant implementation of the ETSI NFV specification. 
 
-Open Baton is easily extensible. It integrates with OpenStack, and provides a plugin mechanism for supporting additional VIM types. It supports Network Service management either using a generic VNFM or interoperating with VNF-specific VNFM. It uses different mechanisms (REST or PUB/SUB) for interoperating with the VNFMs. It integrates with additional components for the runtime management of a Network Service. For instance, it provides autoscaling and fault management based on monitoring information coming from the the monitoring system available at the NFVI level.
+Open Baton is easily extensible. It integrates with OpenStack, and provides a plugin mechanism for supporting additional VIM types. It supports Network Service management either using a generic VNFM or interoperating with VNF-specific VNFM. 
+It uses different mechanisms (REST or PUB/SUB) for interoperating with the VNFMs. It integrates with additional components for the runtime management of a Network Service. 
+For instance, it provides autoscaling and fault management based on monitoring information coming from the the monitoring system available at the NFVI level.
 
 # Source Code and documentation
 
@@ -336,7 +407,8 @@ following guidelines
 # Support
 The Open Baton project provides community support through the Open Baton Public Mailing List and through StackOverflow using the tags openbaton.
 
-
+[spring-boot]:http://projects.spring.io/spring-boot/
+[fms-repo]:https://github.com/openbaton/openbaton-fms
 [openbaton]: http://openbaton.org
 [openbaton-doc]: http://openbaton.org/documentation
 [openbaton-github]: http://github.org/openbaton

@@ -85,6 +85,7 @@ public class Starter implements CommandLineRunner, ApplicationListener<ContextCl
               rabbitmqUsr,
               rabbitmqPwd,
               Integer.parseInt(rabbitmqPort),
+              "/",
               monitoringPluginType,
               monitoringPluginName,
               rabbitmqManagementPort,

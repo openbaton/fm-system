@@ -16,6 +16,7 @@
 
 package org.openbaton.faultmanagement.requestor.interfaces;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import org.openbaton.catalogue.mano.descriptor.VNFComponent;
@@ -29,31 +30,39 @@ import org.openbaton.sdk.api.exception.SDKException;
 
 /** Created by mob on 11.01.16. */
 public interface NFVORequestorWrapper {
-  NetworkServiceRecord getNsr(String nsrId) throws ClassNotFoundException, SDKException;
+  NetworkServiceRecord getNsr(String nsrId)
+      throws ClassNotFoundException, SDKException, FileNotFoundException;
 
-  List<NetworkServiceRecord> getNsrs() throws ClassNotFoundException, SDKException;
+  List<NetworkServiceRecord> getNsrs()
+      throws ClassNotFoundException, SDKException, FileNotFoundException;
 
   VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId, String vnfrId)
-      throws NotFoundException, SDKException, ClassNotFoundException;
+      throws NotFoundException, SDKException, ClassNotFoundException, FileNotFoundException;
 
-  VNFCInstance getVNFCInstance(String hostname) throws SDKException, ClassNotFoundException;
+  VNFCInstance getVNFCInstance(String hostname)
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
-  VNFCInstance getVNFCInstanceById(String VnfcId) throws SDKException, ClassNotFoundException;
+  VNFCInstance getVNFCInstanceById(String VnfcId)
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
   VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String vnfrId)
-      throws SDKException, ClassNotFoundException;
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
   VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecordFromVNFCHostname(String hostname)
-      throws SDKException, ClassNotFoundException;
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
   VNFCInstance getVNFCInstanceFromVnfr(VirtualNetworkFunctionRecord vnfr, String vnfcInstaceId);
 
   VirtualDeploymentUnit getVDU(VirtualNetworkFunctionRecord vnfr, String vnfcInstaceId);
 
-  String subscribe(EventEndpoint eventEndpoint) throws SDKException, ClassNotFoundException;
+  String subscribe(String projectId, EventEndpoint eventEndpoint)
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
+
+  String subscribe(EventEndpoint eventEndpoint)
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
   void deleteVnfcInstance(String nsrId, String vnfrId, String vduId, String vnfcInstanceId)
-      throws SDKException, ClassNotFoundException;
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
   void createStandbyVNFCInstance(
       String nsrId,
@@ -61,7 +70,7 @@ public interface NFVORequestorWrapper {
       String vduId,
       VNFComponent vnfComponent,
       ArrayList<String> vimInstanceNames)
-      throws SDKException, ClassNotFoundException;
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
   void switchToStandby(
       String nsrId,
@@ -69,11 +78,11 @@ public interface NFVORequestorWrapper {
       String vduId,
       String standbyVnfcId,
       VNFCInstance failedVnfcInstance)
-      throws SDKException, ClassNotFoundException;
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
   void executeHeal(
       String nsrId, String vnfrId, String vduId, String failedVnfcInstanceId, String cause)
-      throws SDKException, ClassNotFoundException;
+      throws SDKException, ClassNotFoundException, FileNotFoundException;
 
-  void unSubscribe(String id) throws SDKException, ClassNotFoundException;
+  void unSubscribe(String id) throws SDKException, ClassNotFoundException, FileNotFoundException;
 }
