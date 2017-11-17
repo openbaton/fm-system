@@ -64,7 +64,8 @@ task makeDeb(type: Deb, dependsOn: [jar, build, logDebianPackageJavaDependency])
     }
 
     requires('mysql-server')
-    requires('openbaton-plugin-monitoring-zabbix')
+    // the flag 4 is for openbaton-plugin-monitoring-zabbix greater than 4.0.0
+    requires('openbaton-plugin-monitoring-zabbix', '4.0.0', 4)
 
     // Copy files from "from path" to "into path"
     from("src/main/resources/application.properties") {                                                                         // properties file
