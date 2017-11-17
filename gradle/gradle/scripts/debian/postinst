@@ -74,6 +74,14 @@ configure_rabbitmq () {
         export rabbitmq_management_port=${rabbitmq_management_port}
         sed -i "s|spring.rabbitmq.port\s*=\s*15672|spring.rabbitmq.port=${rabbitmq_management_port}|g" ${OPENBATON_BASE_CONFIG_DIR}/${OPENBATON_COMPONENT_CONFIG_FILE}
     fi
+
+    # Set the RabbitMQ password retrieving its value from the NFVO properties file
+    rabbitmq_password=$( awk '$0 ~ "spring.rabbitmq.password[[:space:]]*="' "${OPENBATON_BASE_CONFIG_DIR}/${OPENBATON_NFVO_CONFIG_FILE}" | awk -F'=' '{print $2}' )
+    if [ ! -z ${rabbitmq_password+x} ] ; then # The empty string is considered as unset
+        log_success_msg "Setting RabbitMQ password into Fault Management System: ****"
+        export rabbitmq_password=${rabbitmq_password}
+        sed -i "s|spring.rabbitmq.password\s*=\s*.*|spring.rabbitmq.password=${rabbitmq_password}|g" ${OPENBATON_BASE_CONFIG_DIR}/${OPENBATON_COMPONENT_CONFIG_FILE}
+    fi
 }
 
 configure_nfvo () {
