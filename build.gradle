@@ -21,7 +21,7 @@ buildscript {
 plugins {
     id 'com.github.sherter.google-java-format' version '0.5'
     id 'net.researchgate.release' version '2.3.4'
-    id 'nebula.os-package' version '2.2.6'
+    id 'nebula.ospackage' version '4.5.1'
     id 'org.springframework.boot' version '1.5.8.RELEASE'
 }
 
