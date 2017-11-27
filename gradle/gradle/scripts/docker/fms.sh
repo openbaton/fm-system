@@ -12,7 +12,7 @@ if [ -z "$FMS_SERVICE_KEY" ];then
     SERVICE_KEY=$(openbaton -pid "$PID" -u "$USER" -p "$PASS" -ip "$NFVO_IP" --nfvo-port "$NFVO_PORT" service create '{"name":"fms", "roles":["*"]}')
 
     export FMS_SERVICE_KEY="$SERVICE_KEY"
-    sed -i "s/fms.service.key =/fms.service.key=$SERVICE_KEY/g" /etc/openbaton/openbaton-fms.properties
+    sed -i "s/fms.service.key=/fms.service.key=$SERVICE_KEY/g" /etc/openbaton/openbaton-fms.properties
 fi
 
 exec java -jar /fms.jar --spring.config.location=file:/etc/openbaton/openbaton-fms.properties
