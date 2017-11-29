@@ -18,7 +18,7 @@ source ./gradle.properties
 _version=${version}
 _config_file=/etc/openbaton/openbaton-fms.properties
 _app_name=openbaton-fms
-_screen_name="openbaton"
+_screen_session_name="openbaton"
 
 function checkBinary {
   if command -v $1 >/dev/null 2>&1; then
@@ -88,11 +88,11 @@ function start_checks {
 
 function start {
     start_checks
-    screen_exists=$(screen -ls | grep ${_screen_name} | wc -l);
+    screen_exists=$(screen -ls | grep "\.${_screen_session_name}" | wc -l);
     if [ "${screen_exists}" -eq 0 ]; then
-        screen -c screenrc -d -m -S ${_screen_name} -t ${_app_name} java -jar "build/libs/${_app_name}-$_version.jar" --spring.config.location=file:${_config_file}
+        screen -c screenrc -d -m -S ${_screen_session_name} -t ${_app_name} java -jar "build/libs/${_app_name}-$_version.jar" --spring.config.location=file:${_config_file}
     else
-        screen -S $_screen_name -p 0 -X screen -t ${_app_name} java -jar "build/libs/${_app_name}-$_version.jar" --spring.config.location=file:${_config_file}
+        screen -S ${_screen_session_name} -p 0 -X screen -t ${_app_name} java -jar "build/libs/${_app_name}-$_version.jar" --spring.config.location=file:${_config_file}
     fi
 }
 
