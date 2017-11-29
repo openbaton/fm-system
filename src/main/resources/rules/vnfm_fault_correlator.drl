@@ -58,7 +58,7 @@ end
 rule "Get a CRITICAL Virtualized Resource Alarm and switch to standby"
 
     when
-        a : VRAlarm( thresholdId : thresholdId, hostname : managedObject, alarmState == AlarmState.FIRED,
+        a : VRAlarm( hostname : managedObject, alarmState == AlarmState.FIRED,
         perceivedSeverity == PerceivedSeverity.CRITICAL)
         not RecoveryAction(status == RecoveryActionStatus.IN_PROGRESS)
     then
