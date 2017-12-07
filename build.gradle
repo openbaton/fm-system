@@ -49,12 +49,7 @@ apply from: 'gradle/gradle/packaging.fms.docker.gradle'
 apply from: 'gradle/gradle/git.release.gradle'
 
 project.ext{
-    //------------------------------------------------//
-    /**
-     * gradle Related Vars
-     */
-    openbatonVersion = '5.0.0'
-    //------------------------------------------------//
+    openbatonVersion = '5.1.0'
     //------------------------------------------------//
     /**
      * Application Related Version
@@ -67,7 +62,6 @@ project.ext{
 
     applicationVersionSnapshot = (!applicationRelease) ? ".${asUTC(applicationDate, 'yyyyMMdd')}.git${applicationRevision}" : ""
     applicationVersionFull = "${applicationVersion}${applicationVersionSnapshot}"
-
     //------------------------------------------------//
 }
 apply from: 'gradle/gradle/packaging.fms.debian.gradle'
@@ -78,7 +72,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
     compile 'org.springframework.boot:spring-boot-starter-amqp'
 
-    compile 'org.openbaton:sdk:' + openbatonVersion
+    compile 'org.openbaton:sdk:' + "5.0.0"
     compile 'org.openbaton:monitoring:' + openbatonVersion
     compile 'org.openbaton:catalogue:' + openbatonVersion
 
