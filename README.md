@@ -100,7 +100,7 @@ Grant the access to the database "faultmanagement", to the user, running the fol
 GRANT ALL PRIVILEGES ON faultmanagement.* TO fmsuser@'%' IDENTIFIED BY 'changeme';
 ```
 
-## Modify openbaton-fms.properties file in order to use different credentials for the database 
+## (optional) Modify openbaton-fms.properties file in order to use different credentials for the database 
 
 In order to use different credentials, you need to modify the following properties: 
 
@@ -116,7 +116,7 @@ In case your database is running remotely, you can specify a different host, ins
 spring.datasource.url=jdbc:mysql://localhost:3306/faultmanagement
 ```
 
-## Additional configuration for the NFVO
+## (optional) Additional configuration for the NFVO
 
 You should update this file in order to make it work with your NFVO instance. Change the Open Baton related properties section: 
 
@@ -179,7 +179,7 @@ For stopping you can use:
 ./bin/openbaton-fms stop
 ```
 
-**Note** Since the Open Baton FM System subscribes to specific events towards the NFVO, you should take care about that the NFVO is already running when starting the `openbaton-fms`.
+**Note:** Since `openbaton-fms` subscribes to specific events towards the NFVO, you should take care about that the NFVO is already running when starting the `openbaton-fms`.
 
 # How to use Open Baton FM System
 
