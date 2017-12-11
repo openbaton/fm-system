@@ -70,7 +70,7 @@ rule "Get a managed VR alarm and create a VNF alarm"
 
         delete(a);
         insert(vnfAlarm);
-        logger.debug("VNF alarm!");
+        logger.info("VNF alarm received from VNF: "+vnfr.getName());
 end
 
 rule "Ignore VR alarms of failed VNFC Instances"

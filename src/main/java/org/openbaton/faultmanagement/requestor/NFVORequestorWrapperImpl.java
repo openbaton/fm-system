@@ -77,7 +77,6 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
           "Service key is null. Please get the service key from the NFVO and copy it to the property fms.service.key");
       System.exit(1);
     }
-    log.debug("service-key lenght: " + serviceKey.length());
     try {
       this.nfvoRequestor =
           new NFVORequestor("fms", "", nfvoIp, nfvoPort, "1", sslEnabled, serviceKey.trim());
@@ -98,7 +97,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   @Override
   public boolean nsrExists(String nsrId) throws SDKException, FileNotFoundException {
     nfvoRequestor.setProjectId(getProjectId(nsrId));
-    boolean result = false;
+    boolean result;
     try {
       result = nfvoRequestor.getNetworkServiceRecordAgent().findById(nsrId) != null;
     } catch (SDKException sdke) {
