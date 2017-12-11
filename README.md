@@ -332,7 +332,7 @@ end
 
 ## How the Switch to Standby works
 
-The Switch to Standby action can be performed by the Open Baton FM once a VNFC in standby is present in the VNF. It consists in switch the service from a VNFC to the VNFC in stanby automatically.
+The Switch to Standby action can be performed by the `openbaton-fms` once a VNFC in standby is present in the VNF. It consists in switching the service from the failing VNFC to the standby VNFC automatically.
 In order to have a VNFC in standby, such information must be included in the VNFD, in particular in the VDU, as the following:
 
 ```
@@ -341,11 +341,15 @@ In order to have a VNFC in standby, such information must be included in the VNF
 	"redundancyScheme":"1:N"
 }
 ```
-This information will be processed by the Open Baton FM which will create a VNFC instance in standby.
+This information will be processed by the `openbaton-fms` which will create a VNFC instance in standby.
 Then in a Drools rule this action can be called as following:
 ```
 highAvailabilityManager.switchToRedundantVNFC(failedVnfcInstance,vnfr,vdu);
 ```
+
+# Tutorial
+
+You can follow the tutorial at this page: http://openbaton.github.io/documentation/fms-sipp-tutorial/
 
 # Issue tracker
 
