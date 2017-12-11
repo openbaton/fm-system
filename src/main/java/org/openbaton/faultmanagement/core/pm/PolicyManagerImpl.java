@@ -18,7 +18,9 @@ package org.openbaton.faultmanagement.core.pm;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.openbaton.catalogue.mano.common.faultmanagement.FaultManagementPolicy;
 import org.openbaton.catalogue.mano.descriptor.VirtualDeploymentUnit;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
@@ -141,6 +143,18 @@ public class PolicyManagerImpl implements PolicyManager {
   @Override
   public boolean isNSRManaged(String id) {
     return mnsrRepo.findByNsrId(id) != null;
+  }
+
+  @Override
+  public void cleanUnmanagedNsrs() throws FileNotFoundException, SDKException {
+    Set<String> mnsrToRemove = new HashSet<>();
+    for (ManagedNetworkServiceRecord mnsr : mnsrRepo.findAll()) {
+      if (!nfvoRequestorWrapper.nsrExists(mnsr.getNsrId())) mnsrToRemove.add(mnsr.getId());
+    }
+    for (String mnsrIdToRemove : mnsrToRemove) {
+      log.debug("Cleaning mnsr for not existing nsr");
+      mnsrRepo.delete(mnsrIdToRemove);
+    }
   }
 
   @Override

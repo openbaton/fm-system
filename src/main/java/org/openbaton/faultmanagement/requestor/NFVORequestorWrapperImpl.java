@@ -95,6 +95,20 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
     return nfvoRequestor.getNetworkServiceRecordAgent().findById(nsrId);
   }
 
+  @Override
+  public boolean nsrExists(String nsrId) throws SDKException, FileNotFoundException {
+    nfvoRequestor.setProjectId(getProjectId(nsrId));
+    boolean result = false;
+    try {
+      result = nfvoRequestor.getNetworkServiceRecordAgent().findById(nsrId) != null;
+    } catch (SDKException sdke) {
+      if (sdke.getReason().contains("404")) {
+        return false;
+      } else throw sdke;
+    }
+    return result;
+  }
+
   private String getProjectId(String nsrId) {
     String projectId = null;
     try {

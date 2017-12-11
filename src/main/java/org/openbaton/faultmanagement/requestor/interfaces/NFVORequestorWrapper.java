@@ -33,6 +33,8 @@ public interface NFVORequestorWrapper {
   NetworkServiceRecord getNsr(String nsrId)
       throws ClassNotFoundException, SDKException, FileNotFoundException;
 
+  boolean nsrExists(String nsrId) throws SDKException, FileNotFoundException;
+
   List<NetworkServiceRecord> getNsrs()
       throws ClassNotFoundException, SDKException, FileNotFoundException;
 

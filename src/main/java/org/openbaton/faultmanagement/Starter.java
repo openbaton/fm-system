@@ -1,5 +1,6 @@
 package org.openbaton.faultmanagement;
 
+import java.io.FileNotFoundException;
 import org.openbaton.catalogue.mano.record.NetworkServiceRecord;
 import org.openbaton.faultmanagement.core.mm.interfaces.MonitoringManager;
 import org.openbaton.faultmanagement.core.pm.interfaces.PolicyManager;
@@ -117,8 +118,9 @@ public class Starter implements CommandLineRunner, ApplicationListener<ContextCl
   public void onApplicationEvent(ContextClosedEvent event) {
     //unsubscribe to NFVO
     try {
+      policyManager.cleanUnmanagedNsrs();
       eventSubscriptionManger.unSubscribeToNFVO();
-    } catch (SDKException | ClassNotFoundException e) {
+    } catch (SDKException | ClassNotFoundException | FileNotFoundException e) {
       log.error("Unsubsctiption to NFVO failed: " + e.getMessage());
     }
   }

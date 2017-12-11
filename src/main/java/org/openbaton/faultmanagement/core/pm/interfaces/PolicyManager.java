@@ -34,6 +34,8 @@ public interface PolicyManager {
 
   boolean isNSRManaged(String id);
 
+  void cleanUnmanagedNsrs() throws FileNotFoundException, SDKException;
+
   boolean isAVNFAlarm(String id);
 
   boolean isAManagedAlarm(String triggerId);

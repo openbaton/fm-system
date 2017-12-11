@@ -134,17 +134,15 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManger {
         unSubscribe(unsubscriptionIdINSTANTIATE_FINISH);
       if (unsubscriptionIdRELEASE_RESOURCES_FINISH != null)
         unSubscribe(unsubscriptionIdRELEASE_RESOURCES_FINISH);
-
-      log.debug("unsubscribing vnf event subscriptions");
-      for (ManagedNetworkServiceRecord mnsr : mnsrRepo.findAll())
+      for (ManagedNetworkServiceRecord mnsr : mnsrRepo.findAll()) {
         for (String unsubscriptionId : mnsr.getUnSubscriptionIds()) {
           unSubscribe(unsubscriptionId);
         }
-
-    } catch (SDKException | ClassNotFoundException e) {
-      log.error("The NFVO is not available for unsubscriptions: " + e.getMessage(), e);
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      }
+    } catch (Exception e) {
+      if (log.isDebugEnabled())
+        log.error("The NFVO is not available for unsubscriptions: " + e.getMessage(), e);
+      else log.error("The NFVO is not available for unsubscriptions: " + e.getMessage());
     }
   }
 }
