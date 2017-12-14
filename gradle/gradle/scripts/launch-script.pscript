@@ -53,22 +53,27 @@ configure () {
 start_fg () {
     configure
     echo "Starting $APP_NAME"
-    if [[ $START_COMMAND == *"--spring.config.location=file:"* ]]; then
-        $JAVACMD $START_COMMAND
+    # Check if an external config file is provided
+    if [ "${START_COMMAND/--spring.config.location=file:}" = "$START_COMMAND" ] ; then
+      # external config file not provided, so use the default
+      $JAVACMD $START_COMMAND --spring.config.location=file:$DEFAULT_CONFIG_FILE_PATH
     else
-        $JAVACMD $START_COMMAND --spring.config.location=file:$DEFAULT_CONFIG_FILE_PATH
+      # external config file provided
+      $JAVACMD $START_COMMAND
     fi
 }
 
 start () {
     configure
     echo "Starting $APP_NAME"
-
-    if [[ $START_COMMAND == *"--spring.config.location=file:"* ]]; then
-      nohup $JAVACMD $START_COMMAND > /dev/null 2>&1 &
+    # Check if an external config file is provided
+    if [ "${START_COMMAND/--spring.config.location=file:}" = "$START_COMMAND" ] ; then
+      # external config file not provided, so use the default
+      nohup $JAVACMD $START_COMMAND --spring.config.location=file:$DEFAULT_CONFIG_FILE_PATH > /dev/null 2>&1 &
       echo $! > $PID_FILE
     else
-      nohup $JAVACMD $START_COMMAND --spring.config.location=file:$DEFAULT_CONFIG_FILE_PATH > /dev/null 2>&1 &
+      # external config file provided
+      nohup $JAVACMD $START_COMMAND > /dev/null 2>&1 &
       echo $! > $PID_FILE
     fi
 
