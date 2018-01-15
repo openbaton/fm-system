@@ -16,7 +16,6 @@
 
 package org.openbaton.faultmanagement.requestor;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
@@ -32,6 +31,7 @@ import org.openbaton.catalogue.nfvo.messages.VnfmOrHealedMessage;
 import org.openbaton.catalogue.security.Project;
 import org.openbaton.faultmanagement.requestor.interfaces.NFVORequestorWrapper;
 import org.openbaton.sdk.NFVORequestor;
+import org.openbaton.sdk.NfvoRequestorBuilder;
 import org.openbaton.sdk.api.exception.SDKException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +53,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   private String nfvoIp;
 
   @Value("${nfvo.port:8080}")
-  private String nfvoPort;
+  private int nfvoPort;
 
   @Value("${nfvo.ssl.enabled:false}")
   private boolean sslEnabled;
@@ -79,7 +79,13 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
     }
     try {
       this.nfvoRequestor =
-          new NFVORequestor("fms", "", nfvoIp, nfvoPort, "1", sslEnabled, serviceKey.trim());
+          NfvoRequestorBuilder.create()
+              .nfvoIp(nfvoIp)
+              .nfvoPort(nfvoPort)
+              .sslEnabled(sslEnabled)
+              .serviceName("fms")
+              .serviceKey(serviceKey.trim())
+              .build();
     } catch (SDKException e) {
       if (log.isDebugEnabled()) log.error(e.getMessage(), e);
       else log.error(e.getMessage());
@@ -88,14 +94,13 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   }
 
   @Override
-  public NetworkServiceRecord getNsr(String nsrId)
-      throws ClassNotFoundException, SDKException, FileNotFoundException {
+  public NetworkServiceRecord getNsr(String nsrId) throws SDKException {
     nfvoRequestor.setProjectId(getProjectId(nsrId));
     return nfvoRequestor.getNetworkServiceRecordAgent().findById(nsrId);
   }
 
   @Override
-  public boolean nsrExists(String nsrId) throws SDKException, FileNotFoundException {
+  public boolean nsrExists(String nsrId) throws SDKException {
     nfvoRequestor.setProjectId(getProjectId(nsrId));
     boolean result;
     try {
@@ -118,8 +123,6 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       }
     } catch (SDKException e) {
       log.warn("Problem while fetching existing NSRs from the NFVO", e);
-    } catch (FileNotFoundException e) {
-      log.error(e.getMessage(), e);
     }
     return projectId;
   }
@@ -134,15 +137,13 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       }
     } catch (SDKException e) {
       log.warn("Problem while fetching existing NSRs from the NFVO", e);
-    } catch (FileNotFoundException e) {
-      log.error(e.getMessage(), e);
     }
     return nsrs;
   }
 
   @Override
   public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String nsrId, String vnfrId)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
+      throws SDKException {
     nfvoRequestor.setProjectId(getProjectId(nsrId));
     return nfvoRequestor
         .getNetworkServiceRecordAgent()
@@ -151,7 +152,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
 
   @Override
   public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecord(String vnfrId)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
+      throws SDKException {
     for (NetworkServiceRecord nsr : getNsrs()) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
         if (vnfr.getId().equals(vnfrId)) return vnfr;
@@ -162,7 +163,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
 
   @Override
   public VirtualNetworkFunctionRecord getVirtualNetworkFunctionRecordFromVNFCHostname(
-      String hostname) throws SDKException, ClassNotFoundException, FileNotFoundException {
+      String hostname) {
     List<NetworkServiceRecord> nsrs = getNsrs();
     for (NetworkServiceRecord nsr : nsrs) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
@@ -198,32 +199,28 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   }
 
   @Override
-  public String subscribe(String projectId, EventEndpoint eventEndpoint)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
+  public String subscribe(String projectId, EventEndpoint eventEndpoint) throws SDKException {
     nfvoRequestor.setProjectId(projectId);
     return nfvoRequestor.getEventAgent().create(eventEndpoint).getId();
   }
 
   @Override
-  public String subscribe(EventEndpoint eventEndpoint)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
+  public String subscribe(EventEndpoint eventEndpoint) {
     String subscriptionId = null;
     try {
       for (Project project : nfvoRequestor.getProjectAgent().findAll()) {
         nfvoRequestor.setProjectId(project.getId());
         subscriptionId = nfvoRequestor.getEventAgent().create(eventEndpoint).getId();
       }
-    } catch (SDKException e) {
-      log.warn("Problem while fetching existing NSRs from the NFVO", e);
-    } catch (FileNotFoundException e) {
-      log.error(e.getMessage(), e);
+    } catch (Exception e) {
+      log.error("Problem while fetching existing NSRs from the NFVO", e);
     }
     return subscriptionId;
   }
 
   @Override
   public void deleteVnfcInstance(String nsrId, String vnfrId, String vduId, String vnfcInstanceId)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
+      throws SDKException {
     nfvoRequestor.setProjectId(getProjectId(nsrId));
     nfvoRequestor
         .getNetworkServiceRecordAgent()
@@ -237,7 +234,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
       String vduId,
       VNFComponent vnfComponent,
       ArrayList<String> vimInstanceNames)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
+      throws SDKException {
     //setProjectId();
     log.debug("sending: vnf component: " + vnfComponent);
     log.debug("sending: vimInstanceNames: " + vimInstanceNames);
@@ -249,7 +246,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   @Override
   public void switchToStandby(
       String nsrId, String vnfrId, String vduId, String vnfcId, VNFCInstance failedVnfcInstance)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
+      throws SDKException {
     nfvoRequestor.setProjectId(getProjectId(nsrId));
     nfvoRequestor
         .getNetworkServiceRecordAgent()
@@ -257,14 +254,13 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   }
 
   @Override
-  public void unSubscribe(String id)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
+  public void unSubscribe(String id) throws SDKException {
     nfvoRequestor.getEventAgent().delete(id);
   }
 
   public void executeHeal(
       String nsrId, String vnfrId, String vduId, String failedVnfcInstanceId, String cause)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
+      throws SDKException {
     NFVMessage nfvMessage = getHealMessage(cause);
     nfvoRequestor.setProjectId(getProjectId(nsrId));
     nfvoRequestor
@@ -280,9 +276,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   }
 
   @Override
-  public VNFCInstance getVNFCInstance(String hostname)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
-
+  public VNFCInstance getVNFCInstance(String hostname) {
     List<NetworkServiceRecord> nsrs = getNsrs();
     for (NetworkServiceRecord nsr : nsrs) {
       for (VirtualNetworkFunctionRecord vnfr : nsr.getVnfr()) {
@@ -297,8 +291,7 @@ public class NFVORequestorWrapperImpl implements NFVORequestorWrapper {
   }
 
   @Override
-  public VNFCInstance getVNFCInstanceById(String VnfcId)
-      throws SDKException, ClassNotFoundException, FileNotFoundException {
+  public VNFCInstance getVNFCInstanceById(String VnfcId) {
 
     List<NetworkServiceRecord> nsrs = getNsrs();
     for (NetworkServiceRecord nsr : nsrs) {
