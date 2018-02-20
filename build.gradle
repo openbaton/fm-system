@@ -49,7 +49,7 @@ apply from: 'gradle/gradle/packaging.fms.docker.gradle'
 apply from: 'gradle/gradle/git.release.gradle'
 
 project.ext{
-    openbatonVersion = '5.1.2'
+    openbatonVersion = '5.2.0'
     //------------------------------------------------//
     /**
      * Application Related Version
